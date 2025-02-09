@@ -49,7 +49,7 @@ class MainGameScene extends Phaser.Scene {
       volume: 0.1,
     });
 
-    new StartQuestionButton(this, this.scale.width / 2, this.scale.height / 2);
+    new StartQuestionButton(this);
 
   }
 }

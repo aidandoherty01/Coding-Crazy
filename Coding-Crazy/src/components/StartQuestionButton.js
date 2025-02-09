@@ -1,17 +1,22 @@
 import Phaser from "phaser";
 
 class StartQuestionButton extends Phaser.GameObjects.Container {
-  constructor(scene, x, y) {
-    super(scene, x, y);
+  constructor(scene) {
+    super(scene);
+
     this.scene = scene;
 
-    // Button dimensions
-    const buttonWidth = 220;
-    const buttonHeight = 60;
+    // Small square button dimensions
+    const buttonSize = 30;
+    const margin = 20; // Space from the edges
 
-    // Create button background (rectangle)
-    this.buttonBg = scene.add.rectangle(0, 0, buttonWidth, buttonHeight, 0x1e1e1e)
-      .setStrokeStyle(3, 0xffffff)
+    // Position at the top-right of the screen
+    const buttonX = scene.scale.width - buttonSize - margin;
+    const buttonY = margin + buttonSize / 2; // Keep it aligned
+
+    // Create a small square button background
+    this.buttonBg = scene.add.rectangle(buttonX, buttonY, buttonSize, buttonSize, 0x1e1e1e)
+      .setStrokeStyle(3, 0xffffff) // White border
       .setInteractive()
       .on("pointerdown", () => {
         scene.scene.pause();
@@ -19,19 +24,17 @@ class StartQuestionButton extends Phaser.GameObjects.Container {
       })
       .on("pointerover", () => {
         this.buttonBg.setFillStyle(0x333333); // Darker hover effect
-        this.buttonText.setStyle({ fill: "#f1c40f" }); // Gold text
       })
       .on("pointerout", () => {
         this.buttonBg.setFillStyle(0x1e1e1e); // Default color
-        this.buttonText.setStyle({ fill: "#ffffff" }); // Default text
       });
 
-    // Create button text
-    this.buttonText = scene.add.text(0, 0, "Start Questions", {
-      fontSize: "28px",
+    // Add a "❓" icon
+    this.buttonText = scene.add.text(buttonX, buttonY, "❓", {
+      fontSize: "20px",
       fill: "#ffffff",
       fontFamily: "Arial",
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5, 0.5); // Center the text inside the button
 
     // Add both elements to the container
     this.add(this.buttonBg);
