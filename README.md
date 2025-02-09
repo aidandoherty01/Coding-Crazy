@@ -20,6 +20,7 @@ Follow these steps to set up and run the project locally.
 git clone https://github.com/aidandoherty01/Coding-Crazy.git
 cd Coding-Crazy
 npm install latest
+npm install phaser
 npm run dev
 
 ```
