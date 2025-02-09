@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import MainGameScene from "./scenes/MainGameScene";
 import QuestionScene from "./scenes/QuestionScene";
-import StartQuestionButton from "./components/StartQuestionButton";
 
 const Game = () => {
   const gameRef = useRef(null);
