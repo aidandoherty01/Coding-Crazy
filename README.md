@@ -16,11 +16,11 @@ Follow these steps to set up and run the project locally.
 
 - `git clone  https://github.com/aidandoherty01/Coding-Crazy.git`
 
-- `cd Coding-Crazy`
+- `cd Coding-Crazy/Coding-Crazy`
 
 - `npm install`
 
-- `npm run  dev`
+- `npm run dev`
 
 You should see ouput like this:
 
