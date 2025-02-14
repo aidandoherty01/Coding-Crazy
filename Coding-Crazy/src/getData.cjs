@@ -1,11 +1,16 @@
 const { MongoClient } = require('mongodb'); // allows JS to connect to MongoDB
 const fs = require('fs');   // enables JS to interact with the filesystem
 
+/* TODO: FIGURE OUT HOW TO CALL SPECIFIC COLLECTION BASED OFF USER INPUT (E.G., PICK ONLY OS QUESTIONS) */
+const uri = 'mongodb+srv://Admin:Password@study-studio.htgro.mongodb.net/?retryWrites=true&w=majority&appName=Study-Studio';
+const dbName = 'Database';
+const collectionName = 'Collection';
+const filePath = './data/exported_data.json';
 /*  Input Parameters:
-    - uri: Connection String
-    - dbName: Name of the Database
-    - collectionName: Name of the subset of data
-    - filePath: Where the json file will be written
+- uri: Connection String
+- dbName: Name of the Database
+- collectionName: Name of the subset of data
+- filePath: Where the json file will be written
 */
 async function exportCollectionToJson(uri, dbName, collectionName, filePath) {  // async requires the function to return a 'promise' [https://www.w3schools.com/js/js_promise.asp]
   const client = new MongoClient(uri, { monitorCommands : true });  // Initialize MongoClient class (with debugging enabled)
@@ -26,16 +31,10 @@ async function exportCollectionToJson(uri, dbName, collectionName, filePath) {  
     fs.writeFileSync(filePath, jsonData);
     console.log(`Data from '${collectionName}' exported to '${filePath}'`);
   } catch (err) {
-    console.error('Error exporting data:', err);
+    console.error('Error importing data:', err);
   } finally {
     await client.close();
   }
 }
-
-/* TODO: FIGURE OUT HOW TO CALL SPECIFIC COLLECTION BASED OFF USER INPUT (E.G., PICK ONLY OS QUESTIONS) */
-const uri = 'mongodb+srv://Admin:Password@study-studio.htgro.mongodb.net/?retryWrites=true&w=majority&appName=Study-Studio';
-const dbName = 'Database';
-const collectionName = 'Collection';
-const filePath = './data/exported_data.json';
 
 exportCollectionToJson(uri, dbName, collectionName, filePath);
