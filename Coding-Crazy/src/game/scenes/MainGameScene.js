@@ -1,6 +1,11 @@
 import Phaser from "phaser";
+<<<<<<< HEAD:Coding-Crazy/src/scenes/MainGameScene.js
 import StartQuestionButton from "../components/StartQuestionButton";
 import { EventBus } from "../game/EventBus";
+=======
+import StartQuestionButton from "../../components/StartQuestionButton";
+import { EventBus } from "../EventBus";
+>>>>>>> develop:Coding-Crazy/src/game/scenes/MainGameScene.js
 
 class MainGameScene extends Phaser.Scene {
   constructor() {
