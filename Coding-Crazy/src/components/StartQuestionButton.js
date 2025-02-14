@@ -4,6 +4,7 @@ class StartQuestionButton extends Phaser.GameObjects.Container {
   constructor(scene) {
     super(scene);
 
+    // Store a reference to the scene
     this.scene = scene;
 
     // Small square button dimensions
@@ -19,8 +20,12 @@ class StartQuestionButton extends Phaser.GameObjects.Container {
       .setStrokeStyle(3, 0xffffff) // White border
       .setInteractive()
       .on("pointerdown", () => {
-        scene.scene.pause();
-        scene.scene.launch("QuestionScene");
+        if (scene.scene.isActive("QuestionScene")) {
+          this.scene.stop("QuestionScene");
+          this.scene.start("QuestionScene");
+        } else {
+          scene.scene.launch("QuestionScene");
+        }
       })
       .on("pointerover", () => {
         this.buttonBg.setFillStyle(0x333333); // Darker hover effect

@@ -7,6 +7,10 @@ const Game = () => {
   const gameRef = useRef(null);
 
   useEffect(() => {
+    // Check if the game ref is available
+    if (!gameRef.current) return;
+
+    // Create a new Phaser game
     const config = {
       type: Phaser.AUTO,
       width: 1024,

@@ -1,6 +1,6 @@
 [
   {
-    "path": "assets/axulart/character",
+      "path": "assets/character",
     "files": [
       {
         "type": "spritesheet",
@@ -11,7 +11,7 @@
     ]
   },
   {
-    "path": "assets/battle-backgrounds",
+    "path": "assets/images/battle-backgrounds",
     "files": [
       {
         "type": "image",

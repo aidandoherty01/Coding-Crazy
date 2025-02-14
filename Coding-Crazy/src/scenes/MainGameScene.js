@@ -7,7 +7,7 @@ class MainGameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.pack("asset_pack", "/assets/assets.json");
+    this.load.pack("asset_pack", "../assets/assets.json");
   }
 
   create() {
@@ -43,14 +43,7 @@ class MainGameScene extends Phaser.Scene {
       this.add.image(x, y, "player", frame).setOrigin(0);
     });
 
-    // Play background music
-    this.sound.play("title_theme", {
-      loop: true,
-      volume: 0.1,
-    });
-
     new StartQuestionButton(this);
-
   }
 }
 

@@ -1,6 +1,7 @@
-import "./App.css";
+import "./css/App.css";
 import Game from "./Game";
 
+// Main React Component
 function App() {
   return (
     <>

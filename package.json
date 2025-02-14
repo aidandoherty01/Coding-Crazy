@@ -2,5 +2,11 @@
   "dependencies": {
     "latest": "^0.2.0",
     "version": "^0.1.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.1",
+    "eslint-plugin-react": "^7.37.4",
+    "globals": "^15.15.0"
   }
 }
