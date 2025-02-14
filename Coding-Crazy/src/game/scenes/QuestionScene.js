@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import questions from "../../data/questions.json";
+import questions from "../../data/exported_data.json";
 import QuizManager from "../../managers/QuizManager";
 import { EventBus } from "../EventBus";
 
