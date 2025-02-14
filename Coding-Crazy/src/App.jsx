@@ -1,16 +1,15 @@
-import "./css/App.css";
-import Game from "./Game";
+import { useRef } from "react";
+import { PhaserGame } from "./game/PhaserGame";
 
-// Main React Component
 function App() {
-  return (
-    <>
-      <div>
-        <h1>Game time</h1>
-        <Game />
-      </div>
-    </>
-  );
+    const phaserRef = useRef();
+
+    return (
+        <div id="app">
+            <PhaserGame ref={phaserRef} />
+            <div id="game-container"></div>
+        </div>
+    );
 }
 
 export default App;

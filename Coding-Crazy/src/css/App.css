@@ -1,6 +1,23 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    /* Optional background */
+    overflow: hidden;
+}
+
+#game-container {
+    width: 85%;
+    /* 85% of viewport width */
+    height: 85%;
+    /* 85% of viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

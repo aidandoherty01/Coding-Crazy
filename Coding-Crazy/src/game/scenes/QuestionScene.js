@@ -1,6 +1,7 @@
 import Phaser from "phaser";
-import questions from "../data/questions.json";
-import QuizManager from "../managers/QuizManager";
+import questions from "../../data/questions.json";
+import QuizManager from "../../managers/QuizManager";
+import { EventBus } from "../EventBus";
 
 class QuestionScene extends Phaser.Scene {
   constructor() {
@@ -19,10 +20,12 @@ class QuestionScene extends Phaser.Scene {
   }
 
   create() {
-// Get the screen dimensions
+    console.log("❓ QuestionScene is now active!");
+
+    // Get the screen dimensions
     const { width, height } = this.scale;
 
-// Get the previous quiz results from the game's registry
+    // Get the previous quiz results from the game's registry
     this.previousCorrect = this.registry.get("correctAnswers") || 0;
     this.previousIncorrect = this.registry.get("incorrectAnswers") || 0;
     this.masteredQuestions = this.registry.get("masteredQuestions") || [];
@@ -38,6 +41,13 @@ class QuestionScene extends Phaser.Scene {
     // Create the UI elements
     this.createUI(width, height);
     this.loadQuestion();
+
+    // Emit an event to notify the React component that the scene is ready
+    EventBus.emit("current-scene-ready", this);
+  }
+
+  changeScene() {
+    this.scene.start("MainGameScene");
   }
 
   createUI(width, height) {
@@ -97,16 +107,13 @@ class QuestionScene extends Phaser.Scene {
   }
 
   submitAnswer(timeUp = false) {
-// Prevent submitting an answer if no option is selected
-// Prevent submitting an answer if no option is selected
-// Prevent submitting an answer if no option is selected
-// Prevent submitting an answer if no option is selected
+    // Prevent submitting an answer if no option is selected
     if (this.selectedOption === null && !timeUp) return;
     this.optionButtons.forEach((btn) => btn.disableInteractive());
     this.submitButton.disableInteractive();
     if (this.questionTimer) this.questionTimer.remove();
 
-// Submit the answer and show feedback
+    // Submit the answer and show feedback
     const currentQuestion = this.quizManager.getCurrentQuestion();
     const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
 
@@ -123,7 +130,7 @@ class QuestionScene extends Phaser.Scene {
     // Show the correct answer and feedback
     this.showCorrectAnswer(isCorrect, currentQuestion.answer);
 
-// Load the next question or end the quiz
+    // Load the next question or end the quiz
     if (this.quizManager.hasMoreQuestions()) {
       this.time.delayedCall(2000, () => this.loadQuestion());
     } else {
@@ -216,8 +223,6 @@ class QuestionScene extends Phaser.Scene {
   }
 
   endQuiz() {
-    console.log("End quiz is being called...");
-
     if (this.feedbackText) {
       this.feedbackText.destroy();
       this.feedbackText = null;

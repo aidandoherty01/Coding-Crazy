@@ -21,8 +21,7 @@ class StartQuestionButton extends Phaser.GameObjects.Container {
       .setInteractive()
       .on("pointerdown", () => {
         if (scene.scene.isActive("QuestionScene")) {
-          this.scene.stop("QuestionScene");
-          this.scene.start("QuestionScene");
+          this.scene.restart("QuestionScene");
         } else {
           scene.scene.launch("QuestionScene");
         }

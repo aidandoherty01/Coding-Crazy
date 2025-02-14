@@ -3,5 +3,20 @@
     "question": "What is the capital of France?",
     "options": ["Berlin", "Madrid", "Paris", "Rome"],
     "answer": "Paris"
+  },
+  {
+    "question": "What is the capital of Germany?",
+    "options": ["Berlin", "Madrid", "Paris", "Rome"],
+    "answer": "Berlin"
+  },
+  {
+    "question": "What is the capital of Spain?",
+    "options": ["Berlin", "Madrid", "Paris", "Rome"],
+    "answer": "Madrid"
+  },
+  {
+    "question": "What is the capital of Italy?",
+    "options": ["Berlin", "Madrid", "Paris", "Rome"],
+    "answer": "Rome"
   }
 ]
