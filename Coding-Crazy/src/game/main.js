@@ -7,7 +7,7 @@ import QuestionScene from "./scenes/QuestionScene";
 const config = {
     type: Phaser.AUTO,
     width: 1024,
-    height: 576,
+    height: 1024,
     backgroundColor: "#FFFFFF", // Background color of the game while loading
     parent: "game-container",
     pixelArt: true,

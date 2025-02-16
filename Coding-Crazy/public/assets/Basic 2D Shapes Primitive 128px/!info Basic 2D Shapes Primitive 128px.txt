@@ -1,0 +1,23 @@
+Hello and welcome!
+
+Contains 92 basic simple 2D shapes in dark and bright versions! We got squares, circles, triangles, trapezoids, polygons, arrows, splats, bangs, bursts, flowers and gears!
+
+Format: PNG on transparent background
+
+Image Size: 128x128px
+
+Types: Dark and bright versions. Both have rough edges version and soft edges version too. (Its basically without and with antialiasing, respectively.)
+
+Use them whenever you need primitive 2D shapes that are easy to tint, rotate and scale into all kinds of configurations using code. Games, web apps, artwork, generative art - lots of cool uses!
+
+--
+
+License:
+
+CC-BY 4.0
+Reactorcore
+http://www.reactorcoregames.com
+
+This work © 2024 by Reactorcore is licensed under CC BY 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
+
+(It means you can use them anywhere, even commercially. You only need to mention me (Reactorcore) and my website in the credits.)

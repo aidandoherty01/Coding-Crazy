@@ -11,12 +11,28 @@
     ]
   },
   {
+    "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
+  "files": [
+    {
+      "type": "image",
+      "key": "arrow",
+      "url": "Arrow (2).png",
+      "frameConfig": { "frameWidth": 64, "frameHeight": 64 }
+    }
+  ]
+},
+  {
     "path": "assets/images/battle-backgrounds",
     "files": [
       {
         "type": "image",
         "key": "forest",
         "url": "forest-background.png"
+      },
+      {
+        "type": "image",
+        "key": "board",
+        "url": "original_board.png"
       }
     ]
   },
