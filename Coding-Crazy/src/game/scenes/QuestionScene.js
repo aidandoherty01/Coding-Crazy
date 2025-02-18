@@ -19,6 +19,7 @@ class QuestionScene extends Phaser.Scene {
     this.selectedOption = null;
     this.timeLeft = 0;
     this.timerText = null;
+    this.answerSubmitted = false;
   }
 
   // Load the question scene
@@ -28,13 +29,6 @@ class QuestionScene extends Phaser.Scene {
     // Get the screen dimensions
     const { width, height } = this.scale;
 
-    // Get the previous quiz results from the game's registry
-    this.previousCorrect = this.registry.get("correctAnswers") || 0;
-    this.previousIncorrect = this.registry.get("incorrectAnswers") || 0;
-    this.masteredQuestions = this.registry.get("masteredQuestions") || [];
-    this.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
-
-    // Create the UI elements
     // Get the previous quiz results from the game's registry
     this.previousCorrect = this.registry.get("correctAnswers") || 0;
     this.previousIncorrect = this.registry.get("incorrectAnswers") || 0;
@@ -54,6 +48,19 @@ class QuestionScene extends Phaser.Scene {
     this.scene.start("MainGameScene");
   }
 
+  // Select an option for multiple-choice questions
+  selectOption(selectedBtn) {
+      if (this.answerSubmitted) return; // Prevent changing answers after submission
+
+      this.selectedOption = selectedBtn.getData("option");
+
+      // Disable all buttons to prevent further selection
+      this.optionButtons.forEach((btn) => btn.disableInteractive());
+
+      // Submit the answer after selecting
+      this.submitAnswer();
+  }
+
   // Create the UI elements for the question scene
   createUI(width, height) {
     const boxWidth = width * 0.7;
@@ -63,9 +70,9 @@ class QuestionScene extends Phaser.Scene {
 
     // Background with a subtle gradient effect
     const background = this.add.graphics();
-    background.fillStyle(0x5c3a1e, 0.95); // Dark brown with slight transparency
+    background.fillStyle('', 0.75); 
     background.fillRoundedRect(boxX, boxY, boxWidth, boxHeight, 20); // Rounded edges
-    background.lineStyle(6, 0x3e2714, 1); // Darker brown stroke for depth
+    background.lineStyle(6, 0xdee3de, 1);
     background.strokeRoundedRect(boxX, boxY, boxWidth, boxHeight, 20);
     background.setDepth(-1); // Push it behind text
 
@@ -87,51 +94,51 @@ class QuestionScene extends Phaser.Scene {
         fontStyle: "italic",
     });
 
-    // Option Buttons
+    // Option Buttons (2x2 Grid)
     this.optionButtons = [];
-    const buttonSpacing = height * 0.09;
+    const buttonWidth = boxWidth * 0.4;  // 40% of the box width
+    const buttonHeight = height * 0.08;  // Fixed height for buttons
+    const startX = boxX + 50;            // Left padding
+    const startY = boxY + 150;           // Start Y position
+    const colSpacing = buttonWidth + (boxWidth * 0.05); // Space between columns
+    const rowSpacing = buttonHeight + 20; // Space between rows
+
     for (let i = 0; i < 4; i++) {
-        let btn = this.add.text(boxX + 60, boxY + 120 + i * buttonSpacing, "", {
+        let col = i % 2; // Column index (0 or 1)
+        let row = Math.floor(i / 2); // Row index (0 or 1)
+
+        let btn = this.add.text(startX + col * colSpacing, startY + row * rowSpacing, "", {
             fontSize: `${Math.floor(height * 0.035)}px`,
-            fill: "#fff", // text color
+            fill: "#fff",
             padding: { x: 20, y: 10 },
             fontStyle: "bold",
             fontFamily: "Arial",
             align: "center",
+            backgroundColor: "#444444",
             shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 3, fill: true },
         })
         .setInteractive()
+        .setFixedSize(buttonWidth, buttonHeight) // Ensure consistent button size
 
         .on("pointerover", () => {
-          if (btn.getData("option") !== this.selectedOption) {
-              btn.setStyle({ backgroundColor: "#228B22" }); // Lighter green on hover
-          }
+            if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
+                btn.setStyle({ backgroundColor: "#228B22" }); // Lighter green on hover
+            }
         })        
         .on("pointerout", () => {
-          if (btn.getData("option") !== this.selectedOption)
-          btn.setStyle({ backgroundColor: "#444444" }) // Reset on hover out
+            if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
+                btn.setStyle({ backgroundColor: "#444444" }); // Reset on hover out
+            }
         })
-        .on("pointerdown", () => this.selectOption(btn));
+        .on("pointerdown", () => {
+            if (!this.answerSubmitted) {
+              this.selectOption(btn);
+            }
+        });
 
         // Add the button to the list
         this.optionButtons.push(btn);
     }
-
-    // Submit Button 
-    this.submitButton = this.add.text(width / 2 - 50, boxY + boxHeight - 50, "Submit", {
-        fontSize: `${Math.floor(height * 0.04)}px`,
-        fill: "#fff",
-        backgroundColor: "#8B4513",
-        padding: { x: 15, y: 8 },
-        fontStyle: "bold",
-        fontFamily: "Arial",
-        align: "center",
-        shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 3, fill: true },
-    })
-    .setInteractive()
-    .on("pointerover", () => this.submitButton.setStyle({ backgroundColor: "#A0522D" })) // Light brown on hover
-    .on("pointerout", () => this.submitButton.setStyle({ backgroundColor: "#8B4513" })) // Reset
-    .on("pointerdown", () => this.submitAnswer());
   }
 
   // Update the timer text
@@ -139,52 +146,39 @@ class QuestionScene extends Phaser.Scene {
     this.timerText.setText(`Time: ${this.timeLeft}s`);
   }
 
-  // Select an option for multiple choice questions
-  selectOption(selectedBtn) {
-      this.selectedOption = selectedBtn.getData("option"); // Store the text, not the button itself
-
-      this.optionButtons.forEach((btn) => {
-          if (btn.getData("option") === this.selectedOption) {
-              btn.setStyle({ backgroundColor: "#32CD32" }); // Dark green (selected)
-          } else {
-              btn.setStyle({ backgroundColor: "#444444" }); // Reset other buttons to default
-          }
-      });
-  }
-
-
   // Submit the selected answer
-  submitAnswer(timeUp = false) {
-    // Prevent submitting an answer if no option is selected
-    if (this.selectedOption === null && !timeUp) return;
-    this.optionButtons.forEach((btn) => btn.disableInteractive());
-    this.submitButton.disableInteractive();
-    if (this.questionTimer) this.questionTimer.remove();
+  submitAnswer() {
+      if (this.answerSubmitted) return; // Prevent multiple submissions
+      this.answerSubmitted = true; // Mark as submitted
 
-    // Submit the answer and show feedback
-    const currentQuestion = this.quizManager.getCurrentQuestion();
-    const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
+      if (this.questionTimer) this.questionTimer.remove();
 
-    // Remove the current question from the incorrect questions list if it was previously answered incorrectly
-    this.incorrectQuestions = this.incorrectQuestions.filter(q => q.question !== currentQuestion.question);
+      // Disable all option buttons
+      this.optionButtons.forEach(btn => btn.disableInteractive());
 
-    // Add the current question to the appropriate list
-    if (isCorrect) {
-        this.masteredQuestions.push(currentQuestion);
-    } else {
-        this.incorrectQuestions.push(currentQuestion);
-    }
+      const currentQuestion = this.quizManager.getCurrentQuestion();
+      const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
 
-    // Show the correct answer and feedback
-    this.showCorrectAnswer(isCorrect, currentQuestion.answer);
+      this.incorrectQuestions = this.incorrectQuestions.filter(q => q.question !== currentQuestion.question);
 
-    // Load the next question or end the quiz
-    if (this.quizManager.hasMoreQuestions()) {
-      this.time.delayedCall(2000, () => this.loadQuestion());
-    } else {
-      this.time.delayedCall(2000, () => this.endQuiz());
-    }
+      if (isCorrect) {
+          this.masteredQuestions.push(currentQuestion);
+      } else {
+          this.incorrectQuestions.push(currentQuestion);
+      }
+
+      this.showCorrectAnswer(isCorrect, currentQuestion.answer);
+
+      if (this.quizManager.hasMoreQuestions()) {
+          this.time.delayedCall(2000, () => {
+              this.answerSubmitted = false; // Reset for next question
+              this.loadQuestion();
+          });
+      } else {
+          this.time.delayedCall(2000, () => this.endQuiz());
+      }
   }
+
 
   // Show the correct answer and feedback
   showCorrectAnswer(isCorrect, correctAnswer) {
@@ -284,8 +278,9 @@ class QuestionScene extends Phaser.Scene {
       btn.setInteractive();
     });
 
-    this.submitButton.setInteractive();
+    // Initialize values for the next question
     this.selectedOption = null;
+    this.answerSubmitted = false;
     this.setTimer(currentQuestion.type);
   }
 
@@ -310,6 +305,7 @@ class QuestionScene extends Phaser.Scene {
       default:
         this.timeLeft = 10;
     }
+    
     this.updateTimerText();
 
     this.questionTimer = this.time.addEvent({
