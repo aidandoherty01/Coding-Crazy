@@ -12,6 +12,10 @@ export class Vertex {
             this.adjacents.push(toId);
         }
     }
+
+    getID(){
+        return this.id;
+    }
 }
 
 export class Digraph {

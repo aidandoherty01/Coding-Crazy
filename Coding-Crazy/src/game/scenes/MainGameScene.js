@@ -46,7 +46,7 @@ class MainGameScene extends Phaser.Scene {
     playerFrames.forEach(({ x, y, frame }) => {
       this.add.image(x, y, "player", frame).setOrigin(0);
     });
-    this.scene.add("Board",BoardScene,true);
+    this.scene.launch("BoardScene");
     new StartQuestionButton(this);
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
