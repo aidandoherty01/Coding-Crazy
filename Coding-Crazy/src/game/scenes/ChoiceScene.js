@@ -23,12 +23,12 @@ class ChoiceScene extends Phaser.Scene{
     create() {
         console.log("A choice is to be made");
         const arrows = [];
-        for(let index = 0; index < this.board.getVertex(this.currNode).adjacents.length; index++){
-            let adjNode = this.board.getVertex(this.currNode).adjacents[index];
-            let dx = (this.board.getVertex(adjNode).x*32) - (this.board.getVertex(this.currNode).x*32);
-            let dy = (this.board.getVertex(adjNode).y*32) - (this.board.getVertex(this.currNode).y*32);
+        for(let index = 0; index < this.board.getNextMoves(this.currNode).length; index++){
+            let adjNode = this.board.getNextMoves(this.currNode)[index];
+            let dx = (this.board.getVertex(adjNode.getTo()).x*32) - (this.board.getVertex(this.currNode).x*32);
+            let dy = (this.board.getVertex(adjNode.getTo()).y*32) - (this.board.getVertex(this.currNode).y*32);
             let angle = Math.atan2(dy,dx);
-            const arrow = this.add.image((this.board.getVertex(adjNode).x*32)-16,(this.board.getVertex(adjNode).y*32)-16,"arrow",0).setScale(0.5).setRotation(angle);
+            const arrow = this.add.image((this.board.getVertex(adjNode.getTo()).x*32)-16,(this.board.getVertex(adjNode.getTo()).y*32)-16,"arrow",0).setScale(0.5).setRotation(angle);
             arrow.customId = adjNode;
             arrow.setInteractive();
             arrow.on('pointerdown', () => {

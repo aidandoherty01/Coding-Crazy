@@ -1,6 +1,6 @@
 import Phaser from "phaser";;
 import { EventBus } from "../../game/EventBus";
-import { Vertex, Digraph, make_original_digraph } from "../../data/board_graph";
+import { Direction, Vertex, Digraph, make_original_digraph } from "../../data/board_graph";
 
 
 
@@ -58,23 +58,12 @@ class BoardScene extends Phaser.Scene {
 
   moveSpace(spacesLeft){
     console.log("Moving one space");
-    if(this.original_board.getVertex(this.playerNode).adjacents.length == 1){
-      this.playerNode = this.original_board.getVertex(this.playerNode).adjacents[0];
+    if(this.original_board.getNextMoves(this.playerNode).length == 1){
+      //console.log(this.original_board.getNextMoves(this.playerNode));
+      const pathToPoint = this.original_board.getNextMoves(this.playerNode)[0].getPath();
+      this.playerNode = this.original_board.getNextMoves(this.playerNode)[0].getTo();
       console.log(this.playerNode);
-      this.tweens.add({
-        targets: this.player1,
-        x: (this.original_board.getVertex(this.playerNode).x*32)-16,
-        y: (this.original_board.getVertex(this.playerNode).y*32)-16,
-        duration: 1000,
-        ease: 'Linear',
-        onComplete: () =>{
-            if (spacesLeft > 1){ //I.e., this is not the last space moved
-                this.moveSpace(spacesLeft-1);
-            }else{
-              return;
-            }
-        }
-      });
+      this.walkThePath(pathToPoint, 0, spacesLeft);
     }else{
       const generatedData = {player: this.player1, board: this.original_board, currNode: this.playerNode}; 
       this.events.once('choiceMade', (choice) => {
@@ -88,19 +77,45 @@ class BoardScene extends Phaser.Scene {
 
 
   handleChoice(choice, spacesLeft){
-    this.playerNode = choice;
+    this.playerNode = choice.getTo();
     this.scene.resume();
+    console.log(choice);
+    this.walkThePath(choice.path, 0, spacesLeft);
+  }
+
+  walkThePath(path, index, spacesLeft) {
+    console.log(this.player1.x, this.player1.y);
+    const pathDir = path[index];
+    let x_val, y_val;
+    if (pathDir == Direction.UP){
+        x_val = 0;
+        y_val = -32;
+    }
+    else if (pathDir == Direction.DOWN){
+        x_val = 0;
+        y_val = 32;
+    }
+    else if (pathDir == Direction.RIGHT){
+        x_val = 32;
+        y_val = 0;
+    }else{
+        x_val = -32;
+        y_val = 0;
+    }
     this.tweens.add({
         targets: this.player1,
-        x: (this.original_board.getVertex(this.playerNode).x*32)-16,
-        y: (this.original_board.getVertex(this.playerNode).y*32)-16,
-        duration: 1000,
+        x: this.player1.x + x_val,
+        y: this.player1.y + y_val,
+        duration: 250,
         ease: 'Linear',
         onComplete: () => {
-            if (spacesLeft > 1){ //I.e., this is not the last space moved
+            console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
+            if(index < path.length - 1){
+                this.walkThePath(path,index+1, spacesLeft);
+            }else if(spacesLeft > 1){
                 this.moveSpace(spacesLeft-1);
             }else{
-              return;
+                return;
             }
         }
       });
