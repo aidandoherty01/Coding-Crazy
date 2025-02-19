@@ -36,6 +36,22 @@ class BoardScene extends Phaser.Scene {
       // Call your function with argument 6
       this.moveSpace(1);
     });
+
+    this.moveButton_six = this.add.text(300, 100, 'Move 6 Spaces', { 
+        font: '20px Arial', 
+        fill: '#ffffff', 
+        backgroundColor: '#0000ff',
+        padding: { x: 10, y: 5 }
+      });
+      
+      // Make the text object interactive
+      this.moveButton_six.setInteractive();
+      
+      // Add a click listener
+      this.moveButton_six.on('pointerdown', () => {
+        // Call your function with argument 6
+        this.moveSpace(6);
+      });
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
   }
@@ -46,35 +62,48 @@ class BoardScene extends Phaser.Scene {
       this.playerNode = this.original_board.getVertex(this.playerNode).adjacents[0];
       console.log(this.playerNode);
       this.tweens.add({
-        targets: this.player1,  // the sprite to move
+        targets: this.player1,
         x: (this.original_board.getVertex(this.playerNode).x*32)-16,
         y: (this.original_board.getVertex(this.playerNode).y*32)-16,
-        duration: 1000,   // duration in milliseconds
-        ease: 'Linear'    // easing function; try others like 'Power2' for different effects
+        duration: 1000,
+        ease: 'Linear',
+        onComplete: () =>{
+            if (spacesLeft > 1){ //I.e., this is not the last space moved
+                this.moveSpace(spacesLeft-1);
+            }else{
+              return;
+            }
+        }
       });
     }else{
       const generatedData = {player: this.player1, board: this.original_board, currNode: this.playerNode}; 
-      this.events.once('choiceMade', this.handleChoice, this);
+      this.events.once('choiceMade', (choice) => {
+        this.handleChoice(choice, spacesLeft);
+    }, this);
       this.scene.pause();
       this.scene.launch('ChoiceScene', generatedData);
   }
-    if (spacesLeft > 1){ //I.e., this is not the last space moved
-        this.moveSpace(spacesLeft-1);
-    }else{
-      return;
-    }
+    return;
   }
 
-  handleChoice(choice){
+
+  handleChoice(choice, spacesLeft){
     this.playerNode = choice;
+    this.scene.resume();
     this.tweens.add({
-        targets: this.player1,  // the sprite to move
+        targets: this.player1,
         x: (this.original_board.getVertex(this.playerNode).x*32)-16,
         y: (this.original_board.getVertex(this.playerNode).y*32)-16,
-        duration: 1000,   // duration in milliseconds
-        ease: 'Linear'    // easing function; try others like 'Power2' for different effects
+        duration: 1000,
+        ease: 'Linear',
+        onComplete: () => {
+            if (spacesLeft > 1){ //I.e., this is not the last space moved
+                this.moveSpace(spacesLeft-1);
+            }else{
+              return;
+            }
+        }
       });
-    this.scene.resume();
   }
 
 }
