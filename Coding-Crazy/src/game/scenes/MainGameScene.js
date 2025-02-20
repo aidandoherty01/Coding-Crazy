@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import StartQuestionButton from "../../components/StartQuestionButton";
 import { EventBus } from "../../game/EventBus";
+import BoardScene from "./BoardScene";
 
 class MainGameScene extends Phaser.Scene {
   constructor() {
@@ -13,8 +14,8 @@ class MainGameScene extends Phaser.Scene {
 
   create() {
     console.log("🎮 MainGameScene is now active!");
-    
-    this.add.image(0, 0, "forest").setOrigin(0);
+    let arrows = [];
+    this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     // Add character images with scale adjustments
     const characters = [
@@ -28,7 +29,7 @@ class MainGameScene extends Phaser.Scene {
     ];
 
     characters.forEach(({ x, y, key }) => {
-      this.add.image(x, y, key).setOrigin(0).setScale(0.5);
+      //this.add.image(x, y, key).setOrigin(0).setScale(0.5);
     });
 
     // Add player animation frames
@@ -45,9 +46,8 @@ class MainGameScene extends Phaser.Scene {
     playerFrames.forEach(({ x, y, frame }) => {
       this.add.image(x, y, "player", frame).setOrigin(0);
     });
-
+    this.scene.launch("BoardScene");
     new StartQuestionButton(this);
-
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
   }
@@ -56,5 +56,6 @@ class MainGameScene extends Phaser.Scene {
     this.scene.start("QuestionScene");
   }
 }
+
 
 export default MainGameScene;
