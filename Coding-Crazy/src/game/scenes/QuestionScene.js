@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import questions from "../../data/questions.json";
 import QuizManager from "../../managers/QuizManager";
 import { EventBus } from "../EventBus";
+import UIStyles from "../../css/uiStyles";
 
 class QuestionScene extends Phaser.Scene {
   // Initialize the scene FIRST TIME ONLY
@@ -15,7 +16,11 @@ class QuestionScene extends Phaser.Scene {
 
   // Initialize the scene ON EVERY RESTART
   init() {
-    this.quizManager = new QuizManager(questions);
+    const storedQuestions = this.registry.get("questions");
+
+    const questionsCopy = storedQuestions ? storedQuestions : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
+
+    this.quizManager = new QuizManager(questionsCopy);
     this.selectedOption = null;
     this.timeLeft = 0;
     this.timerText = null;
@@ -35,6 +40,8 @@ class QuestionScene extends Phaser.Scene {
     this.masteredQuestions = this.registry.get("masteredQuestions") || [];
     this.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
 
+    console.log("FIRST", this.quizManager.questions);
+
     // Create the UI elements
     this.createUI(width, height);
     this.loadQuestion();
@@ -50,15 +57,15 @@ class QuestionScene extends Phaser.Scene {
 
   // Select an option for multiple-choice questions
   selectOption(selectedBtn) {
-      if (this.answerSubmitted) return; // Prevent changing answers after submission
+    if (this.answerSubmitted) return; // Prevent changing answers after submission
 
-      this.selectedOption = selectedBtn.getData("option");
+    this.selectedOption = selectedBtn.getData("option");
 
-      // Disable all buttons to prevent further selection
-      this.optionButtons.forEach((btn) => btn.disableInteractive());
+    // Disable all buttons to prevent further selection
+    this.optionButtons.forEach((btn) => btn.disableInteractive());
 
-      // Submit the answer after selecting
-      this.submitAnswer();
+    // Submit the answer after selecting
+    this.submitAnswer();
   }
 
   // Create the UI elements for the question scene
@@ -70,76 +77,81 @@ class QuestionScene extends Phaser.Scene {
 
     // Background with a subtle gradient effect
     const background = this.add.graphics();
-    background.fillStyle('', 0.75); 
-    background.fillRoundedRect(boxX, boxY, boxWidth, boxHeight, 20); // Rounded edges
-    background.lineStyle(6, 0xdee3de, 1);
-    background.strokeRoundedRect(boxX, boxY, boxWidth, boxHeight, 20);
+    background.fillStyle(UIStyles.background.color, UIStyles.background.opacity);
+    background.fillRoundedRect(boxX, boxY, boxWidth, boxHeight, UIStyles.background.borderRadius);
+    background.lineStyle(UIStyles.background.borderThickness, UIStyles.background.borderColor, 1);
+    background.strokeRoundedRect(boxX, boxY, boxWidth, boxHeight, UIStyles.background.borderRadius);
     background.setDepth(-1); // Push it behind text
 
     // Question Text
     this.questionText = this.add.text(boxX + 50, boxY + 50, "", {
-        fontSize: `${Math.floor(height * 0.04)}px`,
-        fill: "#fff", // text color
-        fontStyle: "bold",
-        fontFamily: "Arial",
-        wordWrap: { width: boxWidth - 100 },
-        shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 3, fill: true },
+      ...UIStyles.questionText,
+      wordWrap: { width: boxWidth - 100 } // Adjust to container width
     });
 
     // Timer Text
-    this.timerText = this.add.text(boxX + boxWidth - 120, boxY + 20, "", {
-        fontSize: `${Math.floor(height * 0.035)}px`,
-        fill: "#ffcc00", // text color
-        fontWeight: "bold",
-        fontStyle: "italic",
-    });
+    this.timerText = this.add.text(boxX + boxWidth - 120, boxY + 20, "", UIStyles.timerText);
 
     // Option Buttons (2x2 Grid)
     this.optionButtons = [];
-    const buttonWidth = boxWidth * 0.4;  // 40% of the box width
+    const buttonWidth = boxWidth * 0.3;  // 40% of the box width
     const buttonHeight = height * 0.08;  // Fixed height for buttons
-    const startX = boxX + 50;            // Left padding
-    const startY = boxY + 150;           // Start Y position
     const colSpacing = buttonWidth + (boxWidth * 0.05); // Space between columns
     const rowSpacing = buttonHeight + 20; // Space between rows
 
-    for (let i = 0; i < 4; i++) {
-        let col = i % 2; // Column index (0 or 1)
-        let row = Math.floor(i / 2); // Row index (0 or 1)
+    // Calculate the starting X and Y positions to center the buttons
+    const totalButtonWidth = colSpacing * 2 - (boxWidth * 0.05); // Total width of the buttons and spacing
+    const totalButtonHeight = rowSpacing * 2 - 20; // Total height of the buttons and spacing
+    const startX = boxX + (boxWidth - totalButtonWidth) / 2; // Center horizontally
+    const startY = boxY + (boxHeight - totalButtonHeight + 50) / 2; // Center vertically
 
-        let btn = this.add.text(startX + col * colSpacing, startY + row * rowSpacing, "", {
-            fontSize: `${Math.floor(height * 0.035)}px`,
-            fill: "#fff",
-            padding: { x: 20, y: 10 },
-            fontStyle: "bold",
-            fontFamily: "Arial",
-            align: "center",
-            backgroundColor: "#444444",
-            shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 3, fill: true },
-        })
+
+    for (let i = 0; i < 4; i++) {
+      let col = i % 2; // Column index (0 or 1)
+      let row = Math.floor(i / 2); // Row index (0 or 1)
+
+      let btn = this.add.text(startX + col * colSpacing, startY + row * rowSpacing, "", {
+        ...UIStyles.optionButton,
+        fontSize: `${Math.floor(height * 0.035)}px`,
+        padding: { x: 20, y: 10 },
+        align: "center",
+      })
         .setInteractive()
         .setFixedSize(buttonWidth, buttonHeight) // Ensure consistent button size
 
         .on("pointerover", () => {
-            if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
-                btn.setStyle({ backgroundColor: "#228B22" }); // Lighter green on hover
-            }
-        })        
+          if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
+            btn.setStyle({ backgroundColor: UIStyles.optionButton.hoverBackgroundColor }); // Lighter green on hover
+          }
+        })
         .on("pointerout", () => {
-            if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
-                btn.setStyle({ backgroundColor: "#444444" }); // Reset on hover out
-            }
+          if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
+            btn.setStyle({ backgroundColor: UIStyles.optionButton.backgroundColor }); // Reset on hover out
+          }
         })
         .on("pointerdown", () => {
-            if (!this.answerSubmitted) {
-              this.selectOption(btn);
-            }
+          if (!this.answerSubmitted) {
+            this.selectOption(btn);
+          }
         });
 
-        // Add the button to the list
-        this.optionButtons.push(btn);
+      // Add the button to the list
+      this.optionButtons.push(btn);
     }
-  }
+
+    // Create a text object for "(click anywhere to proceed)"
+    this.clickToProceedText = this.add.text(
+        width / 2,  // Centered horizontally
+        boxY + boxHeight - 20,  // Just below the question box
+        "(click anywhere to proceed)", 
+        {
+            fontSize: "18px",
+            fontFamily: "Arial",
+            color: "#ffffff",
+            align: "center"
+        }
+    ).setOrigin(0.5).setVisible(false); // Hidden by default
+}
 
   // Update the timer text
   updateTimerText() {
@@ -148,108 +160,130 @@ class QuestionScene extends Phaser.Scene {
 
   // Submit the selected answer
   submitAnswer() {
-      if (this.answerSubmitted) return; // Prevent multiple submissions
-      this.answerSubmitted = true; // Mark as submitted
+    this.answerSubmitted = true; // Mark as submitted
 
-      if (this.questionTimer) this.questionTimer.remove();
+    if (this.questionTimer) this.questionTimer.remove();
 
-      // Disable all option buttons
-      this.optionButtons.forEach(btn => btn.disableInteractive());
+    // Disable all option buttons
+    this.optionButtons.forEach(btn => btn.disableInteractive());
 
-      const currentQuestion = this.quizManager.getCurrentQuestion();
-      const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
+    const currentQuestion = this.quizManager.getCurrentQuestion();
+    const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
 
-      this.incorrectQuestions = this.incorrectQuestions.filter(q => q.question !== currentQuestion.question);
+    // Correct answer
+    if (isCorrect) {
+      // Check if question in incorrectQuestions and remove if present
+      this.incorrectQuestions = this.incorrectQuestions.filter(
+          q => q.question !== currentQuestion.question
+      );
 
-      if (isCorrect) {
+      // Add the question to masteredQuestions if not already present
+      if (!this.masteredQuestions.find(q => q.question === currentQuestion.question)) {
           this.masteredQuestions.push(currentQuestion);
-      } else {
-          this.incorrectQuestions.push(currentQuestion);
       }
+      // Incorrect answer
+    } else {
+        // Add the question to incorrectQuestions if not already present
+        if (!this.incorrectQuestions.find(q => q.question === currentQuestion.question)) {
+            this.incorrectQuestions.push(currentQuestion);
+        }
+    }
 
-      this.showCorrectAnswer(isCorrect, currentQuestion.answer);
+    this.showCorrectAnswer(isCorrect, currentQuestion.answer);
 
-      if (this.quizManager.hasMoreQuestions()) {
-          this.time.delayedCall(2000, () => {
-              this.answerSubmitted = false; // Reset for next question
-              this.loadQuestion();
-          });
-      } else {
-          this.time.delayedCall(2000, () => this.endQuiz());
-      }
+    // Set a delay based on correctness before allowing progression
+    let delay = isCorrect ? 1000 : 10000; // 1 sec if correct, 10 sec if incorrect
+
+    // Function to proceed to next question
+    const proceedToNext = () => {
+        if (this.answerSubmitted) {
+            this.answerSubmitted = false; // Reset for next question
+            this.input.off("pointerdown", proceedToNext); // Remove listener after use
+            this.clickToProceedText.setVisible(false); // Hide the prompt
+            this.loadQuestion();
+        }
+    };
+
+    if (!isCorrect) {
+        // Show "(click anywhere to proceed)" text
+        this.clickToProceedText.setVisible(true);
+
+        // Wait to show answer before enabling the click listener
+        this.time.delayedCall(100, () => {
+            this.input.once("pointerdown", proceedToNext); // Allow early progression on click
+        });
+    }
+
+    // Enforce auto-progression after delay
+    this.time.delayedCall(delay, proceedToNext);
   }
-
 
   // Show the correct answer and feedback
   showCorrectAnswer(isCorrect, correctAnswer) {
-      if (this.answerTooltip) {
-          this.answerTooltip.destroy();
-          this.answerTooltipText.destroy();
+    if (this.answerTooltip) {
+      this.answerTooltip.destroy();
+      this.answerTooltipText.destroy();
+    }
+
+    // Create Answer Text
+    const answerText = isCorrect ? "✅ Correct!" : `❌ Incorrect, Answer: ${correctAnswer}`;
+    this.answerTooltipText = this.add.text(
+      0, // Temporarily set X to 0, will adjust after
+      0, // Temporarily set Y to 0, will adjust after
+      answerText,
+      UIStyles.answerTooltipText
+    );
+
+    // Calculate the text width dynamically
+    const textBounds = this.answerTooltipText.getBounds();
+    const textWidth = textBounds.width;
+    const textHeight = textBounds.height;
+
+    // Set dynamic tooltip width (with padding)
+    const tooltipPadding = 20;
+    let tooltipWidth = textWidth + tooltipPadding * 2;
+
+    // Set a minimum and maximum width for tooltip
+    const minTooltipWidth = 150; // Minimum width for short text
+    const maxTooltipWidth = 300; // Maximum width to prevent too wide tooltip
+    tooltipWidth = Phaser.Math.Clamp(tooltipWidth, minTooltipWidth, maxTooltipWidth);
+
+    // Set tooltip height dynamically based on text height
+    const tooltipHeight = textHeight + tooltipPadding * 2;
+
+    // Tooltip Positioning (centered above the question box)
+    const tooltipX = this.scale.width / 2 - tooltipWidth / 2;
+    const tooltipY = this.questionText.y - 100;
+
+    // Determine the background color based on correctness
+    const tooltipBackgroundColor = isCorrect ? UIStyles.answerTooltip.correctBackgroundColor : UIStyles.answerTooltip.incorrectBackgroundColor;
+
+    // Create Tooltip Background
+    this.answerTooltip = this.add.graphics();
+    this.answerTooltip.fillStyle(tooltipBackgroundColor, UIStyles.answerTooltip.opacity);
+    this.answerTooltip.fillRoundedRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, UIStyles.answerTooltip.borderRadius);
+    this.answerTooltip.lineStyle(UIStyles.answerTooltip.borderThickness, UIStyles.answerTooltip.borderColor, 1);
+    this.answerTooltip.strokeRoundedRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, UIStyles.answerTooltip.borderRadius);
+
+    // Adjust text position to center inside tooltip
+    this.answerTooltipText.setX(tooltipX + (tooltipWidth - textWidth) / 2);
+    this.answerTooltipText.setY(tooltipY + (tooltipHeight - textHeight) / 2);
+
+    // Bring the tooltip to the front
+    this.answerTooltip.setDepth(100);
+    this.answerTooltipText.setDepth(101);
+
+    // 🔹 Highlight selected option as red (if incorrect) or green (if correct)
+    this.optionButtons.forEach((btn) => {
+      const option = btn.getData("option");
+
+      if (option === correctAnswer) {
+        btn.setStyle({ backgroundColor: UIStyles.optionButton.correctBackgroundColor }); // Green for correct answer
+      } else if (option === this.selectedOption) {
+        btn.setStyle({ backgroundColor: UIStyles.optionButton.incorrectBackgroundColor }); // Red for wrong answer
       }
-
-      // Create Answer Text
-      const answerText = isCorrect ? "✅ Correct!" : `❌ Incorrect, Answer: ${correctAnswer}`;
-      this.answerTooltipText = this.add.text(
-          0, // Temporarily set X to 0, will adjust after
-          0, // Temporarily set Y to 0, will adjust after
-          answerText, 
-          {
-              fontSize: "20px",
-              fill: "#fff",
-              fontStyle: "bold",
-              fontFamily: "Arial",
-          }
-      );
-
-      // Calculate the text width dynamically
-      const textBounds = this.answerTooltipText.getBounds();
-      const textWidth = textBounds.width;
-      const textHeight = textBounds.height;
-
-      // Set dynamic tooltip width (with padding)
-      const tooltipPadding = 20;
-      let tooltipWidth = textWidth + tooltipPadding * 2;
-
-      // Set a minimum and maximum width for tooltip
-      const minTooltipWidth = 150; // Minimum width for short text
-      const maxTooltipWidth = 300; // Maximum width to prevent too wide tooltip
-      tooltipWidth = Phaser.Math.Clamp(tooltipWidth, minTooltipWidth, maxTooltipWidth);
-
-      // Set tooltip height dynamically based on text height
-      const tooltipHeight = textHeight + tooltipPadding * 2;
-
-      // Tooltip Positioning (centered above the question box)
-      const tooltipX = this.scale.width / 2 - tooltipWidth / 2;
-      const tooltipY = this.questionText.y - 100; 
-
-      // Create Tooltip Background
-      this.answerTooltip = this.add.graphics();
-      this.answerTooltip.fillStyle(0x8B4513, 1); // Brown color with no transparency
-      this.answerTooltip.fillRoundedRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 15);
-      this.answerTooltip.lineStyle(4, 0x3e2714, 1); // Darker brown border
-      this.answerTooltip.strokeRoundedRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 15);
-
-      // Adjust text position to center inside tooltip
-      this.answerTooltipText.setX(tooltipX + (tooltipWidth - textWidth) / 2);
-      this.answerTooltipText.setY(tooltipY + (tooltipHeight - textHeight) / 2);
-
-      // Bring the tooltip to the front
-      this.answerTooltip.setDepth(100);
-      this.answerTooltipText.setDepth(101);
-
-      // 🔹 Highlight selected option as red (if incorrect) or green (if correct)
-      this.optionButtons.forEach((btn) => {
-          const option = btn.getData("option");
-
-          if (option === correctAnswer) {
-              btn.setStyle({ backgroundColor: "#00FF00" }); // Green for correct answer
-          } else if (option === this.selectedOption) {
-              btn.setStyle({ backgroundColor: "#FF0000" }); // Red for wrong answer
-          }
-      });
+    });
   }
-
-
 
   // Load the next question or end the quiz
   loadQuestion() {
@@ -260,21 +294,21 @@ class QuestionScene extends Phaser.Scene {
 
     // Remove tooltip when loading a new question
     if (this.answerTooltip) {
-        this.answerTooltip.destroy();
-        this.answerTooltip = null;
+      this.answerTooltip.destroy();
+      this.answerTooltip = null;
     }
     if (this.answerTooltipText) {
-        this.answerTooltipText.destroy();
-        this.answerTooltipText = null;
+      this.answerTooltipText.destroy();
+      this.answerTooltipText = null;
     }
 
-    const currentQuestion = this.quizManager.getCurrentQuestion();
+    const currentQuestion = this.quizManager.getCurrentQuestion(); // ISSUE HERE!!!!!!
     this.questionText.setText(currentQuestion.question);
 
     this.optionButtons.forEach((btn, index) => {
       btn.setText(currentQuestion.options[index]);
       btn.setData("option", currentQuestion.options[index]);
-      btn.setStyle({ backgroundColor: "#444" });
+      btn.setStyle({ backgroundColor: UIStyles.optionButton.backgroundColor });
       btn.setInteractive();
     });
 
@@ -305,7 +339,7 @@ class QuestionScene extends Phaser.Scene {
       default:
         this.timeLeft = 10;
     }
-    
+
     this.updateTimerText();
 
     this.questionTimer = this.time.addEvent({
@@ -324,36 +358,45 @@ class QuestionScene extends Phaser.Scene {
 
   // End the quiz and return to the main game scene
   endQuiz() {
+    // console.log(this.masteredQuestions);
     if (this.feedbackText) {
       this.feedbackText.destroy();
       this.feedbackText = null;
     }
 
-    // ✅ Confirm registry values before updating
-    console.log("🔄 Previous Registry Values:");
-    console.log("🔹 Correct Answers:", this.registry.get("correctAnswers"));
-    console.log("🔹 Incorrect Answers:", this.registry.get("incorrectAnswers"));
-    console.log("🔹 Mastered Questions:", this.registry.get("masteredQuestions"));
-    console.log("🔹 Incorrect Questions:", this.registry.get("incorrectQuestions"));
+    // Remove mastered questions from the main questions pool
+    this.quizManager.questions = this.quizManager.questions.filter(q => 
+      !this.masteredQuestions.find(mq => mq.question === q.question)
+    );
 
+   // console.log(this.quizManager.questions);
+
+    // ✅ Confirm registry values before updating
+    // console.log("🔄 Previous Registry Values:");
+    // console.log("🔹 Correct Answers:", this.registry.get("correctAnswers"));
+    // console.log("🔹 Incorrect Answers:", this.registry.get("incorrectAnswers"));
+    // console.log("🔹 Mastered Questions:", this.registry.get("masteredQuestions"));
+    // console.log("🔹 Incorrect Questions:", this.registry.get("incorrectQuestions"));
+
+    this.registry.set("questions", this.quizManager.questions);
 
     const totalCorrect = (this.registry.get("correctAnswers") || 0) + this.quizManager.correctAnswers;
     const totalIncorrect = (this.registry.get("incorrectAnswers") || 0) + this.quizManager.questions.length - this.quizManager.correctAnswers;
 
     // Store the quiz results in the game's registry
     this.registry.set("correctAnswers", totalCorrect);
-    this.registry.set("incorrectAnswers", totalIncorrect); 
+    this.registry.set("incorrectAnswers", totalIncorrect);
 
     // Store the questions that were mastered and need review
-    this.registry.set("masteredQuestions", this.quizManager.masteredQuestions); 
-    this.registry.set("incorrectQuestions", this.quizManager.incorrectQuestions); 
+    this.registry.set("masteredQuestions", this.quizManager.masteredQuestions);
+    this.registry.set("incorrectQuestions", this.quizManager.incorrectQuestions);
 
     // ✅ Confirm new registry values
-    console.log("🆕 Updated Registry Values:");
-    console.log("✅ Correct Answers:", totalCorrect);
-    console.log("❌ Incorrect Answers:", totalIncorrect);
-    console.log("⭐ Mastered Questions:", this.masteredQuestions.map(q => q.question));
-    console.log("⚠️ Incorrect Questions:", this.incorrectQuestions.map(q => q.question));
+    // console.log("🆕 Updated Registry Values:");
+    // console.log("✅ Correct Answers:", totalCorrect);
+    // console.log("❌ Incorrect Answers:", totalIncorrect);
+    // console.log("⭐ Mastered Questions:", this.masteredQuestions.map(q => q.question));
+    // console.log("⚠️ Incorrect Questions:", this.incorrectQuestions.map(q => q.question));
 
     console.log("🎮 Stopping QuestionScene and resuming MainGameScene...");
     this.scene.stop();
