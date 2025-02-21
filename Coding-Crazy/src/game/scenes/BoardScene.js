@@ -1,4 +1,5 @@
 import Phaser from "phaser";;
+import SpinnerScene from "./SpinnerScene";
 import { EventBus } from "../../game/EventBus";
 import { Direction, Vertex, Digraph, make_original_digraph } from "../../data/board_graph";
 
@@ -11,6 +12,7 @@ class BoardScene extends Phaser.Scene {
 
   preload() {
     this.load.pack("asset_pack", "../assets/assets.json");
+    this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
   }
   create() {
     console.log("🎮 BoardScene is now active!");
@@ -19,7 +21,24 @@ class BoardScene extends Phaser.Scene {
 
     this.original_board = make_original_digraph();
     this.playerNode = 0;
-    this.player1 = this.add.image((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
+    //this.player1 = this.add.image((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
+    this.player1 = this.add.sprite((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
+
+    
+    // button for spinner event
+    this.moveButton_Spinner = this.add.text(500, 100, 'Move By Spinner', { 
+        font: '20px Arial', 
+        fill: '#ffffff', 
+        backgroundColor: '#0000ff',
+        padding: { x: 10, y: 5 }
+      });
+
+    this.moveButton_Spinner.setInteractive();
+    this.moveButton_Spinner.on('pointerdown', () => {
+        this.scene.pause();
+        this.scene.start('SpinnerScene');
+      });
+
 
     this.moveButton = this.add.text(100, 100, 'Move a Space', { 
       font: '20px Arial', 
@@ -27,7 +46,7 @@ class BoardScene extends Phaser.Scene {
       backgroundColor: '#0000ff',
       padding: { x: 10, y: 5 }
     });
-    
+
     // Make the text object interactive
     this.moveButton.setInteractive();
     
@@ -90,17 +109,21 @@ class BoardScene extends Phaser.Scene {
     if (pathDir == Direction.UP){
         x_val = 0;
         y_val = -32;
+        this.player1.play("walk_north");
     }
     else if (pathDir == Direction.DOWN){
         x_val = 0;
         y_val = 32;
+        this.player1.play("walk_south");
     }
     else if (pathDir == Direction.RIGHT){
         x_val = 32;
         y_val = 0;
+        this.player1.play("walk_east");
     }else{
         x_val = -32;
         y_val = 0;
+        this.player1.play("walk_west");
     }
     this.tweens.add({
         targets: this.player1,

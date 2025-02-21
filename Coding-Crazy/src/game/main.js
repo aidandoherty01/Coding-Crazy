@@ -4,6 +4,7 @@ import MainGameScene from "./scenes/MainGameScene";
 import QuestionScene from "./scenes/QuestionScene";
 import BoardScene from "./scenes/BoardScene";
 import ChoiceScene from "./scenes/ChoiceScene";
+import SpinnerScene from "./scenes/SpinnerScene";
 
 // Game Configuration
 const config = {

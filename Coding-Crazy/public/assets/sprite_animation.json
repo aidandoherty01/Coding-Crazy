@@ -1,0 +1,89 @@
+{
+        "anims": [
+            {
+                "key": "walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "player",
+                "frameRate": 6,
+                "repeat": 0
+            }
+        ]
+    }

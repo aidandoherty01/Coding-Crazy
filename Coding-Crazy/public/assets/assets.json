@@ -11,6 +11,16 @@
     ]
   },
   {
+    "path": "assets/misc_pictures",
+    "files": [
+        {
+            "type": "image",
+            "key": "pin_wheel",
+            "url": "pin.png"
+        }
+    ]
+  },
+  {
     "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
   "files": [
     {
