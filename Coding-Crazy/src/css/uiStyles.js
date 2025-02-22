@@ -1,17 +1,18 @@
 const UIStyles = {
     // 🌟 Background Styles
     background: {
-        color: 0x000000,
+        color: 0x000000, // Black background color
         opacity: 0.5,
-        borderColor: 0xffffff,
+        borderColor: 0xffffff, // White border color
         borderThickness: 2,
-        borderRadius: 10
+        borderRadius: 10,
+        borderOpacity: 1,
     },
 
     // 🌟 Question Text Style
     questionText: {
         fontSize: "24px",
-        fill: "#fff",
+        fill: "#fff", // White text color
         fontStyle: "bold",
         fontFamily: "Arial",
         wordWrap: { width: 600 }, // Adjust width based on container
@@ -21,53 +22,42 @@ const UIStyles = {
     // 🌟 Timer Text Style
     timerText: {
         fontSize: "20px",
-        fill: "#fff",
+        fill: "#fff", // White text color
         fontWeight: "bold",
         fontStyle: "italic"
     },
 
     // 🌟 Button Styles
-    button: {
+    quizButton: {
         widthRatio: 0.4, // 40% of the parent container width
         heightRatio: 0.08, // 8% of the screen height
         backgroundColor: 0x000000, // Default button color
+        opacity: 0.8,
         hoverColor: 0x228B22, // Hover color (Green)
-        activeColor: 0xff0000, // Incorrect answer color
-        correctColor: 0x00ff00, // Correct answer color
-        textColor: "#ffffff",
+        incorrectColor: 0xff0000, // Incorrect answer color (Red)
+        correctColor: 0x228B22, // Correct answer color (Green)
+        textColor: "#ffffff", // White text color
         fontSize: "20px",
         fontFamily: "Arial",
-        padding: { x: 10, y: 5 },
-        borderRadius: 15
-    },
-
-    // 🌟 Option Button Styles
-    optionButton: {
         fontStyle: "bold",
-        fontFamily: "Arial",
-        fill: "#fff",
-        backgroundColor: "#000000",
-        borderRadius: 25,
-        shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 3, fill: true },
-        hoverBackgroundColor: "#228B22",
-        correctBackgroundColor: "#00FF00",
-        incorrectBackgroundColor: "#FF0000",
+        padding: { x: 10, y: 5 },
+        borderRadius: 25
     },
 
     // 🌟 Answer Tooltip Styles
     answerTooltip: {
-        correctBackgroundColor: 0x00FF00, // Green for correct answer
+        correctBackgroundColor: 0x228B22, // Green for correct answer
         incorrectBackgroundColor: 0xFF0000, // Red for incorrect answer
         borderRadius: 15,
         borderThickness: 3,
-        borderColor: 0xffffff,
+        borderColor: 0xffffff, // White border color
         opacity: 1,
     },
 
     // 🌟 Answer Tooltip Text Style
     answerTooltipText: {
         fontSize: "20px",
-        fill: "#fff",
+        fill: "#fff", // White text color
         fontStyle: "bold",
         fontFamily: "Arial",
     }

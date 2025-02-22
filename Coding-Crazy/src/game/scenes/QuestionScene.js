@@ -9,27 +9,37 @@ class QuestionScene extends Phaser.Scene {
   constructor() {
     super({ key: "QuestionScene" });
     this.quizManager = null;
-    this.selectedOption = null;
-    this.timeLeft = 0;
-    this.timerText = null;
   }
 
   // Initialize the scene ON EVERY RESTART
   init() {
-    const storedQuestions = this.registry.get("questions");
+      const storedQuestions = this.registry.get("questions");
 
-    const questionsCopy = storedQuestions ? storedQuestions : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
+      // Check if storedQuestions exist and are not empty
+      const isStoredQuestionsValid = storedQuestions && Array.isArray(storedQuestions) && storedQuestions.length > 0;
 
-    this.quizManager = new QuizManager(questionsCopy);
-    this.selectedOption = null;
-    this.timeLeft = 0;
-    this.timerText = null;
-    this.answerSubmitted = false;
+      const questionsCopy = isStoredQuestionsValid 
+          ? storedQuestions 
+          : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
+
+      this.quizManager = new QuizManager(questionsCopy);
+
+      // Reset mastered and incorrect questions if storedQuestions is empty
+      if (!isStoredQuestionsValid) {
+          console.log("🔄 Stored questions are empty. Resetting mastered and incorrect questions.");
+          this.registry.set("masteredQuestions", []);
+          this.registry.set("incorrectQuestions", []);
+      }
+
+      // Persist previously stored mastered and incorrect questions
+      this.quizManager.masteredQuestions = this.registry.get("masteredQuestions") || [];
+      this.quizManager.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
   }
+
 
   // Load the question scene
   create() {
-    console.log("❓ QuestionScene is now active!");
+   console.log("❓ QuestionScene is now active!");
 
     // Get the screen dimensions
     const { width, height } = this.scale;
@@ -37,10 +47,6 @@ class QuestionScene extends Phaser.Scene {
     // Get the previous quiz results from the game's registry
     this.previousCorrect = this.registry.get("correctAnswers") || 0;
     this.previousIncorrect = this.registry.get("incorrectAnswers") || 0;
-    this.masteredQuestions = this.registry.get("masteredQuestions") || [];
-    this.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
-
-    console.log("FIRST", this.quizManager.questions);
 
     // Create the UI elements
     this.createUI(width, height);
@@ -62,11 +68,12 @@ class QuestionScene extends Phaser.Scene {
     this.selectedOption = selectedBtn.getData("option");
 
     // Disable all buttons to prevent further selection
-    this.optionButtons.forEach((btn) => btn.disableInteractive());
+    this.optionButtons.forEach(({ background }) => background.disableInteractive());
 
     // Submit the answer after selecting
     this.submitAnswer();
   }
+
 
   // Create the UI elements for the question scene
   createUI(width, height) {
@@ -75,18 +82,18 @@ class QuestionScene extends Phaser.Scene {
     const boxX = (width - boxWidth) / 2;
     const boxY = (height - boxHeight) / 2;
 
-    // Background with a subtle gradient effect
+    // Background for question box
     const background = this.add.graphics();
     background.fillStyle(UIStyles.background.color, UIStyles.background.opacity);
     background.fillRoundedRect(boxX, boxY, boxWidth, boxHeight, UIStyles.background.borderRadius);
-    background.lineStyle(UIStyles.background.borderThickness, UIStyles.background.borderColor, 1);
+    background.lineStyle(UIStyles.background.borderThickness, UIStyles.background.borderColor, UIStyles.background.borderOpacity);
     background.strokeRoundedRect(boxX, boxY, boxWidth, boxHeight, UIStyles.background.borderRadius);
-    background.setDepth(-1); // Push it behind text
+    background.setDepth(-1);
 
     // Question Text
     this.questionText = this.add.text(boxX + 50, boxY + 50, "", {
-      ...UIStyles.questionText,
-      wordWrap: { width: boxWidth - 100 } // Adjust to container width
+        ...UIStyles.questionText,
+        wordWrap: { width: boxWidth - 100 }
     });
 
     // Timer Text
@@ -94,64 +101,92 @@ class QuestionScene extends Phaser.Scene {
 
     // Option Buttons (2x2 Grid)
     this.optionButtons = [];
-    const buttonWidth = boxWidth * 0.3;  // 40% of the box width
-    const buttonHeight = height * 0.08;  // Fixed height for buttons
-    const colSpacing = buttonWidth + (boxWidth * 0.05); // Space between columns
-    const rowSpacing = buttonHeight + 20; // Space between rows
+    const buttonWidth = boxWidth * 0.3;
+    const buttonHeight = height * 0.08;
+    const colSpacing = buttonWidth + (boxWidth * 0.05);
+    const rowSpacing = buttonHeight + 20;
 
-    // Calculate the starting X and Y positions to center the buttons
-    const totalButtonWidth = colSpacing * 2 - (boxWidth * 0.05); // Total width of the buttons and spacing
-    const totalButtonHeight = rowSpacing * 2 - 20; // Total height of the buttons and spacing
-    const startX = boxX + (boxWidth - totalButtonWidth) / 2; // Center horizontally
-    const startY = boxY + (boxHeight - totalButtonHeight + 50) / 2; // Center vertically
-
+    const totalButtonWidth = colSpacing * 2 - (boxWidth * 0.05);
+    const totalButtonHeight = rowSpacing * 2 - 20;
+    const startX = boxX + (boxWidth - totalButtonWidth) / 2;
+    const startY = boxY + (boxHeight - totalButtonHeight + 50) / 2;
 
     for (let i = 0; i < 4; i++) {
-      let col = i % 2; // Column index (0 or 1)
-      let row = Math.floor(i / 2); // Row index (0 or 1)
+      let col = i % 2;
+      let row = Math.floor(i / 2);
+      let x = startX + col * colSpacing;
+      let y = startY + row * rowSpacing;
 
-      let btn = this.add.text(startX + col * colSpacing, startY + row * rowSpacing, "", {
-        ...UIStyles.optionButton,
-        fontSize: `${Math.floor(height * 0.035)}px`,
-        padding: { x: 20, y: 10 },
+      // Create a rounded button
+      const buttonBackground = this.add.graphics();
+
+      // Set button color and size
+      buttonBackground.fillStyle(UIStyles.quizButton.backgroundColor, UIStyles.quizButton.opacity); 
+      buttonBackground.fillRoundedRect(x, y, buttonWidth, buttonHeight, UIStyles.quizButton.borderRadius);
+
+      // ✅ Save position and dimensions in the graphics object for later use
+      buttonBackground.setData({ x, y, width: buttonWidth, height: buttonHeight });
+
+      // Make the button interactive
+      buttonBackground.setInteractive(
+          new Phaser.Geom.Rectangle(x, y, buttonWidth, buttonHeight),
+          Phaser.Geom.Rectangle.Contains
+      );
+
+      // Create button text
+      let btnText = this.add.text(x + buttonWidth / 2, y + buttonHeight / 2, "", {
+        fontSize: UIStyles.quizButton.fontSize,
+        fontFamily: UIStyles.quizButton.fontFamily,
+        color: UIStyles.quizButton.textColor,
+        fontStyle: UIStyles.quizButton.fontStyle,
         align: "center",
-      })
-        .setInteractive()
-        .setFixedSize(buttonWidth, buttonHeight) // Ensure consistent button size
+      }).setOrigin(0.5);
 
-        .on("pointerover", () => {
-          if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
-            btn.setStyle({ backgroundColor: UIStyles.optionButton.hoverBackgroundColor }); // Lighter green on hover
-          }
-        })
-        .on("pointerout", () => {
-          if (!this.answerSubmitted && btn.getData("option") !== this.selectedOption) {
-            btn.setStyle({ backgroundColor: UIStyles.optionButton.backgroundColor }); // Reset on hover out
-          }
-        })
-        .on("pointerdown", () => {
+      // Handle Hover Effect
+      buttonBackground.on("pointerover", () => {
           if (!this.answerSubmitted) {
-            this.selectOption(btn);
+            this.updateButtonColor(buttonBackground, UIStyles.quizButton.hoverColor);
           }
         });
 
-      // Add the button to the list
-      this.optionButtons.push(btn);
+      buttonBackground.on("pointerout", () => {
+        if (!this.answerSubmitted) {
+          this.updateButtonColor(buttonBackground, UIStyles.quizButton.backgroundColor);
+        }
+      });
+
+      buttonBackground.on("pointerdown", () => {
+        if (!this.answerSubmitted) {
+          this.selectOption(btnText);
+        }
+      });
+
+      // Store button and text for future reference
+      this.optionButtons.push({ background: buttonBackground, text: btnText });
     }
 
     // Create a text object for "(click anywhere to proceed)"
     this.clickToProceedText = this.add.text(
-        width / 2,  // Centered horizontally
-        boxY + boxHeight - 20,  // Just below the question box
-        "(click anywhere to proceed)", 
+        width / 2,
+        boxY + boxHeight - 20,
+        "(click anywhere to proceed)",
         {
             fontSize: "18px",
             fontFamily: "Arial",
             color: "#ffffff",
             align: "center"
         }
-    ).setOrigin(0.5).setVisible(false); // Hidden by default
-}
+    ).setOrigin(0.5).setVisible(false);
+  }
+
+
+  // Update the button color
+  updateButtonColor(button, color) {
+    button.clear();
+    button.fillStyle(color, UIStyles.quizButton.opacity);
+    button.fillRoundedRect(button.getData("x"), button.getData("y"), button.getData("width"), button.getData("height"), UIStyles.quizButton.borderRadius);
+  }
+
 
   // Update the timer text
   updateTimerText() {
@@ -165,31 +200,12 @@ class QuestionScene extends Phaser.Scene {
     if (this.questionTimer) this.questionTimer.remove();
 
     // Disable all option buttons
-    this.optionButtons.forEach(btn => btn.disableInteractive());
+    this.optionButtons.forEach(({ background }) => background.disableInteractive());
 
-    const currentQuestion = this.quizManager.getCurrentQuestion();
-    const isCorrect = this.quizManager.submitAnswer(this.selectedOption);
+   // Get answer result from QuizManager
+    const { isCorrect, correctAnswer } = this.quizManager.submitAnswer(this.selectedOption);
 
-    // Correct answer
-    if (isCorrect) {
-      // Check if question in incorrectQuestions and remove if present
-      this.incorrectQuestions = this.incorrectQuestions.filter(
-          q => q.question !== currentQuestion.question
-      );
-
-      // Add the question to masteredQuestions if not already present
-      if (!this.masteredQuestions.find(q => q.question === currentQuestion.question)) {
-          this.masteredQuestions.push(currentQuestion);
-      }
-      // Incorrect answer
-    } else {
-        // Add the question to incorrectQuestions if not already present
-        if (!this.incorrectQuestions.find(q => q.question === currentQuestion.question)) {
-            this.incorrectQuestions.push(currentQuestion);
-        }
-    }
-
-    this.showCorrectAnswer(isCorrect, currentQuestion.answer);
+    this.showCorrectAnswer(isCorrect, correctAnswer);
 
     // Set a delay based on correctness before allowing progression
     let delay = isCorrect ? 1000 : 10000; // 1 sec if correct, 10 sec if incorrect
@@ -273,15 +289,30 @@ class QuestionScene extends Phaser.Scene {
     this.answerTooltip.setDepth(100);
     this.answerTooltipText.setDepth(101);
 
-    // 🔹 Highlight selected option as red (if incorrect) or green (if correct)
-    this.optionButtons.forEach((btn) => {
-      const option = btn.getData("option");
+    // Highlight selected incorrect answer as red, correct as green
+    this.optionButtons.forEach(({ background, text }) => {
+        const option = text.getData("option");
 
-      if (option === correctAnswer) {
-        btn.setStyle({ backgroundColor: UIStyles.optionButton.correctBackgroundColor }); // Green for correct answer
-      } else if (option === this.selectedOption) {
-        btn.setStyle({ backgroundColor: UIStyles.optionButton.incorrectBackgroundColor }); // Red for wrong answer
-      }
+        // Keep previously set color
+        let newColor;
+        if (option === correctAnswer) {
+            newColor = UIStyles.quizButton.correctColor; // Green for correct answer
+        } else if (option === this.selectedOption) {
+            newColor = UIStyles.quizButton.incorrectColor; // Red for incorrect selected answer
+        } else {
+            newColor = UIStyles.quizButton.backgroundColor; // Default color (black)
+        }
+
+        // Redraw with correct color
+        background.clear();
+        background.fillStyle(newColor, UIStyles.quizButton.opacity);
+        background.fillRoundedRect(
+            background.getData("x"), 
+            background.getData("y"), 
+            background.getData("width"), 
+            background.getData("height"), 
+            25
+        );
     });
   }
 
@@ -302,14 +333,24 @@ class QuestionScene extends Phaser.Scene {
       this.answerTooltipText = null;
     }
 
-    const currentQuestion = this.quizManager.getCurrentQuestion(); // ISSUE HERE!!!!!!
+    const currentQuestion = this.quizManager.getCurrentQuestion();
     this.questionText.setText(currentQuestion.question);
 
-    this.optionButtons.forEach((btn, index) => {
-      btn.setText(currentQuestion.options[index]);
-      btn.setData("option", currentQuestion.options[index]);
-      btn.setStyle({ backgroundColor: UIStyles.optionButton.backgroundColor });
-      btn.setInteractive();
+    this.optionButtons.forEach(({ background, text }, index) => {
+      text.setText(currentQuestion.options[index]);
+      text.setData("option", currentQuestion.options[index]);
+
+      // Reset button colors
+      background.clear();
+      background.fillStyle(UIStyles.quizButton.backgroundColor, UIStyles.quizButton.opacity); // Default black
+      background.fillRoundedRect(
+        background.getData("x"), 
+        background.getData("y"), 
+        background.getData("width"), 
+        background.getData("height"), 
+        25
+      );
+      background.setInteractive();
     });
 
     // Initialize values for the next question
@@ -358,7 +399,6 @@ class QuestionScene extends Phaser.Scene {
 
   // End the quiz and return to the main game scene
   endQuiz() {
-    // console.log(this.masteredQuestions);
     if (this.feedbackText) {
       this.feedbackText.destroy();
       this.feedbackText = null;
@@ -366,10 +406,8 @@ class QuestionScene extends Phaser.Scene {
 
     // Remove mastered questions from the main questions pool
     this.quizManager.questions = this.quizManager.questions.filter(q => 
-      !this.masteredQuestions.find(mq => mq.question === q.question)
+      !this.quizManager.masteredQuestions.find(mq => mq.question === q.question)
     );
-
-   // console.log(this.quizManager.questions);
 
     // ✅ Confirm registry values before updating
     // console.log("🔄 Previous Registry Values:");
@@ -378,8 +416,10 @@ class QuestionScene extends Phaser.Scene {
     // console.log("🔹 Mastered Questions:", this.registry.get("masteredQuestions"));
     // console.log("🔹 Incorrect Questions:", this.registry.get("incorrectQuestions"));
 
+    // Update the active questions list
     this.registry.set("questions", this.quizManager.questions);
 
+    // Update the total correct and incorrect answers
     const totalCorrect = (this.registry.get("correctAnswers") || 0) + this.quizManager.correctAnswers;
     const totalIncorrect = (this.registry.get("incorrectAnswers") || 0) + this.quizManager.questions.length - this.quizManager.correctAnswers;
 
@@ -391,12 +431,12 @@ class QuestionScene extends Phaser.Scene {
     this.registry.set("masteredQuestions", this.quizManager.masteredQuestions);
     this.registry.set("incorrectQuestions", this.quizManager.incorrectQuestions);
 
-    // ✅ Confirm new registry values
-    // console.log("🆕 Updated Registry Values:");
-    // console.log("✅ Correct Answers:", totalCorrect);
-    // console.log("❌ Incorrect Answers:", totalIncorrect);
-    // console.log("⭐ Mastered Questions:", this.masteredQuestions.map(q => q.question));
-    // console.log("⚠️ Incorrect Questions:", this.incorrectQuestions.map(q => q.question));
+    //✅ Confirm new registry values
+    console.log("🆕 Updated Registry Values:");
+    console.log("✅ Correct Answers:", totalCorrect);
+    console.log("❌ Incorrect Answers:", totalIncorrect);
+    console.log("⭐ Mastered Questions:", this.quizManager.masteredQuestions.map(q => q.question));
+    console.log("⚠️ Incorrect Questions:", this.quizManager.incorrectQuestions.map(q => q.question));
 
     console.log("🎮 Stopping QuestionScene and resuming MainGameScene...");
     this.scene.stop();
