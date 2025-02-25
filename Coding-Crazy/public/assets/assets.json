@@ -11,16 +11,27 @@
     ]
   },
   {
-    "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
-  "files": [
-    {
-      "type": "image",
-      "key": "arrow",
-      "url": "Arrow (2).png",
-      "frameConfig": { "frameWidth": 64, "frameHeight": 64 }
-    }
+      "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
+    "files": [
+      {
+        "type": "image",
+        "key": "arrow",
+        "url": "Arrow (2).png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 64 }
+      }
   ]
-},
+  },
+  {
+      "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
+    "files": [
+      {
+        "type": "image",
+        "key": "A+",
+        "url": "Star (1).png",
+        "frameConfig": { "frameWidth": 32, "frameHeight": 32 }
+      }
+    ]
+  },
   {
     "path": "assets/images/battle-backgrounds",
     "files": [

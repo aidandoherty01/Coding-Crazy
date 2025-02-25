@@ -1,5 +1,13 @@
 import Phaser from "phaser";
 
+export const EVENT_TYPE = Object.freeze({
+    Nothing: 0,
+    A_plus: 1,
+    Locked_Gate: 2,
+    Unlocked_Gate: 3,
+    //As we continue, we can add more types of events here
+});
+
 export const Direction = Object.freeze({
     UP: 0,
     DOWN: 1,
@@ -13,6 +21,7 @@ export class Vertex {
         this.x = x;
         this.y = y;
         this.adjacents = []; // List of adjacent vertex IDs
+        this.events = [];
     }
 
     addEdge(toId,path) {
@@ -24,6 +33,22 @@ export class Vertex {
     getID(){
         return this.id;
     }
+
+    getEvents(){
+        return this.events;
+    }
+
+    addEvent(ev){
+        this.events.push(ev);
+    }
+
+    removeEvent(ev){
+        this.events = this.events.filter(item => item !== ev);
+    }
+
+    checkForEvent(ev){
+        return this.events.includes(ev);
+    }
 }
 
 export class Edge{
@@ -31,6 +56,7 @@ export class Edge{
         this.fromID = fromID;
         this.toID = toID;
         this.path = path;
+        this.events = [];
     }
     getFrom(){
         return this.fromID;
@@ -40,6 +66,22 @@ export class Edge{
     }
     getPath(){
         return this.path;
+    }
+
+    getEvents(){
+        return events;
+    }
+
+    addEvent(ev){
+        this.events.push(ev);
+    }
+
+    removeEvent(ev){
+        this.events = this.events.filter(item => item !== ev);
+    }
+
+    checkForEvent(ev){
+        return this.events.includes(ev);
     }
 }
 
@@ -62,6 +104,10 @@ export class Digraph {
         return this.vertices.get(id);
     }
 
+    getEvents(){
+        return this.events;
+    }
+
     getNextMoves(id) {
         return this.vertices.get(id).adjacents;
     }
@@ -75,6 +121,12 @@ export class Digraph {
             this.addEdge(base_id,new_id, path);
             console.log(this.vertices.get(base_id));
         }
+    }
+
+    randomVertex(){
+        const keys = Array.from(this.vertices.keys());
+        const randomID = keys[Math.floor(Math.random() * (keys.length))];
+        return randomID;
     }
 }
 
