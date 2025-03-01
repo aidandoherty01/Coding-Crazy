@@ -1,6 +1,6 @@
 import Phaser from "phaser";;
 import { EventBus } from "../../game/EventBus";
-import { Direction, EVENT_TYPE, Vertex, Digraph, make_original_digraph } from "../../data/board_graph";
+import { Direction, EVENT_TYPE, make_original_digraph } from "../../data/board_graph";
 
 
 class BoardScene extends Phaser.Scene {
@@ -146,13 +146,13 @@ class BoardScene extends Phaser.Scene {
     }
   }
 
-  handleEvent(ev, player){
+  handleEvent(ev){
     console.log("EVENT:", ev);
     switch (ev){
       case EVENT_TYPE.Nothing:
         break;
       case EVENT_TYPE.A_plus:
-        console.log("You got a star!");
+        { console.log("You got a star!");
         this.numAPlusses += 1;
         this.APlusText.setText(`Number of A+s: ${this.numAPlusses}`);
         let newALoc;
@@ -163,14 +163,12 @@ class BoardScene extends Phaser.Scene {
         this.ANode = newALoc;
         this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
         this.APlus.setPosition((this.original_board.getVertex(this.ANode).x*32)-16, (this.original_board.getVertex(this.ANode).y*32)-16);
-        break;
+        break; }
       default:
         break;
     }
   }
 
 }
-
-
 
 export default BoardScene;

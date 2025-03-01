@@ -23,7 +23,8 @@ class StartQuestionButton extends Phaser.GameObjects.Container {
         if (scene.scene.isActive("QuestionScene")) {
           return;
         } else {
-          scene.scene.launch("QuestionScene");
+          scene.scene.pause("BoardScene");
+          scene.scene.launch("QuestionScene", { questionLimit: 1 });
         }
       })
       .on("pointerover", () => {
