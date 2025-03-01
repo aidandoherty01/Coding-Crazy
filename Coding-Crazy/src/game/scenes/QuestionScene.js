@@ -12,7 +12,7 @@ class QuestionScene extends Phaser.Scene {
   }
 
   // Initialize the scene ON EVERY RESTART
-  init() {
+  init(data) {
       const storedQuestions = this.registry.get("questions");
 
       // Check if storedQuestions exist and are not empty
@@ -22,7 +22,10 @@ class QuestionScene extends Phaser.Scene {
           ? storedQuestions 
           : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
 
-      this.quizManager = new QuizManager(questionsCopy);
+      // Link question limit to scene
+      const questionLimit = data?.questionLimit || 4;
+
+      this.quizManager = new QuizManager(questionsCopy, questionLimit);
 
       // Reset mastered and incorrect questions if storedQuestions is empty
       if (!isStoredQuestionsValid) {
@@ -40,7 +43,7 @@ class QuestionScene extends Phaser.Scene {
   // Load the question scene
   create() {
    console.log("❓ QuestionScene is now active!");
-
+    this.scene.bringToTop();
     // Get the screen dimensions
     const { width, height } = this.scale;
 
@@ -124,7 +127,7 @@ class QuestionScene extends Phaser.Scene {
       buttonBackground.fillStyle(UIStyles.quizButton.backgroundColor, UIStyles.quizButton.opacity); 
       buttonBackground.fillRoundedRect(x, y, buttonWidth, buttonHeight, UIStyles.quizButton.borderRadius);
 
-      // ✅ Save position and dimensions in the graphics object for later use
+      // Save position and dimensions in the graphics object for later use
       buttonBackground.setData({ x, y, width: buttonWidth, height: buttonHeight });
 
       // Make the button interactive
@@ -409,7 +412,7 @@ class QuestionScene extends Phaser.Scene {
       !this.quizManager.masteredQuestions.find(mq => mq.question === q.question)
     );
 
-    // ✅ Confirm registry values before updating
+    // Confirm registry values before updating
     // console.log("🔄 Previous Registry Values:");
     // console.log("🔹 Correct Answers:", this.registry.get("correctAnswers"));
     // console.log("🔹 Incorrect Answers:", this.registry.get("incorrectAnswers"));
@@ -431,7 +434,7 @@ class QuestionScene extends Phaser.Scene {
     this.registry.set("masteredQuestions", this.quizManager.masteredQuestions);
     this.registry.set("incorrectQuestions", this.quizManager.incorrectQuestions);
 
-    //✅ Confirm new registry values
+    // Confirm new registry values
     console.log("🆕 Updated Registry Values:");
     console.log("✅ Correct Answers:", totalCorrect);
     console.log("❌ Incorrect Answers:", totalIncorrect);
@@ -440,7 +443,8 @@ class QuestionScene extends Phaser.Scene {
 
     console.log("🎮 Stopping QuestionScene and resuming MainGameScene...");
     this.scene.stop();
-    this.scene.resume("MainGameScene");
+    // this.scene.resume("MainGameScene");
+    this.scene.resume("BoardScene");
   }
 }
 
