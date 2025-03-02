@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, TextField, Button, Divider, LinearProgress } from "@mui/material";
-import { PhaserGame } from "../game/PhaserGame"; // Import your Phaser game
+import { PhaserGame } from "../game/PhaserGame"; 
 import { useRef } from "react";
 
 const GamePage = () => {
