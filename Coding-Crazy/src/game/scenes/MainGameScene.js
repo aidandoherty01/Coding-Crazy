@@ -17,6 +17,7 @@ class MainGameScene extends Phaser.Scene {
 
     this.scene.launch("BoardScene");
     new StartQuestionButton(this);
+    
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
   }
