@@ -43,46 +43,6 @@
     ]
   },
   {
-    "path": "assets/monsters",
-    "files": [
-      {
-        "type": "image",
-        "key": "carnodusk",
-        "url": "carnodusk.png"
-      },
-      {
-        "type": "image",
-        "key": "iguanignite",
-        "url": "iguanignite.png"
-      },
-      {
-        "type": "image",
-        "key": "aquavalor",
-        "url": "aquavalor.png"
-      },
-      {
-        "type": "image",
-        "key": "frostsaber",
-        "url": "frostsaber.png"
-      },
-      {
-        "type": "image",
-        "key": "ignivolt",
-        "url": "ignivolt.png"
-      },
-      {
-        "type": "image",
-        "key": "parazoid",
-        "url": "parazoid.png"
-      },
-      {
-        "type": "image",
-        "key": "jivy",
-        "url": "jivy.png"
-      }
-    ]
-  },
-  {
     "path": "assets/",
     "files": [
       {
