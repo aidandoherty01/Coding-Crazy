@@ -14,7 +14,7 @@ const config = {
     backgroundColor: "#FFFFFF", // Background color of the game while loading
     parent: "game-container",
     pixelArt: true,
-    scene: [BootScene, MainGameScene, QuestionScene, BoardScene, ChoiceScene],
+    scene: [BootScene, MainGameScene, QuestionScene, BoardScene, ChoiceScene, SpinnerScene],
     scale: {
         autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
     }

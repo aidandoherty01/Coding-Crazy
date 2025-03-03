@@ -76,6 +76,7 @@ export class Digraph {
             console.log(this.vertices.get(base_id));
         }
     }
+
 }
 
 export function make_original_digraph(){

@@ -1,6 +1,138 @@
 {
         "anims": [
             {
+                "key": "arrow_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "direction_arrow",
+                "frameRate": 8,
+                "repeat": 0
+            },
+            {
+                "key": "arrow_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 15
+                    },
+                    {
+                        "frame": 16
+                    },
+                    {
+                        "frame": 17
+                    },
+                    {
+                        "frame": 18
+                    },
+                    {
+                        "frame": 19
+                    },
+                    {
+                        "frame": 18
+                    },
+                    {
+                        "frame": 17
+                    },
+                    {
+                        "frame": 16
+                    }
+                ],
+                "defaultTextureKey": "direction_arrow",
+                "frameRate": 8,
+                "repeat": 0
+            },
+            {
+                "key": "arrow_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 30
+                    },
+                    {
+                        "frame": 31
+                    },
+                    {
+                        "frame": 32
+                    },
+                    {
+                        "frame": 33
+                    },
+                    {
+                        "frame": 34
+                    },
+                    {
+                        "frame": 33
+                    },
+                    {
+                        "frame": 32
+                    },
+                    {
+                        "frame": 31
+                    }
+                ],
+                "defaultTextureKey": "direction_arrow",
+                "frameRate": 8,
+                "repeat": 0
+            },
+            {
+                "key": "arrow_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 35
+                    },
+                    {
+                        "frame": 36
+                    },
+                    {
+                        "frame": 37
+                    },
+                    {
+                        "frame": 38
+                    },
+                    {
+                        "frame": 39
+                    },
+                    {
+                        "frame": 38
+                    },
+                    {
+                        "frame": 37
+                    },
+                    {
+                        "frame": 36
+                    }
+                ],
+                "defaultTextureKey": "direction_arrow",
+                "frameRate": 8,
+                "repeat": 0
+            },
+            {
                 "key": "walk_north",
                 "type": "frame",
                 "frames": [

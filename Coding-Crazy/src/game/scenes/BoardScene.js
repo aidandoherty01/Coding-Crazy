@@ -17,6 +17,30 @@ class BoardScene extends Phaser.Scene {
   create() {
     console.log("🎮 BoardScene is now active!");
     
+    const westArrow = this.add.sprite(700, 100, "direction_arrow");
+    westArrow.setInteractive();
+    
+    const testArrow = this.add.sprite(900, 100, "direction_arrow");
+    testArrow.setTint(0x0000CC33);
+    testArrow.glowTween = this.tweens.add({
+        targets: testArrow,
+        alpha: {from: 1, to: 0.1},
+        duration: 500,
+        yoyo: true,
+        repeat: -1
+    });
+
+
+    westArrow.on('pointerover', function()
+    {
+      this.play({key: "arrow_west", repeat: -1});  
+    });
+
+    westArrow.on('pointerout', function() 
+    {
+        westArrow.stopOnFrame(westArrow.anims.currentAnim.getFrameAt(0));
+    });
+
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
@@ -25,7 +49,7 @@ class BoardScene extends Phaser.Scene {
     this.player1 = this.add.sprite((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
 
     
-    // button for spinner event
+    // button for spinner scene
     this.moveButton_Spinner = this.add.text(500, 100, 'Move By Spinner', { 
         font: '20px Arial', 
         fill: '#ffffff', 
@@ -34,9 +58,12 @@ class BoardScene extends Phaser.Scene {
       });
 
     this.moveButton_Spinner.setInteractive();
+    
     this.moveButton_Spinner.on('pointerdown', () => {
+        const spinScene = this.scene.get("SpinnerScene");
         this.scene.pause();
-        this.scene.start('SpinnerScene');
+        this.scene.launch("SpinnerScene");
+        spinScene.events.once("spinResult", this.moveSpace, this);
       });
 
 
@@ -98,7 +125,6 @@ class BoardScene extends Phaser.Scene {
   handleChoice(choice, spacesLeft){
     this.playerNode = choice.getTo();
     this.scene.resume();
-    console.log(choice);
     this.walkThePath(choice.path, 0, spacesLeft);
   }
 
@@ -132,7 +158,7 @@ class BoardScene extends Phaser.Scene {
         duration: 250,
         ease: 'Linear',
         onComplete: () => {
-            console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
+            //console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
             if(index < path.length - 1){
                 this.walkThePath(path,index+1, spacesLeft);
             }else if(spacesLeft > 1){
