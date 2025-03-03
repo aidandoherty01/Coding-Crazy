@@ -43,57 +43,23 @@
   ]
 },
   {
-    "path": "assets/images/battle-backgrounds",
+      "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
     "files": [
       {
         "type": "image",
-        "key": "forest",
-        "url": "forest-background.png"
-      },
-      {
-        "type": "image",
-        "key": "board",
-        "url": "original_board.png"
+        "key": "A+",
+        "url": "Star (1).png",
+        "frameConfig": { "frameWidth": 32, "frameHeight": 32 }
       }
     ]
   },
   {
-    "path": "assets/monsters",
+    "path": "assets/images/board",
     "files": [
       {
         "type": "image",
-        "key": "carnodusk",
-        "url": "carnodusk.png"
-      },
-      {
-        "type": "image",
-        "key": "iguanignite",
-        "url": "iguanignite.png"
-      },
-      {
-        "type": "image",
-        "key": "aquavalor",
-        "url": "aquavalor.png"
-      },
-      {
-        "type": "image",
-        "key": "frostsaber",
-        "url": "frostsaber.png"
-      },
-      {
-        "type": "image",
-        "key": "ignivolt",
-        "url": "ignivolt.png"
-      },
-      {
-        "type": "image",
-        "key": "parazoid",
-        "url": "parazoid.png"
-      },
-      {
-        "type": "image",
-        "key": "jivy",
-        "url": "jivy.png"
+        "key": "board",
+        "url": "original_board.png"
       }
     ]
   },
