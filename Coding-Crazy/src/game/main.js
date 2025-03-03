@@ -16,7 +16,8 @@ const config = {
     scene: [BootScene, MainGameScene, QuestionScene, BoardScene, ChoiceScene],
     scale: {
         autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-    }
+    },
+    disableVisibilityChange: true
 };
 
 // Function to start the game
