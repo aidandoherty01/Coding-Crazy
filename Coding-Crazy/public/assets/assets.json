@@ -11,16 +11,37 @@
     ]
   },
   {
-      "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
+    "path": "assets/misc_pictures",
     "files": [
-      {
-        "type": "image",
-        "key": "arrow",
-        "url": "Arrow (2).png",
-        "frameConfig": { "frameWidth": 64, "frameHeight": 64 }
-      }
-  ]
+        {
+            "type": "spritesheet",
+            "key": "direction_arrow",
+            "url": "directional_arrow_spritesheet.png",
+            "frameConfig": {"frameWidth": 64, "frameHeight": 64}
+        }
+    ]
   },
+  {
+    "path": "assets/misc_pictures",
+    "files": [
+        {
+            "type": "image",
+            "key": "pin_wheel",
+            "url": "pin.png"
+        }
+    ]
+  },
+  {
+    "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
+  "files": [
+    {
+      "type": "image",
+      "key": "arrow",
+      "url": "Arrow (2).png",
+      "frameConfig": { "frameWidth": 64, "frameHeight": 64 }
+    }
+  ]
+},
   {
       "path": "assets/Basic 2D Shapes Primitive 128px/black rough",
     "files": [
