@@ -2,7 +2,7 @@
 //It's used when a player can choose between paths
 import Phaser from "phaser";;
 import { EventBus } from "../../game/EventBus";
-import { Vertex, Digraph, Edge, make_original_digraph } from "../../data/board_graph";
+import { Vertex, Digraph, make_original_digraph } from "../../data/board_graph";
 
 
 class ChoiceScene extends Phaser.Scene{
@@ -22,96 +22,25 @@ class ChoiceScene extends Phaser.Scene{
 
     create() {
         console.log("A choice is to be made");
-        const arrows = this.add.group();
-
-        for(let i = 0; i < this.board.getNextMoves(this.currNode).length; i++)
-        {
-            let adjNode = this.board.getNextMoves(this.currNode)[i];
-            let adjNodeDirection = adjNode.getPath()[0];
-            
-            this.createArrow(this.player.x, this.player.y, adjNode, adjNodeDirection, arrows);
-        }
-    }
-
-    createArrow(x, y, adjNode, direction, group) {
-        
-        var arrow;
-
-        switch(direction) {
-            case 0: //UP
-
-                arrow = this.add.sprite(x, y - 48, "direction_arrow",);
-                arrow.setFrame(30);
-                arrow.setData('adjNode', adjNode);
-                break;
-
-            case 1: //DOWN
-
-                arrow = this.add.sprite(x, y + 48, "direction_arrow",);
-                arrow.setFrame(15);
-                arrow.setData('adjNode', adjNode);
-                break;
-
-            case 2: //LEFT
-
-                arrow = this.add.sprite(x - 48, y, "direction_arrow",);
-                arrow.setFrame(0);
-                arrow.setData('adjNode', adjNode);
-                break; 
-
-            case 3: //RIGHT
-
-                arrow = this.add.sprite(x + 48, y, "direction_arrow",);
-                arrow.setFrame(35);
-                arrow.setData('adjNode', adjNode);
-                break;
-
-            default:
-                console.log("DIRECTION NOT FOUND");
-                break;
-        }
-
-        this.setArrowInteraction(arrow, group);
-        group.add(arrow);
-    }
-
-    setArrowInteraction(arrow, group){
-
-        arrow.setInteractive();
-        arrow.on('pointerover', () => this.startEffect(arrow));
-        arrow.on('pointerout', () => this.stopEffect(arrow));
-
-        arrow.on('pointerdown', () => {
-            this.scene.get('BoardScene').events.emit('choiceMade', arrow.getData('adjNode'));
-            group.clear(true, true);
-            this.scene.stop();
-        })
-    }
-
-    startEffect(arrow) {
-
-        arrow.setTint(0x0000CC33);
-
-        if (!arrow.glowEffect) {
-            arrow.glowEffect = this.tweens.add ({
-                targets: arrow,
-                alpha: {from:1, to: 0.1},
-                duration: 600,
-                yoyo: true,
-                repeat: -1
+        const arrows = [];
+        for(let index = 0; index < this.board.getNextMoves(this.currNode).length; index++){
+            let adjNode = this.board.getNextMoves(this.currNode)[index];
+            let dx = (this.board.getVertex(adjNode.getTo()).x*32) - (this.board.getVertex(this.currNode).x*32);
+            let dy = (this.board.getVertex(adjNode.getTo()).y*32) - (this.board.getVertex(this.currNode).y*32);
+            let angle = Math.atan2(dy,dx);
+            const arrow = this.add.image((this.board.getVertex(adjNode.getTo()).x*32)-16,(this.board.getVertex(adjNode.getTo()).y*32)-16,"arrow",0).setScale(0.5).setRotation(angle);
+            arrow.customId = adjNode;
+            arrow.setInteractive();
+            arrow.on('pointerdown', () => {
+              console.log('Clicked arrow id:', arrow.customId);
+              // Remove/hide all arrows
+              arrows.forEach(a => {
+                a.destroy();
+              });
+              this.scene.get('BoardScene').events.emit('choiceMade', arrow.customId);
+              this.scene.stop();
             });
-        }
-    }
-
-    stopEffect(arrow) {
-
-        if(arrow.glowEffect) {
-
-            arrow.clearTint();
-            arrow.setAlpha(1);
-            arrow.glowEffect.stop();
-            arrow.glowEffect.remove();
-            arrow.glowEffect = null;
+            arrows.push(arrow);
         }
     }
 }

@@ -1,8 +1,6 @@
 import Phaser from "phaser";
 import StartQuestionButton from "../../components/StartQuestionButton";
 import { EventBus } from "../../game/EventBus";
-import BoardScene from "./BoardScene";
-import SpinnerScene from "./SpinnerScene";
 
 class MainGameScene extends Phaser.Scene {
   constructor() {
@@ -15,11 +13,9 @@ class MainGameScene extends Phaser.Scene {
 
   create() {
     console.log("🎮 MainGameScene is now active!");
-
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.scene.launch("BoardScene");
-
     new StartQuestionButton(this);
     
     // Emit an event to notify the React component that the scene is ready
