@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { EventBus } from "../EventBus";
 
 class BootScene extends Phaser.Scene {
   constructor() {
@@ -17,8 +16,6 @@ class BootScene extends Phaser.Scene {
     this.registry.set("incorrectQuestions", this.registry.get("incorrectQuestions") || []);
 
     console.log("✅ Registry Initialized:", this.registry.getAll());
-
-    EventBus.emit("current-scene-ready", this);
 
     // Start the main game scene
     this.scene.start("MainGameScene");
