@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import { exportCollectionToJson, exportSubjectsToJson } from "./getData.mjs";
 import path from "path";
-
-import http from "http";
+import { Lobby } from "./lobbyClass.js";
 
 const app = express();
 const PORT = 5000;
@@ -11,37 +10,38 @@ const PORT = 5000;
 app.use(cors()); // Enable CORS (to allow React to communicate with this server)
 app.use(express.json());
 
-//const server = http.createServer(app);
-
 // Store lobby users
 const lobbies = {};
 
 app.post("/join-lobby", (req, res) => {
   const { accessCode, username } = req.body;
   if (!lobbies[accessCode]) {
-    lobbies[accessCode] = [];
+    lobbies[accessCode] = new Lobby(accessCode);
+    //In the future, we'll add other data here like max players as well
   }
-  const user = { id: Date.now(), name: username };
-  lobbies[accessCode].push(user);
 
-  res.status(200).json(lobbies[accessCode]);
+  if (lobbies[accessCode].full()) {
+    return res.status(400).json({ message: "Lobby is full" }); // Reject if full
+  } else {
+    const user = { id: Date.now(), name: username };
+    lobbies[accessCode].addUser(user);
+    res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
+  }
 });
 
 app.post("/leave-lobby", (req, res) => {
   const { accessCode, username } = req.body;
 
   if (lobbies[accessCode]) {
-    lobbies[accessCode] = lobbies[accessCode].filter(
-      (user) => user.name !== username
-    );
+    lobbies[accessCode].deleteUser(username);
   }
 
-  res.status(200).json(lobbies[accessCode]);
+  res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
 });
 
 app.get("/lobby/:accessCode", (req, res) => {
   const { accessCode } = req.params;
-  res.status(200).json(lobbies[accessCode] || []);
+  res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
 });
 
 /*Get Collection*/

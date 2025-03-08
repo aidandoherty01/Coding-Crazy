@@ -27,6 +27,11 @@ function LobbyPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ accessCode, username }),
             });
+            
+            if(!response.ok){
+                console.log(response);
+                return;
+            }
             const data = await response.json();
             setUsers(data);
             setJoined(true);
