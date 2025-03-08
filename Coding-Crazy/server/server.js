@@ -2,59 +2,46 @@ import express from "express";
 import cors from "cors";
 import { exportCollectionToJson, exportSubjectsToJson } from "./getData.mjs";
 import path from "path";
-import { Server } from "socket.io";
+
 import http from "http";
 
 const app = express();
 const PORT = 5000;
 
 app.use(cors()); // Enable CORS (to allow React to communicate with this server)
+app.use(express.json());
 
-const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173", // Allow frontend to connect
-    methods: ["GET", "POST"],
-  },
-});
+//const server = http.createServer(app);
 
 // Store lobby users
 const lobbies = {};
 
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+app.post("/join-lobby", (req, res) => {
+  const { accessCode, username } = req.body;
+  if (!lobbies[accessCode]) {
+    lobbies[accessCode] = [];
+  }
+  const user = { id: Date.now(), name: username };
+  lobbies[accessCode].push(user);
 
-  socket.on("join_lobby", ({ accessCode, username }) => {
-    if (!lobbies[accessCode]) {
-      lobbies[accessCode] = [];
-    }
-    const user = { id: socket.id, name: username };
-    lobbies[accessCode].push(user);
+  res.status(200).json(lobbies[accessCode]);
+});
 
-    socket.join(accessCode);
-    io.to(accessCode).emit("lobby_users", lobbies[accessCode]);
-    socket.emit("lobby_users", lobbies[accessCode]);
-  });
+app.post("/leave-lobby", (req, res) => {
+  const { accessCode, username } = req.body;
 
-  socket.on("leave_lobby", (accessCode) => {
-    if (lobbies[accessCode]) {
-      lobbies[accessCode] = lobbies[accessCode].filter(
-        (id) => id !== socket.id
-      );
-      io.to(accessCode).emit("lobby_users", lobbies[accessCode]);
-    }
-  });
+  if (lobbies[accessCode]) {
+    lobbies[accessCode] = lobbies[accessCode].filter(
+      (user) => user.name !== username
+    );
+  }
 
-  socket.on("disconnect", () => {
-    for (const accessCode in lobbies) {
-      lobbies[accessCode] = lobbies[accessCode].filter(
-        (id) => id !== socket.id
-      );
-      io.to(accessCode).emit("lobby_users", lobbies[accessCode]);
-    }
-    console.log("User disconnected:", socket.id);
-  });
+  res.status(200).json(lobbies[accessCode]);
+});
+
+app.get("/lobby/:accessCode", (req, res) => {
+  const { accessCode } = req.params;
+  res.status(200).json(lobbies[accessCode] || []);
 });
 
 /*Get Collection*/
@@ -82,6 +69,6 @@ app.get("/subjects", async (req, res) => {
 });
 
 /* Start The Server */
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });

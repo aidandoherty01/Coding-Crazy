@@ -1,5 +1,3 @@
-//import {Server} from "socket.io";
-import { io } from "socket.io-client";
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
 import {useParams} from "react-router-dom";
@@ -10,43 +8,58 @@ function LobbyPage() {
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
-    const socketRef = useRef(null);
+
+    const fetchUsers = async () => {
+        const response = await fetch(`http://localhost:5000/lobby/${accessCode}`);
+        const data = await response.json();
+        setUsers(data);
+    };
 
     useEffect(() => {
-        if(!accessCode){
-            return;
-        }
-        socketRef.current = io("http://localhost:5000");
-
-        socketRef.current.on("lobby_users", (userList) => {
-            setUsers(userList);
-        });
-
-        return () => {
-            socketRef.current.emit("leave_lobby", accessCode);
-            socketRef.current.off("lobby_users");
-            socketRef.current.disconnect();
-        };
+        const interval = setInterval(fetchUsers, 3000); //3 Seconds
+        return () => clearInterval(interval);
     }, [accessCode]);
 
-    useEffect(() => {
-        if (accessCode && socketRef.current) {
-            socketRef.current.emit("join_lobby", accessCode);
-        }
-
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.emit("leave_lobby", accessCode);
-            }
-        };
-    }, [accessCode]);
-
-    const joinLobby = () => {
-        if (username.trim() && socketRef.current) {
-            socketRef.current.emit("join_lobby", { accessCode, username });
+    const joinLobby = async () => {
+        if (username.trim()) {
+            const response = await fetch("http://localhost:5000/join-lobby", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accessCode, username }),
+            });
+            const data = await response.json();
+            setUsers(data);
             setJoined(true);
         }
     };
+
+    const leaveLobby = async () => {
+        if (username.trim()) {
+            const response = await fetch("http://localhost:5000/leave-lobby", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accessCode, username }),
+            });
+            const data = await response.json();
+            setUsers(data);
+            setJoined(false);
+        }
+    };
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (joined) {
+                leaveLobby(); // Call leaveLobby function when the page is being unloaded
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // Cleanup on component unmount
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [joined]);
 
     return (
         <Box>
