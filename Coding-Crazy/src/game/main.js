@@ -4,6 +4,7 @@ import MainGameScene from "./scenes/MainGameScene";
 import QuestionScene from "./scenes/QuestionScene";
 import BoardScene from "./scenes/BoardScene";
 import ChoiceScene from "./scenes/ChoiceScene";
+import SpinnerScene from "./scenes/SpinnerScene";
 
 // Game Configuration
 const config = {
@@ -13,7 +14,7 @@ const config = {
     backgroundColor: "#FFFFFF", // Background color of the game while loading
     parent: "game-container",
     pixelArt: true,
-    scene: [BootScene, MainGameScene, QuestionScene, BoardScene, ChoiceScene],
+    scene: [BootScene, MainGameScene, QuestionScene, BoardScene, ChoiceScene, SpinnerScene],
     scale: {
         autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
     }
