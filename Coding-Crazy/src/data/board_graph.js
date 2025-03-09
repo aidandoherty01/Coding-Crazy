@@ -1,5 +1,3 @@
-import Phaser from "phaser";
-
 export const EVENT_TYPE = Object.freeze({
     Nothing: 0,
     A_plus: 1,

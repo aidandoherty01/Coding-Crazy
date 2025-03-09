@@ -1,93 +1,132 @@
-import Phaser from "phaser";;
+import Phaser from "phaser";
 import { EventBus } from "../EventBus";
 
 class SpinnerScene extends Phaser.Scene {
 
     constructor() {
         super({ key: "SpinnerScene" });
-        }
-    
-    preload() {
-        this.load.pack("asset_pack", "../assets/assets.json");
     }
 
+
+    init(data) {
+        this.correctAnswers = data?.correctAnswers || 0;
+    }
+
+
     create() {
-        console.log("Spinner Scene is now active.");
-        this.createWheel(Phaser.Math.Between(1, 10));
+        console.log("🎡 Spinner Scene is now active.");
+
+        // Listen for the `quizCompleted` event and update `correctAnswers`
+        EventBus.on("quizCompleted", this.updateCorrectAnswers, this);
+
+        // Determine the number of slices based on correct answers
+        const numberOfSlices = this.getSliceCount();
+        console.log(`🔢 Number of slices on the spinner: ${numberOfSlices}`);
+
+        this.createWheelGraphics(numberOfSlices);
         EventBus.emit("current-scene-ready", this);
     }
 
-    createWheel(numberOfSlices)
-    {
-        var degrees = 360 / numberOfSlices;
-        var wheel = this.add.graphics();
-        let choices = [];
-        wheel.lineStyle(2, 0x000000);       //outline for wheel and slices
 
-        for(var i = 0; i < numberOfSlices; i++)
-        {
+    getSliceCount() {
+        // More correct answers = More slices (better movement potential)
+        switch (this.correctAnswers) {
+            case 4: return 10;  // Best case (10 slices)
+            case 3: return 8;
+            case 2: return 6;
+            case 1: return 4;
+            default: return 2;  // Worst case (2 slices, meaning limited movement)
+        }
+    }
+
+
+    updateCorrectAnswers(correctAnswers) {
+        console.log(`📊 Quiz Completed - Correct Answers: ${correctAnswers}`);
+        this.correctAnswers = correctAnswers;
+    }
+
+
+    createWheelGraphics(numberOfSlices) {
+        const degrees = 360 / numberOfSlices;
+        const wheel = this.add.graphics();
+        let choices = this.getMovementValue(numberOfSlices);
+
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+        const wheelRadius = 150;
+
+        wheel.lineStyle(2, 0x000000); // Outline for wheel and slices
+
+        for (let i = 0; i < numberOfSlices; i++) {
             let startSliceAngle = Phaser.Math.DegToRad(270 + i * degrees);
             let endSliceAngle = Phaser.Math.DegToRad(270 + (i + 1) * degrees);
             let averageAngle = (startSliceAngle + endSliceAngle) / 2;
-            let testSliceCenterX = 350 + Math.cos(averageAngle) * 100;
-            let testSliceCenterY = 225 + Math.sin(averageAngle) * 100;
-            let randomTest = Phaser.Math.Between(1, 6);
-            console.log("RANDOM TEST VALUE: " + randomTest);
-            choices.push(randomTest);
-            
-            this.add.text(testSliceCenterX, testSliceCenterY, randomTest, 
-                {
-                    font: '23px Arial', 
-                    fill: '#000000'
-                }
-            );
-            
+            let sliceCenterX = centerX + Math.cos(averageAngle) * (wheelRadius - 30);
+            let sliceCenterY = centerY + Math.sin(averageAngle) * (wheelRadius - 30);
+
+            let movementValue = choices[i];
+
+            this.add.text(sliceCenterX, sliceCenterY, movementValue, {
+                font: '23px Arial',
+                fill: '#000000'
+            }).setOrigin(0.5);
+
             wheel.fillStyle(0xffffff, 1);
-            wheel.slice(350, 225, 150, startSliceAngle, endSliceAngle, false);
+            wheel.slice(centerX, centerY, wheelRadius, startSliceAngle, endSliceAngle, false);
             wheel.fillPath();
             wheel.strokePath();
         }
 
-        // Adding pinwheel on top of drawn wheel
-        this.pinWheel = this.add.sprite(350, 225, "pin_wheel");
+        // Add the spinning pinwheel on top
+        this.pinWheel = this.add.sprite(centerX, centerY, "pin_wheel");
         this.spinPin(degrees, choices);
     }
 
-    spinPin(setDegrees, choices)
-    {
-        //var numberOfSlices = 360 / setDegrees;
-        let isSpinning = false;
-        //const spinResults = [1, 2, 3, 4, 5, 6];
-  
-        this.input.on('pointerdown', function (pointer)
-        {
-          if(!isSpinning)
-          {
-              var numberOfSpins = Phaser.Math.Between(1, 10);
-              var randomDegree = Phaser.Math.Between(0, 360);
-              var endResult = Math.floor((randomDegree  / setDegrees));
-              isSpinning = true;
-  
-              this.tweens.add(
-                  {
-                      targets: this.pinWheel,
-                      angle: (360 * numberOfSpins) + randomDegree,
-                      duration: 1000,
-                      ease: "Sine.easeInOut",
-                      callbackScope: this,
-                      onComplete: function(tween) {
-                          this.tweens.angle = 0;
-                          this.time.delayedCall(2000, () => this.scene.stop());
-                          this.time.delayedCall(2000, () => 
-                            this.events.emit('spinResult', choices[endResult]));
-                          console.log("END CHOICE: " + choices[endResult]);
-                          this.scene.resume("BoardScene");
-                      }
-                  }
-              );
 
-          }
+    getMovementValue(numberOfSlices) {
+        // Generate an array of numbers from 1 to numberOfSlices
+        let values = Array.from({ length: numberOfSlices }, (_, i) => i + 1);
+
+        // Shuffle the array to distribute numbers randomly
+        Phaser.Math.RND.shuffle(values);
+
+        return values;
+    }
+
+
+
+    spinPin(setDegrees, choices) {
+        let isSpinning = false;
+
+        this.input.on('pointerdown', function () {
+            if (!isSpinning) {
+                let numberOfSpins = Phaser.Math.Between(5, 15);
+                let randomDegree = Phaser.Math.Between(0, 360);
+                let endResult = Math.floor(randomDegree / setDegrees);
+                isSpinning = true;
+
+                this.tweens.add({
+                    targets: this.pinWheel,
+                    angle: (360 * numberOfSpins) + randomDegree,
+                    duration: 1500,
+                    ease: "Cubic.easeOut",
+                    callbackScope: this,
+                    onComplete: function () {
+                        this.tweens.angle = 0;
+                        this.time.delayedCall(2000, () => this.scene.stop());
+                        this.time.delayedCall(2000, () =>
+                            this.events.emit('spinResult', choices[endResult]));
+                        console.log("🎯 Spin Result: " + choices[endResult]);
+                        this.scene.resume("BoardScene");
+                    }
+                });
+            }
         }, this);
+    }
+
+
+    shutdown() {
+        EventBus.off("quizCompleted", this.updateCorrectAnswers, this);
     }
 }
 

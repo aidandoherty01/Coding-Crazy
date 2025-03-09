@@ -1,5 +1,4 @@
 import Phaser from "phaser";;
-import SpinnerScene from "./SpinnerScene";
 import { EventBus } from "../../game/EventBus";
 import { Direction, EVENT_TYPE, make_original_digraph } from "../../data/board_graph";
 
@@ -9,101 +8,40 @@ class BoardScene extends Phaser.Scene {
     super({ key: "BoardScene" });
   }
 
+
   preload() {
-    this.load.pack("asset_pack", "../assets/assets.json");
     this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
   }
+
+
   create() {
     console.log("🎮 BoardScene is now active!");
     
-    const westArrow = this.add.sprite(700, 100, "direction_arrow");
-    westArrow.setInteractive();
-    
-    const testArrow = this.add.sprite(900, 100, "direction_arrow");
-    testArrow.setTint(0x0000CC33);
-    testArrow.glowTween = this.tweens.add({
-        targets: testArrow,
-        alpha: {from: 1, to: 0.1},
-        duration: 500,
-        yoyo: true,
-        repeat: -1
-    });
-
-
-    westArrow.on('pointerover', function()
-    {
-      this.play({key: "arrow_west", repeat: -1});  
-    });
-
-    westArrow.on('pointerout', function() 
-    {
-        westArrow.stopOnFrame(westArrow.anims.currentAnim.getFrameAt(0));
-    });
-
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
-    do{
+    do {
       this.ANode = this.original_board.randomVertex();
-    }while(this.ANode === 0);
+    } while(this.ANode === 0);
     this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
     this.APlus = this.add.image((this.original_board.getVertex(this.ANode).x*32)-16, (this.original_board.getVertex(this.ANode).y*32)-16,"A+").setScale(0.25);
     this.playerNode = 0;
 
-    //this.player1 = this.add.image((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
     this.player1 = this.add.sprite((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
 
-    
-    // button for spinner scene
-    this.moveButton_Spinner = this.add.text(500, 100, 'Move By Spinner', { 
-        font: '20px Arial', 
-        fill: '#ffffff', 
-        backgroundColor: '#0000ff',
-        padding: { x: 10, y: 5 }
-      });
-
-    this.moveButton_Spinner.setInteractive();
-    
-    this.moveButton_Spinner.on('pointerdown', () => {
-        const spinScene = this.scene.get("SpinnerScene");
-        this.scene.pause();
-        this.scene.launch("SpinnerScene");
-        spinScene.events.once("spinResult", this.moveSpace, this);
-      });
-
-    this.numAPlusses = 0 //This will soon be data held in player class
-
-    this.moveButton = this.add.text(100, 100, 'Move a Space', { 
+    this.testTurnButton = this.add.text(500, 50, 'Start Turn', { 
       font: '20px Arial', 
       fill: '#ffffff', 
-      backgroundColor: '#0000ff',
+      backgroundColor: '#ff0000',
       padding: { x: 10, y: 5 }
     });
 
-    // Make the text object interactive
-    this.moveButton.setInteractive();
-    
-    // Add a click listener
-    this.moveButton.on('pointerdown', () => {
-      // Call your function with argument 6
-      this.moveSpace(1);
+    this.testTurnButton.setInteractive();
+    this.testTurnButton.on('pointerdown', () => {
+        this.startPlayerTurn();
     });
 
-    this.moveButton_six = this.add.text(300, 100, 'Move 6 Spaces', { 
-        font: '20px Arial', 
-        fill: '#ffffff', 
-        backgroundColor: '#0000ff',
-        padding: { x: 10, y: 5 }
-      });
-      
-      // Make the text object interactive
-      this.moveButton_six.setInteractive();
-      
-      // Add a click listener
-      this.moveButton_six.on('pointerdown', () => {
-        // Call your function with argument 6
-        this.moveSpace(6);
-      });
+    this.numAPlusses = 0 //This will soon be data held in player class
 
       this.APlusText = this.add.text(700, 100, `Number of A+s: ${this.numAPlusses}`, {
         fontSize: "20px",
@@ -114,17 +52,33 @@ class BoardScene extends Phaser.Scene {
     EventBus.emit("current-scene-ready", this);
   }
 
-  
+  startPlayerTurn() {
+    this.scene.launch("QuestionScene", { questionLimit: 4 });
+
+    // Listen for the event when the question scene ends
+    const questionScene = this.scene.get("QuestionScene");
+    questionScene.events.once("quizCompleted", this.onQuizCompleted, this);
+  }
+
+  onQuizCompleted(correctAnswers) {
+    console.log(`✅ Quiz completed! Player got ${correctAnswers} correct.`);
+
+    this.scene.pause();
+    this.scene.launch("SpinnerScene", { correctAnswers });
+
+    // Get the SpinnerScene and listen for spin results
+    const spinScene = this.scene.get("SpinnerScene");
+    spinScene.events.once("spinResult", this.moveSpace, this);
+  }
 
   moveSpace(spacesLeft){
-    console.log("Moving one space");
-    if(this.original_board.getNextMoves(this.playerNode).length == 1){
+    if (this.original_board.getNextMoves(this.playerNode).length == 1) {
       //console.log(this.original_board.getNextMoves(this.playerNode));
       const pathToPoint = this.original_board.getNextMoves(this.playerNode)[0].getPath();
       this.playerNode = this.original_board.getNextMoves(this.playerNode)[0].getTo();
-      console.log(this.playerNode);
+      // console.log(this.playerNode);
       this.walkThePath(pathToPoint, 0, spacesLeft);
-    }else{
+    } else {
       const generatedData = {player: this.player1, board: this.original_board, currNode: this.playerNode}; 
       this.events.once('choiceMade', (choice) => {
         this.handleChoice(choice, spacesLeft);
@@ -143,7 +97,7 @@ class BoardScene extends Phaser.Scene {
   }
 
   walkThePath(path, index, spacesLeft) {
-    console.log(this.player1.x, this.player1.y);
+    // console.log(this.player1.x, this.player1.y);
     const pathDir = path[index];
     let x_val, y_val;
     if (pathDir == Direction.UP){
@@ -180,6 +134,7 @@ class BoardScene extends Phaser.Scene {
               this.moveSpace(spacesLeft-1);
             }else{
               this.triggerEvents(this.player1);
+              this.player1.play("walk_south");
               return;
             }
         }
@@ -189,8 +144,8 @@ class BoardScene extends Phaser.Scene {
 
   triggerEvents(player){
     const events = this.original_board.getVertex(this.playerNode).getEvents();
-    console.log(this.playerNode);
-    console.log(events);
+    // console.log(this.playerNode);
+    // console.log(events);
     for(let i = 0; i < events.length; i++){
       this.handleEvent(events.at(i),player);
     }
