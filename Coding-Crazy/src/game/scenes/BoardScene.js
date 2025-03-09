@@ -93,6 +93,7 @@ class BoardScene extends Phaser.Scene {
   handleChoice(choice, spacesLeft){
     this.playerNode = choice.getTo();
     this.scene.resume();
+    console.log(choice);
     this.walkThePath(choice.path, 0, spacesLeft);
   }
 
@@ -103,21 +104,17 @@ class BoardScene extends Phaser.Scene {
     if (pathDir == Direction.UP){
         x_val = 0;
         y_val = -32;
-        this.player1.play("walk_north");
     }
     else if (pathDir == Direction.DOWN){
         x_val = 0;
         y_val = 32;
-        this.player1.play("walk_south");
     }
     else if (pathDir == Direction.RIGHT){
         x_val = 32;
         y_val = 0;
-        this.player1.play("walk_east");
     }else{
         x_val = -32;
         y_val = 0;
-        this.player1.play("walk_west");
     }
     this.tweens.add({
         targets: this.player1,
@@ -126,7 +123,7 @@ class BoardScene extends Phaser.Scene {
         duration: 250,
         ease: 'Linear',
         onComplete: () => {
-            //console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
+            console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
             if(index < path.length - 1){
                 this.walkThePath(path,index+1, spacesLeft);
             }else if(spacesLeft > 1){
