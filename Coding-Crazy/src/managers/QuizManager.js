@@ -1,7 +1,11 @@
 class QuizManager {
   constructor(questions, questionLimit = 4) {
-    this.questions = this.getRandomSlice(this.shuffleArray(questions), questionLimit);    this.currentQuestionIndex = 0;
+    this.questionLimit = questionLimit;
+    this.questions = this.getRandomSlice(this.shuffleArray(questions), questionLimit);    
+    this.currentQuestionIndex = 0;
     this.correctAnswers = 0;
+    this.masteredQuestions = [];
+    this.incorrectQuestions = [];
   }
 
   
@@ -21,7 +25,7 @@ class QuizManager {
 
 
   getRandomSlice(array, questionLimit) {
-    return array.slice(0, Math.min(questionLimit, array.length)); // Ensure it doesn't exceed the available questions
+    return array.slice(0, Math.min(questionLimit, array.length)); 
   }
 
 
