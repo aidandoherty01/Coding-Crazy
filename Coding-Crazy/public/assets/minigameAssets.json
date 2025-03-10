@@ -1,0 +1,22 @@
+[
+  {
+    "path": "assets/images/minigame/background",
+    "files": [
+      {
+        "type": "image",
+        "key": "blue_bg_layer1",
+        "url": "bg_layer1.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/images/minigame/environment",
+    "files": [
+      {
+        "type": "image",
+        "key": "grass_platform",
+        "url": "ground_grass.png"
+      }
+    ]
+  }
+]

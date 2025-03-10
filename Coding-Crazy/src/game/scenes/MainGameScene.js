@@ -12,7 +12,6 @@ class MainGameScene extends Phaser.Scene {
 
   create() {
     console.log("🎮 MainGameScene is now active!");
-    this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.scene.launch("BoardScene");
     

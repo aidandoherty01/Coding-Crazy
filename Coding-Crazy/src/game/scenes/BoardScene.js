@@ -41,6 +41,20 @@ class BoardScene extends Phaser.Scene {
         this.startPlayerTurn();
     });
 
+    this.testMinigame = this.add.text(300, 50, 'Minigame', { 
+      font: '20px Arial', 
+      fill: '#ffffff', 
+      backgroundColor: '#ff0000',
+      padding: { x: 10, y: 5 }
+    });
+
+    this.testMinigame.setInteractive();
+    this.testMinigame.on('pointerdown', () => {
+        this.startMinigame();
+    });
+
+    //EventBus.on("minigameCompleted", this.handleMinigameResult, this);
+
     this.numAPlusses = 0 //This will soon be data held in player class
 
       this.APlusText = this.add.text(700, 100, `Number of A+s: ${this.numAPlusses}`, {
@@ -151,6 +165,7 @@ class BoardScene extends Phaser.Scene {
     }
   }
 
+
   handleEvent(ev){
     console.log("EVENT:", ev);
     switch (ev){
@@ -174,6 +189,13 @@ class BoardScene extends Phaser.Scene {
     }
   }
 
+
+  startMinigame() {
+      console.log("🚀 Launching Minigame...");
+      
+      // Stop the board scene and switch to the minigame
+      this.scene.start("MinigameScene", { returnScene: "BoardScene", player: this.player1 });
+  }
 }
 
 export default BoardScene;
