@@ -38,7 +38,7 @@ class BoardScene extends Phaser.Scene {
     this.players.push(new Player(1));
     this.playerSprites.push(
       this.add
-        .image(
+        .sprite(
           this.original_board.getVertex(0).x * 32 - 16,
           this.original_board.getVertex(0).y * 32 - 16,
           "player",
@@ -92,7 +92,11 @@ class BoardScene extends Phaser.Scene {
 
     // Get the SpinnerScene and listen for spin results
     const spinScene = this.scene.get("SpinnerScene");
-    spinScene.events.once("spinResult", this.moveSpace, this);
+    spinScene.events.once(
+      "spinResult",
+      (spinResult) => this.moveSpace(spinResult, 0),
+      this
+    );
   }
 
   moveSpace(spacesLeft, playerIndex) {
@@ -149,19 +153,19 @@ class BoardScene extends Phaser.Scene {
     if (pathDir == Direction.UP) {
       x_val = 0;
       y_val = -32;
-      this.player1.play("walk_north");
+      this.playerSprites[playerIndex].play("walk_north");
     } else if (pathDir == Direction.DOWN) {
       x_val = 0;
       y_val = 32;
-      this.player1.play("walk_south");
+      this.playerSprites[playerIndex].play("walk_south");
     } else if (pathDir == Direction.RIGHT) {
       x_val = 32;
       y_val = 0;
-      this.player1.play("walk_east");
+      this.playerSprites[playerIndex].play("walk_east");
     } else {
       x_val = -32;
       y_val = 0;
-      this.player1.play("walk_west");
+      this.playerSprites[playerIndex].play("walk_west");
     }
     this.tweens.add({
       targets: this.playerSprites[playerIndex],
