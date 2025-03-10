@@ -13,8 +13,9 @@ class BoardScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.pack("asset_pack", "../assets/assets.json");
+    this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
   }
+
   create() {
     console.log("🎮 BoardScene is now active!");
 
@@ -47,35 +48,19 @@ class BoardScene extends Phaser.Scene {
     );
     this.numAPlusses = 0; //This will soon be data held in player class
 
-    this.moveButton = this.add.text(100, 100, "Move a Space", {
+    this.testTurnButton = this.add.text(500, 50, "Start Turn", {
       font: "20px Arial",
       fill: "#ffffff",
-      backgroundColor: "#0000ff",
+      backgroundColor: "#ff0000",
       padding: { x: 10, y: 5 },
     });
 
-    // Make the text object interactive
-    this.moveButton.setInteractive();
-
-    // Add a click listener
-    this.moveButton.on("pointerdown", () => {
-      this.moveSpace(1, 0);
+    this.testTurnButton.setInteractive();
+    this.testTurnButton.on("pointerdown", () => {
+      this.startPlayerTurn();
     });
 
-    this.moveButton_six = this.add.text(300, 100, "Move 6 Spaces", {
-      font: "20px Arial",
-      fill: "#ffffff",
-      backgroundColor: "#0000ff",
-      padding: { x: 10, y: 5 },
-    });
-
-    // Make the text object interactive
-    this.moveButton_six.setInteractive();
-
-    // Add a click listener
-    this.moveButton_six.on("pointerdown", () => {
-      this.moveSpace(6, 0);
-    });
+    this.numAPlusses = 0; //This will soon be data held in player class
 
     this.APlusText = this.add.text(
       700,
@@ -89,6 +74,25 @@ class BoardScene extends Phaser.Scene {
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
+  }
+
+  startPlayerTurn() {
+    this.scene.launch("QuestionScene", { questionLimit: 4 });
+
+    // Listen for the event when the question scene ends
+    const questionScene = this.scene.get("QuestionScene");
+    questionScene.events.once("quizCompleted", this.onQuizCompleted, this);
+  }
+
+  onQuizCompleted(correctAnswers) {
+    console.log(`✅ Quiz completed! Player got ${correctAnswers} correct.`);
+
+    this.scene.pause();
+    this.scene.launch("SpinnerScene", { correctAnswers });
+
+    // Get the SpinnerScene and listen for spin results
+    const spinScene = this.scene.get("SpinnerScene");
+    spinScene.events.once("spinResult", this.moveSpace, this);
   }
 
   moveSpace(spacesLeft, playerIndex) {
@@ -145,15 +149,19 @@ class BoardScene extends Phaser.Scene {
     if (pathDir == Direction.UP) {
       x_val = 0;
       y_val = -32;
+      this.player1.play("walk_north");
     } else if (pathDir == Direction.DOWN) {
       x_val = 0;
       y_val = 32;
+      this.player1.play("walk_south");
     } else if (pathDir == Direction.RIGHT) {
       x_val = 32;
       y_val = 0;
+      this.player1.play("walk_east");
     } else {
       x_val = -32;
       y_val = 0;
+      this.player1.play("walk_west");
     }
     this.tweens.add({
       targets: this.playerSprites[playerIndex],
