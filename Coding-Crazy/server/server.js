@@ -24,6 +24,14 @@ app.use(express.json());
 // Store lobby users
 const lobbies = {};
 
+app.post("/create_lobby", async (req, res) => {
+  const { numPlayers, difficulty } = req.body;
+  console.log(Object.keys(lobbies).length);
+  const acCode = 100000 + Object.keys(lobbies).length;
+  lobbies[acCode] = new Lobby(acCode, numPlayers, difficulty);
+  res.status(200).json(acCode);
+});
+
 /*Get Collection*/
 app.get("/collection", async (req, res) => {
   try {
@@ -52,9 +60,9 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("join_lobby", ({ accessCode, username }) => {
-    console.log(accessCode, username);
     if (!lobbies[accessCode]) {
-      lobbies[accessCode] = new Lobby(accessCode);
+      socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
+      return;
     }
 
     if (lobbies[accessCode].full()) {
@@ -65,17 +73,18 @@ io.on("connection", (socket) => {
     const user = { id: socket.id, name: username };
     lobbies[accessCode].addUser(user);
     socket.join(accessCode);
-    console.log(lobbies[accessCode]);
+    socket.emit("lobby_good", { message: "Lobby is good to join!" });
     io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
   });
   socket.on("leave_lobby", (accessCode) => {
-    console.log("Stupid person id is ", socket.id);
     if (lobbies[accessCode]) {
       const username = lobbies[accessCode].findUsername(socket.id);
-      console.log(username);
       if (username) {
         lobbies[accessCode].deleteUser(username.name);
         io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+      }
+      if (lobbies[accessCode].empty()) {
+        delete lobbies[accessCode];
       }
     }
     socket.leave(accessCode);

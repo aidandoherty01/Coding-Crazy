@@ -10,6 +10,7 @@ function LobbyPage() {
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
+    const [error, setError] = useState(null);
     
 
     useEffect(() => {
@@ -18,8 +19,25 @@ function LobbyPage() {
             setUsers(updatedUsers);
         });
 
+        socket.on("lobby_full", (message) => {
+            setError(message);  // Set the error message if the lobby is full
+            setJoined(false);  // Make sure joined is false
+          });
+
+        socket.on("lobby_not_found", (message) => {
+            setError(message);  // Set the error message if the lobby is not found
+            setJoined(false);  // Make sure joined is false
+        });
+
+        socket.on("lobby_good", (message) => {
+            setJoined(true);
+        });
+
         return () => {
             socket.off("lobby_users"); // Cleanup on unmount
+            socket.off("lobby_full");
+            socket.off("lobby_not_found");
+            socket.off("lobby_good");
         };
     }, []);
 
@@ -27,7 +45,6 @@ function LobbyPage() {
         if (username.trim()) {
             console.log(username);
             socket.emit("join_lobby", {accessCode, username});
-            setJoined(true);
         }
     };
 
