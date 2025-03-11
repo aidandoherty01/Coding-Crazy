@@ -21,4 +21,8 @@ export class Lobby {
   full() {
     return this.users.length >= this.maxPlayers;
   }
+
+  findUsername(id) {
+    return this.users.find((item) => item.id === id);
+  }
 }

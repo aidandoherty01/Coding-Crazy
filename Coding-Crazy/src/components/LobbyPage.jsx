@@ -1,67 +1,62 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
 import {useParams} from "react-router-dom";
-import SelectionMenu from "./SelectionMenu";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 function LobbyPage() {
     const { accessCode } = useParams();
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
-
-    const fetchUsers = async () => {
-        const response = await fetch(`http://localhost:5000/lobby/${accessCode}`);
-        const data = await response.json();
-        setUsers(data);
-    };
+    
 
     useEffect(() => {
-        const interval = setInterval(fetchUsers, 3000); //3 Seconds
-        return () => clearInterval(interval);
-    }, [accessCode]);
+        // Listen for updates when users join or leave
+        socket.on("lobby_users", (updatedUsers) => {
+            setUsers(updatedUsers);
+        });
 
-    const joinLobby = async () => {
+        return () => {
+            socket.off("lobby_users"); // Cleanup on unmount
+        };
+    }, []);
+
+    const joinLobby = () => {
         if (username.trim()) {
-            const response = await fetch("http://localhost:5000/join-lobby", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accessCode, username }),
-            });
-            
-            if(!response.ok){
-                console.log(response);
-                return;
-            }
-            const data = await response.json();
-            setUsers(data);
+            console.log(username);
+            socket.emit("join_lobby", {accessCode, username});
             setJoined(true);
         }
     };
 
-    const leaveLobby = async () => {
-        if (username.trim()) {
-            const response = await fetch("http://localhost:5000/leave-lobby", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accessCode, username }),
-            });
-            const data = await response.json();
-            setUsers(data);
+    const leaveLobby = () => {
+        if (joined) {
+            socket.emit("leave_lobby", accessCode);
             setJoined(false);
         }
     };
 
     useEffect(() => {
+        // Flag to check if leaveLobby was called
+        let isCleanup = false;
+    
         const handleBeforeUnload = () => {
-            if (joined) {
-                leaveLobby(); // Call leaveLobby function when the page is being unloaded
+            if (!isCleanup) {
+                leaveLobby();
+                isCleanup = true; // Mark as cleanup done
             }
         };
-
+    
+        // Add beforeunload listener to handle page close/refresh
         window.addEventListener("beforeunload", handleBeforeUnload);
-
-        // Cleanup on component unmount
+    
         return () => {
+            // Clean up: Only call leaveLobby if it hasn't been called already
+            if (!isCleanup) {
+                leaveLobby();
+            }
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
     }, [joined]);
