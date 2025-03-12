@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { exportCollectionToJson, exportSubjectsToJson } from "./getData.mjs";
+import { exportCollectionToJson, exportStudySetToJson, exportUniqueSubjectsToJson } from "./getData.mjs";
+import { resetDB } from "./sendData.mjs"
 import path from "path";
 import { Lobby } from "./lobbyClass.js";
 import { Server } from "socket.io";
@@ -33,12 +34,16 @@ app.post("/create_lobby", async (req, res) => {
 });
 
 /*Get Collection*/
-app.get("/collection", async (req, res) => {
+app.get("/collection/:subject?", async (req, res) => {
   try {
-    await exportCollectionToJson();
-    res.sendFile(
-      path.join(import.meta.dirname, "..", "src", "data", "exported_data.json")
-    );
+    if(req.params.subject) {  // Return study set of specified subject
+      await exportStudySetToJson(req.params.subject); // No response is sent since file is directly accessed from hard-coded path in QuestionScene.js
+    } else {  // Return entire collection
+      await exportCollectionToJson();
+      res.sendFile(
+        path.join(import.meta.dirname, "..", "src", "data", "exported_data.json")
+      );
+    }
   } catch (error) {
     console.error("Fetching Collection Failed: ", error);
   }
@@ -47,7 +52,7 @@ app.get("/collection", async (req, res) => {
 /*Get Subjects*/
 app.get("/subjects", async (req, res) => {
   try {
-    await exportSubjectsToJson();
+    await exportUniqueSubjectsToJson();
     res.sendFile(
       path.join(import.meta.dirname, "..", "src", "data", "exported_data.json")
     );
@@ -93,6 +98,14 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
+});
+/* Reset and Repopulate the Database (with data from /data/backup.json) */
+app.get("/ADMINRESET", async (req, res) => {
+  try {
+    await resetDB();
+  } catch(error) {
+    console.error("Error Reseting Database: ", error);
+  }
 });
 
 /* Start The Server */
