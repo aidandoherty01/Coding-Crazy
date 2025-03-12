@@ -4,9 +4,20 @@ import { exportCollectionToJson, exportStudySetToJson, exportUniqueSubjectsToJso
 import { resetDB } from "./sendData.mjs"
 import path from "path";
 import { Lobby } from "./lobbyClass.js";
+import { Server } from "socket.io";
+import http from "http";
 
 const app = express();
 const PORT = 5000;
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors()); // Enable CORS (to allow React to communicate with this server)
 app.use(express.json());
@@ -14,35 +25,12 @@ app.use(express.json());
 // Store lobby users
 const lobbies = {};
 
-app.post("/join-lobby", (req, res) => {
-  const { accessCode, username } = req.body;
-  if (!lobbies[accessCode]) {
-    lobbies[accessCode] = new Lobby(accessCode);
-    //In the future, we'll add other data here like max players as well
-  }
-
-  if (lobbies[accessCode].full()) {
-    return res.status(400).json({ message: "Lobby is full" }); // Reject if full
-  } else {
-    const user = { id: Date.now(), name: username };
-    lobbies[accessCode].addUser(user);
-    res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
-  }
-});
-
-app.post("/leave-lobby", (req, res) => {
-  const { accessCode, username } = req.body;
-
-  if (lobbies[accessCode]) {
-    lobbies[accessCode].deleteUser(username);
-  }
-
-  res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
-});
-
-app.get("/lobby/:accessCode", (req, res) => {
-  const { accessCode } = req.params;
-  res.status(200).json(lobbies[accessCode] ? lobbies[accessCode].users : []);
+app.post("/create_lobby", async (req, res) => {
+  const { numPlayers, difficulty } = req.body;
+  console.log(Object.keys(lobbies).length);
+  const acCode = 100000 + Object.keys(lobbies).length;
+  lobbies[acCode] = new Lobby(acCode, numPlayers, difficulty);
+  res.status(200).json(acCode);
 });
 
 /*Get Collection*/
@@ -73,6 +61,44 @@ app.get("/subjects", async (req, res) => {
   }
 });
 
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("join_lobby", ({ accessCode, username }) => {
+    if (!lobbies[accessCode]) {
+      socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
+      return;
+    }
+
+    if (lobbies[accessCode].full()) {
+      socket.emit("lobby_full", { message: "Lobby is full" });
+      return;
+    }
+
+    const user = { id: socket.id, name: username };
+    lobbies[accessCode].addUser(user);
+    socket.join(accessCode);
+    socket.emit("lobby_good", { message: "Lobby is good to join!" });
+    io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+  });
+  socket.on("leave_lobby", (accessCode) => {
+    if (lobbies[accessCode]) {
+      const username = lobbies[accessCode].findUsername(socket.id);
+      if (username) {
+        lobbies[accessCode].deleteUser(username.name);
+        io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+      }
+      if (lobbies[accessCode].empty()) {
+        delete lobbies[accessCode];
+      }
+    }
+    socket.leave(accessCode);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 /* Reset and Repopulate the Database (with data from /data/backup.json) */
 app.get("/ADMINRESET", async (req, res) => {
   try {
@@ -83,6 +109,6 @@ app.get("/ADMINRESET", async (req, res) => {
 });
 
 /* Start The Server */
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
