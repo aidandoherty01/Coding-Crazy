@@ -20,8 +20,14 @@ const config = {
     }
 };
 
+// TEMP TESTING VARIABLE
+const testSubject = "Math";
+
 // Function to start the game
-const StartGame = (parent) => {
+const StartGame = (parent, subject = testSubject) => {
+    fetch(`http://localhost:5000/collection/${subject}`)    // Before starting the game, load the most current study set to questions.json
+    .catch((error) => console.error("Error Loading Study Set for Game: ", error));
+    console.log("Sanity Log: Starting Game!");
     return new Phaser.Game({ ...config, parent });
 };
 
