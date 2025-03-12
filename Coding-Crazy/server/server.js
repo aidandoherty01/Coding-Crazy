@@ -10,7 +10,7 @@ import http from "http";
 const app = express();
 const PORT = 5000;
 
-const server = http.createServer(app);
+const server = http.createServer(app);  // Wraps express and socket.io into http
 
 const io = new Server(server, {
   cors: {
@@ -37,7 +37,10 @@ app.post("/create_lobby", async (req, res) => {
 app.get("/collection/:subject?", async (req, res) => {
   try {
     if(req.params.subject) {  // Return study set of specified subject
-      await exportStudySetToJson(req.params.subject); // No response is sent since file is directly accessed from hard-coded path in QuestionScene.js
+      await exportStudySetToJson(req.params.subject);
+      res.sendFile(
+        path.join(import.meta.dirname, "..", "src", "data", "questions.json")
+      );
     } else {  // Return entire collection
       await exportCollectionToJson();
       res.sendFile(
@@ -61,9 +64,18 @@ app.get("/subjects", async (req, res) => {
   }
 });
 
+/* Reset and Repopulate the Database (with data from /data/backup.json) */
+app.get("/ADMINRESET", async (req, res) => {
+  try {
+    await resetDB();
+  } catch(error) {
+    console.error("Error Reseting Database: ", error);
+  }
+});
+
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-
+  
   socket.on("join_lobby", ({ accessCode, username }) => {
     if (!lobbies[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
@@ -98,14 +110,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-});
-/* Reset and Repopulate the Database (with data from /data/backup.json) */
-app.get("/ADMINRESET", async (req, res) => {
-  try {
-    await resetDB();
-  } catch(error) {
-    console.error("Error Reseting Database: ", error);
-  }
 });
 
 /* Start The Server */

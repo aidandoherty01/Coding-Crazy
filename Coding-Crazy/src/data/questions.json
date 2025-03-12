@@ -1,42 +1,42 @@
 [
   {
-    "question": "What is 5 + 7?",
+    "question": "What is the chemical symbol for water?",
     "options": [
-      "10",
-      "11",
-      "12",
-      "9"
+      "H2O",
+      "O2",
+      "CO2",
+      "HO2"
     ],
-    "answer": "12"
+    "answer": "H2O"
   },
   {
-    "question": "What is the square root of 64?",
+    "question": "What planet is known as the Red Planet?",
     "options": [
-      "6",
-      "7",
-      "8",
-      "9"
+      "Venus",
+      "Mars",
+      "Jupiter",
+      "Saturn"
     ],
-    "answer": "8"
+    "answer": "Mars"
   },
   {
-    "question": "What is the value of π (pi) rounded to two decimal places?",
+    "question": "Which gas do plants use for photosynthesis?",
     "options": [
-      "3.12",
-      "3.14",
-      "3.16",
-      "3.18"
+      "Oxygen",
+      "Carbon Dioxide",
+      "Nitrogen",
+      "Hydrogen"
     ],
-    "answer": "3.14"
+    "answer": "Carbon Dioxide"
   },
   {
-    "question": "If a triangle has angles of 30° and 60°, what is the third angle?",
+    "question": "What is the powerhouse of the cell?",
     "options": [
-      "60°",
-      "90°",
-      "100°",
-      "120°"
+      "Nucleus",
+      "Ribosome",
+      "Mitochondria",
+      "Chloroplast"
     ],
-    "answer": "90°"
+    "answer": "Mitochondria"
   }
 ]
