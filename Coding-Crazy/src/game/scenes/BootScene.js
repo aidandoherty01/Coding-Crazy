@@ -10,8 +10,6 @@ class BootScene extends Phaser.Scene {
     console.log("🚀 Initializing Game Registry...");
 
     // Initialize registry values if they don't exist
-    this.registry.set("correctAnswers", this.registry.get("correctAnswers") || 0);
-    this.registry.set("incorrectAnswers", this.registry.get("incorrectAnswers") || 0);
     this.registry.set("masteredQuestions", this.registry.get("masteredQuestions") || []);
     this.registry.set("incorrectQuestions", this.registry.get("incorrectQuestions") || []);
 

@@ -13,30 +13,35 @@ class QuestionScene extends Phaser.Scene {
 
   // Initialize the scene ON EVERY RESTART
   init(data) {
-      const storedQuestions = this.registry.get("questions");
+    const storedQuestions = this.registry.get("questions");
 
-      // Check if storedQuestions exist and are not empty
-      const isStoredQuestionsValid = storedQuestions && Array.isArray(storedQuestions) && storedQuestions.length > 0;
+    this.questionLimit = data?.questionLimit;
 
-      const questionsCopy = isStoredQuestionsValid 
-          ? storedQuestions 
-          : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
+    // Check if storedQuestions exist and are not empty
+    const isStoredQuestionsValid = storedQuestions && Array.isArray(storedQuestions) 
+    && storedQuestions.length > this.questionLimit;
+    
+    // Reset mastered and incorrect questions if storedQuestions is empty
+    if (!isStoredQuestionsValid) {
+      console.log("🔄 All questions answered. Resetting mastered and incorrect questions.");
+      this.registry.set("masteredQuestions", []);
+      this.registry.set("incorrectQuestions", []);
+    }
 
-      // Link question limit to scene
-      const questionLimit = data?.questionLimit || 4;
+    const questionsCopy = isStoredQuestionsValid 
+        ? storedQuestions 
+        : JSON.parse(JSON.stringify(questions)); // Deep copy to prevent mutation
 
-      this.quizManager = new QuizManager(questionsCopy, questionLimit);
 
-      // Reset mastered and incorrect questions if storedQuestions is empty
-      if (!isStoredQuestionsValid) {
-          console.log("🔄 Stored questions are empty. Resetting mastered and incorrect questions.");
-          this.registry.set("masteredQuestions", []);
-          this.registry.set("incorrectQuestions", []);
-      }
+    this.quizManager = new QuizManager(questionsCopy, this.questionLimit);
 
-      // Persist previously stored mastered and incorrect questions
-      this.quizManager.masteredQuestions = this.registry.get("masteredQuestions") || [];
-      this.quizManager.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
+    this.correctAnswers = 0
+    this.questionCounter = 0;
+
+
+    // Persist previously stored mastered and incorrect questions
+    this.quizManager.masteredQuestions = this.registry.get("masteredQuestions") || [];
+    this.quizManager.incorrectQuestions = this.registry.get("incorrectQuestions") || [];
   }
 
 
@@ -46,10 +51,6 @@ class QuestionScene extends Phaser.Scene {
     this.scene.bringToTop();
     // Get the screen dimensions
     const { width, height } = this.scale;
-
-    // Get the previous quiz results from the game's registry
-    this.previousCorrect = this.registry.get("correctAnswers") || 0;
-    this.previousIncorrect = this.registry.get("incorrectAnswers") || 0;
 
     // Create the UI elements
     this.createUI(width, height);
@@ -208,12 +209,13 @@ class QuestionScene extends Phaser.Scene {
    // Get answer result from QuizManager
     const { isCorrect, correctAnswer } = this.quizManager.submitAnswer(this.selectedOption);
 
+    if (isCorrect) this.correctAnswers++;
+
     this.showCorrectAnswer(isCorrect, correctAnswer);
 
     // Set a delay based on correctness before allowing progression
     let delay = isCorrect ? 1000 : 10000; // 1 sec if correct, 10 sec if incorrect
 
-    // Function to proceed to next question
     const proceedToNext = () => {
         if (this.answerSubmitted) {
             this.answerSubmitted = false; // Reset for next question
@@ -319,9 +321,8 @@ class QuestionScene extends Phaser.Scene {
     });
   }
 
-  // Load the next question or end the quiz
   loadQuestion() {
-    if (!this.quizManager.hasMoreQuestions()) {
+    if (this.questionCounter >= this.questionLimit) {
       this.endQuiz();
       return;
     }
@@ -337,6 +338,7 @@ class QuestionScene extends Phaser.Scene {
     }
 
     const currentQuestion = this.quizManager.getCurrentQuestion();
+    this.questionCounter++;
     this.questionText.setText(currentQuestion.question);
 
     this.optionButtons.forEach(({ background, text }, index) => {
@@ -362,7 +364,6 @@ class QuestionScene extends Phaser.Scene {
     this.setTimer(currentQuestion.type);
   }
 
-  // Set the timer based on the question type
   setTimer(questionType) {
     switch (questionType) {
       case "multipleChoice":
@@ -414,21 +415,11 @@ class QuestionScene extends Phaser.Scene {
 
     // Confirm registry values before updating
     // console.log("🔄 Previous Registry Values:");
-    // console.log("🔹 Correct Answers:", this.registry.get("correctAnswers"));
-    // console.log("🔹 Incorrect Answers:", this.registry.get("incorrectAnswers"));
     // console.log("🔹 Mastered Questions:", this.registry.get("masteredQuestions"));
     // console.log("🔹 Incorrect Questions:", this.registry.get("incorrectQuestions"));
 
     // Update the active questions list
     this.registry.set("questions", this.quizManager.questions);
-
-    // Update the total correct and incorrect answers
-    const totalCorrect = (this.registry.get("correctAnswers") || 0) + this.quizManager.correctAnswers;
-    const totalIncorrect = (this.registry.get("incorrectAnswers") || 0) + this.quizManager.questions.length - this.quizManager.correctAnswers;
-
-    // Store the quiz results in the game's registry
-    this.registry.set("correctAnswers", totalCorrect);
-    this.registry.set("incorrectAnswers", totalIncorrect);
 
     // Store the questions that were mastered and need review
     this.registry.set("masteredQuestions", this.quizManager.masteredQuestions);
@@ -436,15 +427,12 @@ class QuestionScene extends Phaser.Scene {
 
     // Confirm new registry values
     console.log("🆕 Updated Registry Values:");
-    console.log("✅ Correct Answers:", totalCorrect);
-    console.log("❌ Incorrect Answers:", totalIncorrect);
     console.log("⭐ Mastered Questions:", this.quizManager.masteredQuestions.map(q => q.question));
     console.log("⚠️ Incorrect Questions:", this.quizManager.incorrectQuestions.map(q => q.question));
 
     console.log("🎮 Stopping QuestionScene and resuming MainGameScene...");
     this.scene.stop();
-    // this.scene.resume("MainGameScene");
-    this.scene.resume("BoardScene");
+    this.events.emit("quizCompleted", this.correctAnswers);
   }
 }
 
