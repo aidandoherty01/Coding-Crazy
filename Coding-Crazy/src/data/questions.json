@@ -1,42 +1,42 @@
 [
   {
-    "question": "What is the chemical symbol for water?",
+    "question": "What is the capital of France?",
     "options": [
-      "H2O",
-      "O2",
-      "CO2",
-      "HO2"
+      "Berlin",
+      "Madrid",
+      "Rome",
+      "Paris"
     ],
-    "answer": "H2O"
+    "answer": "Paris"
   },
   {
-    "question": "What planet is known as the Red Planet?",
+    "question": "Which continent is the largest by land area?",
     "options": [
-      "Venus",
-      "Mars",
-      "Jupiter",
-      "Saturn"
+      "North America",
+      "Africa",
+      "Europe",
+      "Asia"
     ],
-    "answer": "Mars"
+    "answer": "Asia"
   },
   {
-    "question": "Which gas do plants use for photosynthesis?",
+    "question": "Which country has the most population?",
     "options": [
-      "Oxygen",
-      "Carbon Dioxide",
-      "Nitrogen",
-      "Hydrogen"
+      "USA",
+      "India",
+      "China",
+      "Russia"
     ],
-    "answer": "Carbon Dioxide"
+    "answer": "China"
   },
   {
-    "question": "What is the powerhouse of the cell?",
+    "question": "Which ocean is the largest?",
     "options": [
-      "Nucleus",
-      "Ribosome",
-      "Mitochondria",
-      "Chloroplast"
+      "Atlantic Ocean",
+      "Indian Ocean",
+      "Arctic Ocean",
+      "Pacific Ocean"
     ],
-    "answer": "Mitochondria"
+    "answer": "Pacific Ocean"
   }
 ]
