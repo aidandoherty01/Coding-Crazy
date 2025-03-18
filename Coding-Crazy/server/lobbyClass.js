@@ -4,6 +4,8 @@ export class Lobby {
     this.users = [];
     this.maxPlayers = maxPlayers;
     this.difficulty = difficulty;
+    this.countdownStarted = false;
+    this.countdown = 10;
   }
 
   addUser(user) {
@@ -28,5 +30,26 @@ export class Lobby {
 
   findUsername(id) {
     return this.users.find((item) => item.id === id);
+  }
+
+  countingDown() {
+    return this.countdownStarted;
+  }
+
+  startCountdown() {
+    this.countdownStarted = true;
+  }
+
+  tickCount() {
+    this.countdown--;
+  }
+
+  reachedZero() {
+    return this.countdown <= 0;
+  }
+
+  resetCountdown() {
+    this.countdown = 10;
+    this.countdownStarted = false;
   }
 }

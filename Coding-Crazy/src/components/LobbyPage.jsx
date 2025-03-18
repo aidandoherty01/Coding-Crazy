@@ -1,6 +1,6 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
-import {useParams} from "react-router-dom";
+import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -11,6 +11,7 @@ function LobbyPage() {
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
     
 
     useEffect(() => {
@@ -32,6 +33,10 @@ function LobbyPage() {
         socket.on("lobby_good", (message) => {
             setJoined(true);
         });
+
+        socket.on("start_game", (data) => {
+            navigate(`/game`, {state: {"players": data, "roomCode": accessCode}});
+        })
 
         return () => {
             socket.off("lobby_users"); // Cleanup on unmount

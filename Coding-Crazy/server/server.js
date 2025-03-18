@@ -1,7 +1,11 @@
 import express from "express";
 import cors from "cors";
-import { exportCollectionToJson, exportStudySetToJson, exportUniqueSubjectsToJson } from "./getData.mjs";
-import { resetDB } from "./sendData.mjs"
+import {
+  exportCollectionToJson,
+  exportStudySetToJson,
+  exportUniqueSubjectsToJson,
+} from "./getData.mjs";
+import { resetDB } from "./sendData.mjs";
 import path from "path";
 import { Lobby } from "./lobbyClass.js";
 import { Server } from "socket.io";
@@ -36,12 +40,20 @@ app.post("/create_lobby", async (req, res) => {
 /*Get Collection*/
 app.get("/collection/:subject?", async (req, res) => {
   try {
-    if(req.params.subject) {  // Return study set of specified subject
+    if (req.params.subject) {
+      // Return study set of specified subject
       await exportStudySetToJson(req.params.subject); // No response is sent since file is directly accessed from hard-coded path in QuestionScene.js
-    } else {  // Return entire collection
+    } else {
+      // Return entire collection
       await exportCollectionToJson();
       res.sendFile(
-        path.join(import.meta.dirname, "..", "src", "data", "exported_data.json")
+        path.join(
+          import.meta.dirname,
+          "..",
+          "src",
+          "data",
+          "exported_data.json"
+        )
       );
     }
   } catch (error) {
@@ -80,6 +92,23 @@ io.on("connection", (socket) => {
     socket.join(accessCode);
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
     io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+    //Check if it's now full
+    if (lobbies[accessCode].full() && !lobbies[accessCode].countingDown()) {
+      lobbies[accessCode].startCountdown();
+      const interval = setInterval(() => {
+        io.to(accessCode).emit(
+          "countdownUpdate",
+          lobbies[accessCode].countdown
+        );
+        lobbies[accessCode].tickCount();
+        console.log(lobbies[accessCode].countdown);
+
+        if (lobbies[accessCode].reachedZero()) {
+          clearInterval(interval);
+          io.to(accessCode).emit("start_game", lobbies[accessCode].users);
+        }
+      }, 1000);
+    }
   });
   socket.on("leave_lobby", (accessCode) => {
     if (lobbies[accessCode]) {
@@ -103,7 +132,7 @@ io.on("connection", (socket) => {
 app.get("/ADMINRESET", async (req, res) => {
   try {
     await resetDB();
-  } catch(error) {
+  } catch (error) {
     console.error("Error Reseting Database: ", error);
   }
 });
