@@ -11,6 +11,7 @@ function LobbyPage() {
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
     const [error, setError] = useState(null);
+    const [counter, setCounter] = useState(10);
     const navigate = useNavigate();
     
 
@@ -38,11 +39,17 @@ function LobbyPage() {
             navigate(`/game`, {state: {"players": data, "roomCode": accessCode}});
         })
 
+        socket.on("countdown_update", (count) => {
+            setCounter(count);
+        })
+
         return () => {
             socket.off("lobby_users"); // Cleanup on unmount
             socket.off("lobby_full");
             socket.off("lobby_not_found");
             socket.off("lobby_good");
+            socket.off("start_game");
+            socket.off("countdown_update");
         };
     }, []);
 
@@ -108,6 +115,9 @@ function LobbyPage() {
                             <li key={index}>{user.name}</li>
                         ))}
                     </ul>
+                    <Box>
+                        <Typography variant="h6">Countdown: {counter}</Typography>
+                    </Box>
                 </Box>
             )}
             

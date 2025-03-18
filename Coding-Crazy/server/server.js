@@ -97,7 +97,7 @@ io.on("connection", (socket) => {
       lobbies[accessCode].startCountdown();
       const interval = setInterval(() => {
         io.to(accessCode).emit(
-          "countdownUpdate",
+          "countdown_update",
           lobbies[accessCode].countdown
         );
         lobbies[accessCode].tickCount();
