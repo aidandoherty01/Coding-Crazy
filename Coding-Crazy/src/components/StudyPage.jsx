@@ -2,7 +2,6 @@ import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mu
 import { useEffect, useState } from "react";
 import SelectionMenu from "../components/SelectionMenu";
 import DynamicTable from "../components/DynamicTable";
-const API = "https://jsonplaceholder.typicode.com/users";   // Placeholder json for testing
 
 function StudyPage() {
     const [selectedSubject, setSelectedSubject] = useState("");
@@ -39,7 +38,7 @@ function StudyPage() {
                 <DynamicTable collection={collection} />    {/* Create a table based off the current collection/subject */}
             </div>
 
-            {/* Hero Section */}
+            {/* Reference Formatting */}
             <Box textAlign="center" py={5}>
                 <Typography variant="h3" color="primary">TEMP TITLE</Typography>
                 <Typography variant="subtitle1">Temp text.</Typography>

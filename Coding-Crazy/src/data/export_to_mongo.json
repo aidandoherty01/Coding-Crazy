@@ -1,5 +1,6 @@
 [
-  { "Subject": "Math", "Question": "What is 2+2?", "Options": ["2", "4", "3"], "Answer": "4" },
-  { "Subject": "Science", "Question": "What is H2O?", "Options": ["Water", "Oxygen"], "Answer": "Water" },
-  { "Subject": "Math", "Question": "What is 5x5?", "Options": ["10", "25"], "Answer": "25" }
+  {
+    "username": "Hey",
+    "password": "There"
+  }
 ]
