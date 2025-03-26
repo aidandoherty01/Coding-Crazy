@@ -28,6 +28,7 @@ app.use(express.json());
 
 // Store lobby users
 const lobbies = {};
+const rooms = {};
 
 app.post("/create_lobby", async (req, res) => {
   const { numPlayers, difficulty } = req.body;
@@ -121,7 +122,22 @@ io.on("connection", (socket) => {
         delete lobbies[accessCode];
       }
     }
+    console.log("Left", socket.id);
     socket.leave(accessCode);
+  });
+
+  socket.on("join_room", ({ roomCode, username }) => {
+    console.log(roomCode, "  ", username);
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = [];
+    }
+    rooms[roomCode].push({ id: socket.id, name: username });
+    socket.join(roomCode);
+  });
+
+  socket.on("move_player", ({ roomCode, username, path }) => {
+    console.log("a movement!", path);
+    io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 
   socket.on("disconnect", () => {

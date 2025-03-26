@@ -1,9 +1,21 @@
 import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, TextField, Button, Divider, LinearProgress } from "@mui/material";
 import { PhaserGame } from "../game/PhaserGame"; 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import {useLocation, useNavigate} from "react-router-dom";
+import { io } from "socket.io-client";
 
 const GamePage = () => {
+    
+    const socket = io("http://localhost:5000");
     const gameRef = useRef({ game: null, scene: null });
+    const location = useLocation();
+    console.log(location.state);
+    const playerNames = location.state?.players || [];
+    const roomCode = location.state?.roomCode || 0;
+    const username = location.state?.name || "MISSING";
+    socket.emit("join_room",{roomCode, username});
+    console.log("Players: ", playerNames);
+    const stateObject = {socket: socket, players: playerNames, username: username, roomCode: roomCode};
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", color: "white", display: "flex", flexDirection: "column" }}>
@@ -14,7 +26,7 @@ const GamePage = () => {
                     <Paper sx={{ bgcolor: "#1e293b", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {/* Embedded Phaser Game */}
                         <Box sx={{ width: "100%", height: "100%" }}>
-                            <PhaserGame ref={gameRef} />
+                            <PhaserGame ref={gameRef} SO={stateObject} />
                         </Box>
                     </Paper>
                 </Grid>

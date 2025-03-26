@@ -14,6 +14,11 @@ function LobbyPage() {
     const [counter, setCounter] = useState(10);
     const navigate = useNavigate();
     
+    const usernameRef = useRef("");
+    
+    useEffect(() => {
+        usernameRef.current = username;
+    }, [username]);
 
     useEffect(() => {
         // Listen for updates when users join or leave
@@ -36,8 +41,8 @@ function LobbyPage() {
         });
 
         socket.on("start_game", (data) => {
-            navigate(`/game`, {state: {"players": data, "roomCode": accessCode}});
-        })
+            navigate(`/game`, {state: {"players": data, "name": usernameRef.current, "roomCode": accessCode}});
+        });
 
         socket.on("countdown_update", (count) => {
             setCounter(count);
