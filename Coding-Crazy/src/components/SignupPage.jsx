@@ -32,7 +32,7 @@ function SignupPage() {
             
             /* Signup Success */
             const data = await response.json();
-            console.log("Great Success!", data);
+            console.log("Great Success!", data[0]); // Data comes back in array form with single element
             
         } catch (error) {
             console.error("Error creating account:", error);
