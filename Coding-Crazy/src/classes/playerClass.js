@@ -1,12 +1,10 @@
-import { Vertex } from "../data/board_graph";
-import Phaser from "phaser";
 export class Player {
-  constructor(id) {
+  constructor(id, loc = 0, x = 0, y = 0, numAPlusses = 0) {
     this.id = id;
-    this.loc = 0;
-    this.x = 0;
-    this.y = 0;
-    this.numAPlusses = 0;
+    this.loc = loc;
+    this.x = x;
+    this.y = y;
+    this.numAPlusses = numAPlusses;
   }
 
   moveLoc(vertex) {

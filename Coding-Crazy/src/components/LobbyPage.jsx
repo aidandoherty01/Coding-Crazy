@@ -1,6 +1,6 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
-import {useParams} from "react-router-dom";
+import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -11,7 +11,14 @@ function LobbyPage() {
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
     const [error, setError] = useState(null);
+    const [counter, setCounter] = useState(10);
+    const navigate = useNavigate();
     
+    const usernameRef = useRef("");
+    
+    useEffect(() => {
+        usernameRef.current = username;
+    }, [username]);
 
     useEffect(() => {
         // Listen for updates when users join or leave
@@ -33,11 +40,21 @@ function LobbyPage() {
             setJoined(true);
         });
 
+        socket.on("start_game", (data) => {
+            navigate(`/game`, {state: {"stateObject": data, "name": usernameRef.current, "roomCode": accessCode}});
+        });
+
+        socket.on("countdown_update", (count) => {
+            setCounter(count);
+        })
+
         return () => {
             socket.off("lobby_users"); // Cleanup on unmount
             socket.off("lobby_full");
             socket.off("lobby_not_found");
             socket.off("lobby_good");
+            socket.off("start_game");
+            socket.off("countdown_update");
         };
     }, []);
 
@@ -100,9 +117,12 @@ function LobbyPage() {
                     <Typography variant="h6">Players:</Typography>
                     <ul>
                         {users.map((user, index) => (
-                            <li key={index}>{user.name}</li>
+                            <li key={index}>{user}</li>
                         ))}
                     </ul>
+                    <Box>
+                        <Typography variant="h6">Countdown: {counter}</Typography>
+                    </Box>
                 </Box>
             )}
             
