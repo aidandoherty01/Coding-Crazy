@@ -17,6 +17,19 @@ class BoardScene extends Phaser.Scene {
   }
 
   create() {
+    this.socket = this.game.config.stateObject.socket;
+    this.username = this.game.config.stateObject.username;
+    this.players = Object.entries(this.game.config.stateObject.players).reduce(
+      (acc, [key, p]) => {
+        console.log(key, p);
+        acc[key] = new Player(p.id, p.loc, p.x, p.y, p.numAPlusses);
+        return acc;
+      },
+      {}
+    );
+    this.roomCode = String(this.game.config.stateObject.roomCode);
+    console.log("socket: ", this.socket);
+    console.log(this.players);
     console.log("🎮 BoardScene is now active!");
 
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
@@ -33,20 +46,20 @@ class BoardScene extends Phaser.Scene {
         "A+"
       )
       .setScale(0.25);
-    this.players = [];
-    this.playerSprites = [];
-    this.players.push(new Player(1));
-    this.playerSprites.push(
-      this.add
+    this.playerSprites = {};
+    for (const pyer in this.players) {
+      console.log("PYER: ", pyer);
+      this.playerSprites[pyer] = this.add
         .sprite(
-          this.original_board.getVertex(0).x * 32 - 16,
-          this.original_board.getVertex(0).y * 32 - 16,
+          this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16,
+          this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16,
           "player",
           6
         )
-        .setScale(0.6)
-    );
-    this.numAPlusses = 0; //This will soon be data held in player class
+        .setScale(0.6);
+    }
+    console.log(this.players);
+    console.log(this.username);
 
     this.testTurnButton = this.add.text(500, 50, "Start Turn", {
       font: "20px Arial",
@@ -60,17 +73,23 @@ class BoardScene extends Phaser.Scene {
       this.startPlayerTurn();
     });
 
-    this.numAPlusses = 0; //This will soon be data held in player class
-
     this.APlusText = this.add.text(
       700,
       100,
-      `Number of A+s: ${this.numAPlusses}`,
+      `Number of A+s: ${this.players[this.username].numAPlusses}`,
       {
         fontSize: "20px",
         fill: "#000000",
       }
     );
+
+    this.socket.on("movement", (data) => {
+      console.log(data);
+      console.log(this.username);
+      if (data.movingPlayer != this.username) {
+        this.walkThePath(data.path, 0, 1, data.movingPlayer);
+      }
+    });
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
@@ -94,13 +113,13 @@ class BoardScene extends Phaser.Scene {
     const spinScene = this.scene.get("SpinnerScene");
     spinScene.events.once(
       "spinResult",
-      (spinResult) => this.moveSpace(spinResult, 0),
+      (spinResult) => this.moveSpace(spinResult, this.username),
       this
     );
   }
 
   moveSpace(spacesLeft, playerIndex) {
-    console.log("Moving one space");
+    console.log("Moving one space", playerIndex, this.players[playerIndex]);
     if (
       this.original_board.getNextMoves(this.players[playerIndex].loc).length ==
       1
@@ -116,6 +135,15 @@ class BoardScene extends Phaser.Scene {
             .getTo()
         )
       );
+      console.log(this.socket);
+      if (this.socket) {
+        console.log(this.roomCode, this.username, pathToPoint);
+        this.socket.emit("move_player", {
+          roomCode: this.roomCode,
+          username: this.username,
+          path: pathToPoint,
+        });
+      }
 
       this.walkThePath(pathToPoint, 0, spacesLeft, playerIndex);
     } else {
@@ -143,6 +171,13 @@ class BoardScene extends Phaser.Scene {
     );
     this.scene.resume();
     console.log(choice);
+    if (this.socket) {
+      this.socket.emit("move_player", {
+        roomCode: this.roomCode,
+        username: this.username,
+        path: choice.path,
+      });
+    }
     this.walkThePath(choice.path, 0, spacesLeft, playerIndex);
   }
 
