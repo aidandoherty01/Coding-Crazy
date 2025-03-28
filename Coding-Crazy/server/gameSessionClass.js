@@ -1,35 +1,41 @@
-export class Lobby {
+import { Player } from "../src/classes/playerClass.js";
+
+export class gameSession {
   constructor(accessCode, maxPlayers = 6, difficulty = 5) {
-    this.accessCode = accessCode;
-    this.users = [];
+    this.roomCode = accessCode;
+    this.usernames = [];
+    this.players = {};
     this.maxPlayers = maxPlayers;
     this.difficulty = difficulty;
     this.countdownStarted = false;
     this.countdown = 10;
+    this.APlusLoc = 0;
   }
 
-  addUser(user) {
-    this.users.push(user);
+  addUser(username) {
+    this.usernames.push(username);
+    this.players[username] = new Player(username);
   }
 
   deleteUser(username) {
-    this.users = this.users.filter((user) => user.name !== username);
+    this.usernames = this.usernames.filter((user) => user.name !== username);
+    delete this.players[username];
   }
 
   numPlayers() {
-    return this.users.length;
+    return this.usernames.length;
   }
 
   full() {
-    return this.users.length >= this.maxPlayers;
+    return this.usernames.length >= this.maxPlayers;
   }
 
   empty() {
-    return this.users.length === 0;
+    return this.usernames.length === 0;
   }
 
   findUsername(id) {
-    return this.users.find((item) => item.id === id);
+    return this.usernames.find((item) => item.id === id);
   }
 
   countingDown() {

@@ -38,10 +38,7 @@ const StartGame = (parent, SO, subject = testSubject) => {
     );
   console.log("Sanity Log: Starting Game!");
   const game = new Phaser.Game({ ...config, parent });
-  game.config.socket = SO.socket;
-  game.config.username = SO.username;
-  game.config.players = SO.players;
-  game.config.roomCode = SO.roomCode;
+  game.config.stateObject = SO;
 
   return game;
 };

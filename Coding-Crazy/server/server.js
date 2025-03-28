@@ -7,7 +7,7 @@ import {
 } from "./getData.mjs";
 import { resetDB } from "./sendData.mjs";
 import path from "path";
-import { Lobby } from "./lobbyClass.js";
+import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
 import http from "http";
 
@@ -34,7 +34,7 @@ app.post("/create_lobby", async (req, res) => {
   const { numPlayers, difficulty } = req.body;
   console.log(Object.keys(lobbies).length);
   const acCode = 100000 + Object.keys(lobbies).length;
-  lobbies[acCode] = new Lobby(acCode, numPlayers, difficulty);
+  lobbies[acCode] = new gameSession(acCode, numPlayers, difficulty);
   res.status(200).json(acCode);
 });
 
@@ -87,12 +87,10 @@ io.on("connection", (socket) => {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
-
-    const user = { id: socket.id, name: username };
-    lobbies[accessCode].addUser(user);
+    lobbies[accessCode].addUser(username);
     socket.join(accessCode);
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+    io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
     //Check if it's now full
     if (lobbies[accessCode].full() && !lobbies[accessCode].countingDown()) {
       lobbies[accessCode].startCountdown();
@@ -106,7 +104,7 @@ io.on("connection", (socket) => {
 
         if (lobbies[accessCode].reachedZero()) {
           clearInterval(interval);
-          io.to(accessCode).emit("start_game", lobbies[accessCode].users);
+          io.to(accessCode).emit("start_game", lobbies[accessCode]);
         }
       }, 1000);
     }
@@ -116,7 +114,7 @@ io.on("connection", (socket) => {
       const username = lobbies[accessCode].findUsername(socket.id);
       if (username) {
         lobbies[accessCode].deleteUser(username.name);
-        io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+        io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
       }
       if (lobbies[accessCode].empty()) {
         delete lobbies[accessCode];
@@ -133,10 +131,15 @@ io.on("connection", (socket) => {
     }
     rooms[roomCode].push({ id: socket.id, name: username });
     socket.join(roomCode);
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
+    console.log("j socket", socketsInRoom); // Set of socket IDs
   });
 
   socket.on("move_player", ({ roomCode, username, path }) => {
     console.log("a movement!", path);
+    console.log(roomCode);
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
+    console.log(socketsInRoom); // Set of socket IDs
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 

@@ -41,7 +41,7 @@ function LobbyPage() {
         });
 
         socket.on("start_game", (data) => {
-            navigate(`/game`, {state: {"players": data, "name": usernameRef.current, "roomCode": accessCode}});
+            navigate(`/game`, {state: {"stateObject": data, "name": usernameRef.current, "roomCode": accessCode}});
         });
 
         socket.on("countdown_update", (count) => {
@@ -117,7 +117,7 @@ function LobbyPage() {
                     <Typography variant="h6">Players:</Typography>
                     <ul>
                         {users.map((user, index) => (
-                            <li key={index}>{user.name}</li>
+                            <li key={index}>{user}</li>
                         ))}
                     </ul>
                     <Box>
