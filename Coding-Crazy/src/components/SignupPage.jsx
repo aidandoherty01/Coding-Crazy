@@ -34,8 +34,11 @@ function SignupPage() {
             }
             
             /* Signup Success */
-            const data = await response.json();
-            console.log("Great Success!", data[0]); // Data comes back in array form with single element
+            const temp = await response.json();
+            const data = temp[0];   // Data comes back in array form with single element
+            console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            localStorage.setItem("username", data.username);
+            console.log(`Local Storage: ${localStorage.getItem("username")}`);
             setSuccess("Account Successfully Created.");    // Update success message
         
         } catch (error) {

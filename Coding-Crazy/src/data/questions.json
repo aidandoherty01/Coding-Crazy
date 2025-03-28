@@ -1,42 +1,42 @@
 [
   {
-    "question": "If a triangle has angles of 30° and 60°, what is the third angle?",
+    "question": "What is the capital of France?",
     "options": [
-      "60°",
-      "90°",
-      "100°",
-      "120°"
+      "Berlin",
+      "Madrid",
+      "Rome",
+      "Paris"
     ],
-    "answer": "90°"
+    "answer": "Paris"
   },
   {
-    "question": "What is 5 + 7?",
+    "question": "Which continent is the largest by land area?",
     "options": [
-      "10",
-      "11",
-      "12",
-      "9"
+      "North America",
+      "Africa",
+      "Europe",
+      "Asia"
     ],
-    "answer": "12"
+    "answer": "Asia"
   },
   {
-    "question": "What is the value of π (pi) rounded to two decimal places?",
+    "question": "Which country has the most population?",
     "options": [
-      "3.12",
-      "3.14",
-      "3.16",
-      "3.18"
+      "USA",
+      "India",
+      "China",
+      "Russia"
     ],
-    "answer": "3.14"
+    "answer": "China"
   },
   {
-    "question": "What is the square root of 64?",
+    "question": "Which ocean is the largest?",
     "options": [
-      "6",
-      "7",
-      "8",
-      "9"
+      "Atlantic Ocean",
+      "Indian Ocean",
+      "Arctic Ocean",
+      "Pacific Ocean"
     ],
-    "answer": "8"
+    "answer": "Pacific Ocean"
   }
 ]

@@ -33,7 +33,9 @@ function LoginPage() {
             
             /* Login Success */
             const data = await response.json();
-            console.log("Great Success!", data);
+            console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            localStorage.setItem("username", data.username);    // Store username in local storage
+            console.log(`Local Storage: ${localStorage.getItem("username")}`);
             setSuccess("Login Successful.");    // Update success message
 
         } catch (error) {
