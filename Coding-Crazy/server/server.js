@@ -1,9 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { exportCollectionToJson, exportStudySetToJson, exportUniqueSubjectsToJson } from "./getData.mjs";
-import { resetDB } from "./sendData.mjs"
+import {
+  exportCollectionToJson,
+  exportStudySetToJson,
+  exportUniqueSubjectsToJson,
+} from "./getData.mjs";
+import { resetDB } from "./sendData.mjs";
 import path from "path";
-import { Lobby } from "./lobbyClass.js";
+import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
 import http from "http";
 
@@ -24,24 +28,33 @@ app.use(express.json());
 
 // Store lobby users
 const lobbies = {};
+const rooms = {};
 
 app.post("/create_lobby", async (req, res) => {
   const { numPlayers, difficulty } = req.body;
   console.log(Object.keys(lobbies).length);
   const acCode = 100000 + Object.keys(lobbies).length;
-  lobbies[acCode] = new Lobby(acCode, numPlayers, difficulty);
+  lobbies[acCode] = new gameSession(acCode, numPlayers, difficulty);
   res.status(200).json(acCode);
 });
 
 /*Get Collection*/
 app.get("/collection/:subject?", async (req, res) => {
   try {
-    if(req.params.subject) {  // Return study set of specified subject
+    if (req.params.subject) {
+      // Return study set of specified subject
       await exportStudySetToJson(req.params.subject); // No response is sent since file is directly accessed from hard-coded path in QuestionScene.js
-    } else {  // Return entire collection
+    } else {
+      // Return entire collection
       await exportCollectionToJson();
       res.sendFile(
-        path.join(import.meta.dirname, "..", "src", "data", "exported_data.json")
+        path.join(
+          import.meta.dirname,
+          "..",
+          "src",
+          "data",
+          "exported_data.json"
+        )
       );
     }
   } catch (error) {
@@ -74,25 +87,60 @@ io.on("connection", (socket) => {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
-
-    const user = { id: socket.id, name: username };
-    lobbies[accessCode].addUser(user);
+    lobbies[accessCode].addUser(username);
     socket.join(accessCode);
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+    io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
+    //Check if it's now full
+    if (lobbies[accessCode].full() && !lobbies[accessCode].countingDown()) {
+      lobbies[accessCode].startCountdown();
+      const interval = setInterval(() => {
+        io.to(accessCode).emit(
+          "countdown_update",
+          lobbies[accessCode].countdown
+        );
+        lobbies[accessCode].tickCount();
+        console.log(lobbies[accessCode].countdown);
+
+        if (lobbies[accessCode].reachedZero()) {
+          clearInterval(interval);
+          io.to(accessCode).emit("start_game", lobbies[accessCode]);
+        }
+      }, 1000);
+    }
   });
   socket.on("leave_lobby", (accessCode) => {
     if (lobbies[accessCode]) {
       const username = lobbies[accessCode].findUsername(socket.id);
       if (username) {
         lobbies[accessCode].deleteUser(username.name);
-        io.to(accessCode).emit("lobby_users", lobbies[accessCode].users);
+        io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
       }
       if (lobbies[accessCode].empty()) {
         delete lobbies[accessCode];
       }
     }
+    console.log("Left", socket.id);
     socket.leave(accessCode);
+  });
+
+  socket.on("join_room", ({ roomCode, username }) => {
+    console.log(roomCode, "  ", username);
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = [];
+    }
+    rooms[roomCode].push({ id: socket.id, name: username });
+    socket.join(roomCode);
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
+    console.log("j socket", socketsInRoom); // Set of socket IDs
+  });
+
+  socket.on("move_player", ({ roomCode, username, path }) => {
+    console.log("a movement!", path);
+    console.log(roomCode);
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
+    console.log(socketsInRoom); // Set of socket IDs
+    io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 
   socket.on("disconnect", () => {
@@ -103,7 +151,7 @@ io.on("connection", (socket) => {
 app.get("/ADMINRESET", async (req, res) => {
   try {
     await resetDB();
-  } catch(error) {
+  } catch (error) {
     console.error("Error Reseting Database: ", error);
   }
 });
