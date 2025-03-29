@@ -6,18 +6,35 @@ import { io } from "socket.io-client";
 import { gameSession } from "../../server/gameSessionClass";
 
 const GamePage = () => {
-    
     const socket = io("http://localhost:5000");
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
     const roomCode = location.state?.roomCode || 0;
-    const username = location.state?.name || "MISSING";
+    const username = location.state?.name || "Guest";
     socket.emit("join_room",{roomCode, username});
     const stateObject = location.state?.stateObject || {};
     stateObject["socket"] = socket;
     stateObject["username"] = username;
     console.log(stateObject);
+    const players = location.state?.stateObject.players || {"Guest": {id: "Guest", numAPlusses: 0}};
+    console.log(players);
+    const initialScores = Object.fromEntries(
+        Object.values(players).map(player => [player.id, player.numAPlusses])
+    );
+    const [scoreDict, updateScoreDict] = useState({...initialScores});
+    useEffect(() => {
+        socket.on("APlus_movement", (data) => {
+            updateScoreDict((prevScores) => ({
+                ...prevScores,
+                [data.collector]: (prevScores[data.collector] || 0) + 1 // Update score
+            }));
+        });
+
+        return () => {
+            socket.off("APlus_movement");
+        };
+    }, []);
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", color: "white", display: "flex", flexDirection: "column" }}>
@@ -38,9 +55,9 @@ const GamePage = () => {
                     {/* Scoreboard */}
                     <Paper sx={{ bgcolor: "#1e293b", padding: 2, mb: 2 }}>
                         <Typography variant="h6">Score</Typography>
-                        {["Player 1", "Player 2", "Player 3"].map((player, index) => (
+                        {Object.entries(scoreDict).map(([player,score], index) => (
                             <Typography key={index} sx={{ mt: 1 }}>
-                                {player}: <span style={{ color: "#22c55e" }}>{Math.floor(Math.random() * 50)} Points</span>
+                                {player}: <span style={{ color: "#22c55e" }}>{score} Points</span>
                             </Typography>
                         ))}
                     </Paper>
