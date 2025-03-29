@@ -6,6 +6,7 @@ import {
   make_original_digraph,
 } from "../../data/board_graph";
 import { Player } from "../../classes/playerClass";
+import { useEffect } from "react";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
@@ -35,9 +36,8 @@ class BoardScene extends Phaser.Scene {
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
-    do {
-      this.ANode = this.original_board.randomVertex();
-    } while (this.ANode === 0);
+    this.ANode = this.game.config.stateObject.APlusLoc;
+    console.log(this.game.config.stateObject.APlusLoc);
     this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
     this.APlus = this.add
       .image(
@@ -89,6 +89,27 @@ class BoardScene extends Phaser.Scene {
       if (data.movingPlayer != this.username) {
         this.walkThePath(data.path, 0, 1, data.movingPlayer);
       }
+    });
+
+    this.socket.on("APlus_movement", (data) => {
+      console.log(data);
+      if (data.collector != this.username) {
+        this.original_board
+          .getVertex(this.ANode)
+          .removeEvent(EVENT_TYPE.A_plus);
+        this.ANode = data.loc;
+        this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
+        this.APlus.setPosition(
+          this.original_board.getVertex(this.ANode).x * 32 - 16,
+          this.original_board.getVertex(this.ANode).y * 32 - 16
+        );
+        this.players[data.collector].numAPlusses += 1;
+      }
+    });
+
+    this.events.on("shutdown", () => {
+      this.socket.off("movement");
+      this.socket.off("APlus_movement");
     });
 
     // Emit an event to notify the React component that the scene is ready
@@ -252,6 +273,14 @@ class BoardScene extends Phaser.Scene {
           .getVertex(this.ANode)
           .removeEvent(EVENT_TYPE.A_plus);
         this.ANode = newALoc;
+        if (this.socket) {
+          console.log(this.roomCode, this.username, newALoc);
+          this.socket.emit("Aplus_moved", {
+            roomCode: this.roomCode,
+            username: this.username,
+            loc: newALoc,
+          });
+        }
         this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
         this.APlus.setPosition(
           this.original_board.getVertex(this.ANode).x * 32 - 16,
