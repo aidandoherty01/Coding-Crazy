@@ -3,21 +3,27 @@ const DynamicTable = ({collection}) => {
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
+                    <th>Question</th>
+                    <th>Options</th>
+                    <th>Answer</th>
                 </tr>
             </thead>
             <tbody>
                 {
-                    collection.map((curr) => {  // iteratre over each object in collection
-                        const {id, name, email} = curr; // store current items
+                    collection.map((curr, index) => {  // iteratre over each object in collection
+                        const {question, options, answer} = curr; // store current items
                         
                         return (    // Table row is returned for each object
-                            <tr key={id}>
-                                <td>{id}</td>
-                                <td>{name}</td>
-                                <td>{email}</td>
+                            <tr key={index}>
+                                <td>{question}</td>
+                                <td>
+                                    <ul>    {/* Options are individually mapped and displayed in an unordered list */}
+                                        {options.map((option, i) => (
+                                            <li key={i}>{option}</li>
+                                        ))}
+                                    </ul>
+                                </td>
+                                <td>{answer}</td>
                             </tr>
                         )
                     })

@@ -2,34 +2,33 @@ import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mu
 import { useEffect, useState } from "react";
 import SelectionMenu from "../components/SelectionMenu";
 import DynamicTable from "../components/DynamicTable";
-const API = "https://jsonplaceholder.typicode.com/users";   // Placeholder json for testing
 
 function StudyPage() {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [collection, setCollection] = useState([]);
 
     const fetchCollection = async (subject) => {
-        if(subject === "") { subject = API; }
-        fetch(subject)
+        if(subject === "") { throw new Error("TEMP ERROR"); }
+        fetch(`http://localhost:5000/collection/${subject}`)
         .then((res) => res.json())
         .then((data) => setCollection(data))
         .then(() => console.log(collection))
         .catch((error) => console.error("Loading collection failed: ", error))
     };
 
-    useEffect(() => {
+    /*useEffect(() => {
         fetchCollection(API);
-    }, []);
+    }, []);*/
 
     return (
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
             {/* Data Section */}
             <Box textAlign="center" py={5}>
                 <h2>Selected Subject: {selectedSubject || "None"}</h2>
-                <SelectionMenu onSelect={(value) => {
+                <SelectionMenu onSelect={(value) => {   {/* For cleaner syntax, can be reduced to onSelect={setSelectedSubject} */}
                     console.log("App selected subject: ", value);
                     setSelectedSubject(value);
-                }} />   {/* For cleaner syntax, can be reduced to onSelect={setSelectedSubject} */}
+                }} />
                 <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                     () => fetchCollection(selectedSubject)}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
             </Box>
@@ -39,7 +38,7 @@ function StudyPage() {
                 <DynamicTable collection={collection} />    {/* Create a table based off the current collection/subject */}
             </div>
 
-            {/* Hero Section */}
+            {/* Reference Formatting */}
             <Box textAlign="center" py={5}>
                 <Typography variant="h3" color="primary">TEMP TITLE</Typography>
                 <Typography variant="subtitle1">Temp text.</Typography>
