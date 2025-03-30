@@ -47,16 +47,23 @@ class BoardScene extends Phaser.Scene {
       )
       .setScale(0.25);
     this.playerSprites = {};
+    this.playerTitles = {};
     for (const pyer in this.players) {
       console.log("PYER: ", pyer);
+      const xPix =
+        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
+      const yPix =
+        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
       this.playerSprites[pyer] = this.add
-        .sprite(
-          this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16,
-          this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16,
-          "player",
-          6
-        )
+        .sprite(xPix, yPix, "player", 6)
         .setScale(0.6);
+      this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
+        fontSize: "16px Arial",
+        fill: "rgba(255, 255, 255, 0.75)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+      });
+      this.playerTitles[pyer].setOrigin(0.5, 1);
     }
     console.log(this.players);
     console.log(this.username);
@@ -229,6 +236,13 @@ class BoardScene extends Phaser.Scene {
       y: this.playerSprites[playerIndex].y + y_val,
       duration: 250,
       ease: "Linear",
+      onUpdate: () => {
+        // Keep the text above the sprite
+        this.playerTitles[playerIndex].setPosition(
+          this.playerSprites[playerIndex].x,
+          this.playerSprites[playerIndex].y - 24
+        );
+      },
       onComplete: () => {
         if (index < path.length - 1) {
           this.walkThePath(path, index + 1, spacesLeft, playerIndex);
