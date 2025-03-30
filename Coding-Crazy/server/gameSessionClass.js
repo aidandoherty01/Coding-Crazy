@@ -9,7 +9,7 @@ export class gameSession {
     this.difficulty = difficulty;
     this.countdownStarted = false;
     this.countdown = 10;
-    this.APlusLoc = 0;
+    this.APlusLoc = Math.floor(Math.random() * 41) + 1; //In the future we'll make this based on the board selected
   }
 
   addUser(username) {
