@@ -13,7 +13,7 @@ const GamePage = () => {
     const roomCode = location.state?.roomCode || 0;
     const username = location.state?.name || "Guest";
     socket.emit("join_room",{roomCode, username});
-    const stateObject = location.state?.stateObject || {};
+    const stateObject = location.state?.stateObject || {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
     stateObject["socket"] = socket;
     stateObject["username"] = username;
     console.log(stateObject);

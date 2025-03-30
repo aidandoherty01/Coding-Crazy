@@ -6,7 +6,6 @@ import {
   make_original_digraph,
 } from "../../data/board_graph";
 import { Player } from "../../classes/playerClass";
-import { useEffect } from "react";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
@@ -36,7 +35,11 @@ class BoardScene extends Phaser.Scene {
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
-    this.ANode = this.game.config.stateObject.APlusLoc;
+    if (this.game.config.stateObject.APlusLoc) {
+      this.ANode = this.game.config.stateObject.APlusLoc;
+    } else {
+      this.ANode = Math.floor(Math.random() * 41) + 1;
+    }
     console.log(this.game.config.stateObject.APlusLoc);
     this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
     this.APlus = this.add
