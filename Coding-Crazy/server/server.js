@@ -4,25 +4,34 @@ import {
   exportCollectionToJson,
   exportStudySetToJson,
   exportUniqueSubjectsToJson,
-  exportAccountToJson
+  exportAccountToJson,
 } from "./getData.mjs";
-import {
-  exportJsonToMongo,
-  resetDB
-} from "./sendData.mjs";
+import { exportJsonToMongo, resetDB } from "./sendData.mjs";
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
 import http from "http";
 import fs from "fs";
 
-const export_to_mongo = path.join(import.meta.dirname, "..", "src", "data", "export_to_mongo.json");
-const exported_data = path.join(import.meta.dirname, "..", "src", "data", "exported_data.json");
+const export_to_mongo = path.join(
+  import.meta.dirname,
+  "..",
+  "src",
+  "data",
+  "export_to_mongo.json"
+);
+const exported_data = path.join(
+  import.meta.dirname,
+  "..",
+  "src",
+  "data",
+  "exported_data.json"
+);
 
 const app = express();
 const PORT = 5000;
 
-const server = http.createServer(app);  // Wraps express and socket.io into http
+const server = http.createServer(app); // Wraps express and socket.io into http
 
 const io = new Server(server, {
   cors: {
@@ -32,7 +41,7 @@ const io = new Server(server, {
 });
 
 app.use(cors()); // Enable CORS (to allow React to communicate with this server)
-app.use(express.json());  // Enables json operations
+app.use(express.json()); // Enables json operations
 
 // Store lobby users
 const lobbies = {};
@@ -49,7 +58,7 @@ app.post("/create_lobby", async (req, res) => {
 /*Get Collection*/
 app.get("/collection/:subject?", async (req, res) => {
   try {
-    if(req.params.subject) {
+    if (req.params.subject) {
       // Return study set of specified subject
       await exportStudySetToJson(req.params.subject);
       res.sendFile(
@@ -86,17 +95,18 @@ app.get("/subjects", async (req, res) => {
 });
 
 /* Send Json to Mongo */
-app.post("/send/:collection?", async(req, res) => {
+app.post("/send/:collection?", async (req, res) => {
   try {
     /* Store parameters */
     const collection = req.params.collection;
     const jsonData = JSON.stringify(req.body, null, 2);
-    
+
     /* Write to json and request export */
-    if(collection && ["Collection", "Accounts"].includes(collection)) { // Check valid collection name
+    if (collection && ["Collection", "Accounts"].includes(collection)) {
+      // Check valid collection name
       fs.writeFileSync(export_to_mongo, jsonData, "utf-8");
       await exportJsonToMongo(collection); // Export data to specified collection
-      res.sendFile(export_to_mongo);  // Send valid response
+      res.sendFile(export_to_mongo); // Send valid response
     } else {
       throw new Error("Please specify a valid Collection name.");
     }
@@ -106,7 +116,7 @@ app.post("/send/:collection?", async(req, res) => {
   }
 });
 
-app.post("/login", async(req, res) => {
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
     await exportAccountToJson(username, password);
@@ -121,14 +131,14 @@ app.post("/login", async(req, res) => {
 app.get("/ADMINRESET", async (req, res) => {
   try {
     await resetDB();
-  } catch(error) {
+  } catch (error) {
     console.error("Error Reseting Database: ", error);
   }
 });
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-  
+
   socket.on("join_lobby", ({ accessCode, username }) => {
     if (!lobbies[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
@@ -193,6 +203,10 @@ io.on("connection", (socket) => {
     const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
     console.log(socketsInRoom); // Set of socket IDs
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
+  });
+
+  socket.on("Aplus_moved", ({ roomCode, username, loc }) => {
+    io.to(roomCode).emit("APlus_movement", { collector: username, loc: loc });
   });
 
   socket.on("disconnect", () => {

@@ -35,9 +35,12 @@ class BoardScene extends Phaser.Scene {
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
-    do {
-      this.ANode = this.original_board.randomVertex();
-    } while (this.ANode === 0);
+    if (this.game.config.stateObject.APlusLoc) {
+      this.ANode = this.game.config.stateObject.APlusLoc;
+    } else {
+      this.ANode = Math.floor(Math.random() * 41) + 1;
+    }
+    console.log(this.game.config.stateObject.APlusLoc);
     this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
     this.APlus = this.add
       .image(
@@ -47,16 +50,23 @@ class BoardScene extends Phaser.Scene {
       )
       .setScale(0.25);
     this.playerSprites = {};
+    this.playerTitles = {};
     for (const pyer in this.players) {
       console.log("PYER: ", pyer);
+      const xPix =
+        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
+      const yPix =
+        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
       this.playerSprites[pyer] = this.add
-        .sprite(
-          this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16,
-          this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16,
-          "player",
-          6
-        )
+        .sprite(xPix, yPix, "player", 6)
         .setScale(0.6);
+      this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
+        fontSize: "16px Arial",
+        fill: "rgba(255, 255, 255, 0.75)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+      });
+      this.playerTitles[pyer].setOrigin(0.5, 1);
     }
     console.log(this.players);
     console.log(this.username);
@@ -89,6 +99,27 @@ class BoardScene extends Phaser.Scene {
       if (data.movingPlayer != this.username) {
         this.walkThePath(data.path, 0, 1, data.movingPlayer);
       }
+    });
+
+    this.socket.on("APlus_movement", (data) => {
+      console.log(data);
+      if (data.collector != this.username) {
+        this.original_board
+          .getVertex(this.ANode)
+          .removeEvent(EVENT_TYPE.A_plus);
+        this.ANode = data.loc;
+        this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
+        this.APlus.setPosition(
+          this.original_board.getVertex(this.ANode).x * 32 - 16,
+          this.original_board.getVertex(this.ANode).y * 32 - 16
+        );
+        this.players[data.collector].numAPlusses += 1;
+      }
+    });
+
+    this.events.on("shutdown", () => {
+      this.socket.off("movement");
+      this.socket.off("APlus_movement");
     });
 
     // Emit an event to notify the React component that the scene is ready
@@ -208,6 +239,13 @@ class BoardScene extends Phaser.Scene {
       y: this.playerSprites[playerIndex].y + y_val,
       duration: 250,
       ease: "Linear",
+      onUpdate: () => {
+        // Keep the text above the sprite
+        this.playerTitles[playerIndex].setPosition(
+          this.playerSprites[playerIndex].x,
+          this.playerSprites[playerIndex].y - 24
+        );
+      },
       onComplete: () => {
         if (index < path.length - 1) {
           this.walkThePath(path, index + 1, spacesLeft, playerIndex);
@@ -252,6 +290,14 @@ class BoardScene extends Phaser.Scene {
           .getVertex(this.ANode)
           .removeEvent(EVENT_TYPE.A_plus);
         this.ANode = newALoc;
+        if (this.socket) {
+          console.log(this.roomCode, this.username, newALoc);
+          this.socket.emit("Aplus_moved", {
+            roomCode: this.roomCode,
+            username: this.username,
+            loc: newALoc,
+          });
+        }
         this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
         this.APlus.setPosition(
           this.original_board.getVertex(this.ANode).x * 32 - 16,
