@@ -182,7 +182,7 @@ app.get("/getSession", async (req, res) => {
   const roomCode = req.query.roomCode;
   console.log("RC ", roomCode);
   try {
-    exportSessionToJson(roomCode);
+    await exportSessionToJson(roomCode);
     const fileData = fs.readFileSync(_sessionPath, "utf-8");
     const session = JSON.parse(fileData);
     res.status(200).json(session);
@@ -266,6 +266,18 @@ io.on("connection", (socket) => {
     const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
     console.log(socketsInRoom); // Set of socket IDs
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
+  });
+
+  socket.on("player_landing", ({ roomCode, username, loc }) => {
+    try {
+      exportSessionToJson(roomCode);
+      const fileData = fs.readFileSync(_sessionPath, "utf-8");
+      const session = JSON.parse(fileData);
+      session.players[username].loc = loc;
+      delete session._id;
+      updateSession(session);
+      io.to(roomCode).emit("new_loc", { movingPlayer: username, loc: loc });
+    } catch (err) {}
   });
 
   socket.on("Aplus_moved", ({ roomCode, username, loc }) => {

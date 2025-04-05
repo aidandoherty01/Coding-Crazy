@@ -49,10 +49,6 @@ const GamePage = () => {
 
             setStateObject(updatedStateObject);  // Update state with the session data and socket
             console.log(stateObject);
-            setPlayers(stateObject.players);
-            updateScoreDict(Object.fromEntries(
-                Object.values(players).map(player => [player.id, player.numAPlusses])
-            ));
             if (!socket.current.connected) {
                 socket.current.connect();  // Ensure the socket connects if it was disconnected
             }
