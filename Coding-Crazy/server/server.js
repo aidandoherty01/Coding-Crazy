@@ -281,6 +281,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("Aplus_moved", ({ roomCode, username, loc }) => {
+    exportSessionToJson(roomCode);
+    const fileData = fs.readFileSync(_sessionPath, "utf-8");
+    const session = JSON.parse(fileData);
+    session.APlusloc = loc;
+    delete session._id;
+    updateSession(session);
     io.to(roomCode).emit("APlus_movement", { collector: username, loc: loc });
   });
 
