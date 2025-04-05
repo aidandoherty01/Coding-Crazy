@@ -17,6 +17,7 @@ class BoardScene extends Phaser.Scene {
   }
 
   create() {
+    console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
     this.players = Object.entries(this.game.config.stateObject.players).reduce(

@@ -5,8 +5,9 @@ import {
   exportStudySetToJson,
   exportUniqueSubjectsToJson,
   exportAccountToJson,
+  exportSessionToJson,
 } from "./getData.mjs";
-import { exportJsonToMongo, resetDB } from "./sendData.mjs";
+import { exportJsonToMongo, updateRoom, resetDB } from "./sendData.mjs";
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
@@ -20,6 +21,15 @@ const export_to_mongo = path.join(
   "data",
   "export_to_mongo.json"
 );
+
+const update_to_mongo = path.join(
+  import.meta.dirname,
+  "..",
+  "src",
+  "data",
+  "update_to_mongo.json"
+);
+
 const exported_data = path.join(
   import.meta.dirname,
   "..",
@@ -27,6 +37,33 @@ const exported_data = path.join(
   "data",
   "exported_data.json"
 );
+
+const _sessionPath = path.join(
+  import.meta.dirname,
+  "..",
+  "src",
+  "data",
+  "session_data.json"
+);
+
+function generateRoomCode(numberOfRooms) {
+  // Helper function to convert a number to a letter (A = 0, B = 1, ..., Z = 25)
+  const numToLetter = (num) => String.fromCharCode(65 + (num % 26)); // 65 is the ASCII code for 'A'
+
+  // First letter based on (numberOfRooms / 26) % 26
+  const firstLetter = numToLetter(Math.floor(numberOfRooms / 26));
+
+  // Middle 4 letters: random letters
+  const middleLetters = Array.from({ length: 4 }, () =>
+    numToLetter(Math.floor(Math.random() * 26))
+  ).join("");
+
+  // Last letter based on numberOfRooms % 26
+  const lastLetter = numToLetter(numberOfRooms);
+
+  // Combine to form the room code
+  return firstLetter + middleLetters + lastLetter;
+}
 
 const app = express();
 const PORT = 5000;
@@ -44,14 +81,28 @@ app.use(cors()); // Enable CORS (to allow React to communicate with this server)
 app.use(express.json()); // Enables json operations
 
 // Store lobby users
-const lobbies = {};
-const rooms = {};
+const sessions = {};
+
+async function sendRoomToDB(room) {
+  const roomData = JSON.stringify([room]);
+  console.log(roomData);
+  fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+  await exportJsonToMongo("Sessions"); // Export data to specified collection
+}
+
+async function updateSession(room) {
+  const roomData = JSON.stringify([room]);
+  console.log(roomData);
+  fs.writeFileSync(update_to_mongo, roomData, "utf-8");
+  await updateRoom("Sessions"); // Export data to specified collection
+}
 
 app.post("/create_lobby", async (req, res) => {
   const { numPlayers, difficulty } = req.body;
-  console.log(Object.keys(lobbies).length);
-  const acCode = 100000 + Object.keys(lobbies).length;
-  lobbies[acCode] = new gameSession(acCode, numPlayers, difficulty);
+  console.log(Object.keys(sessions).length);
+  const acCode = generateRoomCode(Object.keys(sessions).length);
+  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty);
+  sendRoomToDB(sessions[acCode]);
   res.status(200).json(acCode);
 });
 
@@ -127,6 +178,19 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/getSession", async (req, res) => {
+  const roomCode = req.query.roomCode;
+  console.log("RC ", roomCode);
+  try {
+    exportSessionToJson(roomCode);
+    const fileData = fs.readFileSync(_sessionPath, "utf-8");
+    const session = JSON.parse(fileData);
+    res.status(200).json(session);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /* Reset and Repopulate the Database (with data from /data/backup.json) */
 app.get("/ADMINRESET", async (req, res) => {
   try {
@@ -140,61 +204,60 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("join_lobby", ({ accessCode, username }) => {
-    if (!lobbies[accessCode]) {
+    if (!sessions[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
       return;
     }
 
-    if (lobbies[accessCode].full()) {
+    if (sessions[accessCode].full()) {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
-    lobbies[accessCode].addUser(username);
+    sessions[accessCode].addUser(username);
     socket.join(accessCode);
+    updateSession(sessions[accessCode]);
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
+    io.to(accessCode).emit("lobby_users", sessions[accessCode].usernames);
     //Check if it's now full
-    if (lobbies[accessCode].full() && !lobbies[accessCode].countingDown()) {
-      lobbies[accessCode].startCountdown();
+    if (sessions[accessCode].full() && !sessions[accessCode].countingDown()) {
+      sessions[accessCode].startCountdown();
       const interval = setInterval(() => {
         io.to(accessCode).emit(
           "countdown_update",
-          lobbies[accessCode].countdown
+          sessions[accessCode].countdown
         );
-        lobbies[accessCode].tickCount();
-        console.log(lobbies[accessCode].countdown);
+        sessions[accessCode].tickCount();
+        console.log(sessions[accessCode].countdown);
 
-        if (lobbies[accessCode].reachedZero()) {
+        if (sessions[accessCode].reachedZero()) {
           clearInterval(interval);
-          io.to(accessCode).emit("start_game", lobbies[accessCode]);
+          io.to(accessCode).emit("start_game");
         }
       }, 1000);
     }
   });
   socket.on("leave_lobby", (accessCode) => {
-    if (lobbies[accessCode]) {
-      const username = lobbies[accessCode].findUsername(socket.id);
+    if (sessions[accessCode]) {
+      const username = sessions[accessCode].findUsername(socket.id);
       if (username) {
-        lobbies[accessCode].deleteUser(username.name);
-        io.to(accessCode).emit("lobby_users", lobbies[accessCode].usernames);
+        sessions[accessCode].deleteUser(username.name);
+        io.to(accessCode).emit("lobby_users", sessions[accessCode].usernames);
       }
-      if (lobbies[accessCode].empty()) {
-        delete lobbies[accessCode];
+      if (sessions[accessCode].empty()) {
+        delete sessions[accessCode];
       }
     }
     console.log("Left", socket.id);
     socket.leave(accessCode);
+    updateSession(sessions[accessCode]);
   });
 
-  socket.on("join_room", ({ roomCode, username }) => {
-    console.log(roomCode, "  ", username);
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = [];
-    }
-    rooms[roomCode].push({ id: socket.id, name: username });
+  socket.on("join_room", ({ roomCode }) => {
     socket.join(roomCode);
-    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
-    console.log("j socket", socketsInRoom); // Set of socket IDs
+  });
+
+  socket.on("leave_room", ({ roomCode }) => {
+    socket.leave(roomCode);
   });
 
   socket.on("move_player", ({ roomCode, username, path }) => {

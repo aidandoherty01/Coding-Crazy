@@ -5,26 +5,73 @@ import {useLocation, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
 import { gameSession } from "../../server/gameSessionClass";
 
+const grabSession = async (roomCode, socket, username) => {
+    if(!roomCode){
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }
+    const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    });
+    console.log(response);
+    if(!response.ok){
+        console.log(response);
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }else{
+        const jsonData = await response.json();
+        jsonData.socket = socket.current;
+        jsonData.username = username;
+        return jsonData;
+    }
+};
+
 const GamePage = () => {
-    const socket = io("http://localhost:5000");
+
+    const socket = useRef(io("http://localhost:5000"));
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
-    const roomCode = location.state?.roomCode || 0;
+    console.log("STRG", localStorage.getItem("roomCode"));
+    const roomCode = localStorage.getItem("roomCode");
     const username = location.state?.name || "Guest";
-    socket.emit("join_room",{roomCode, username});
-    const stateObject = location.state?.stateObject || {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
-    stateObject["socket"] = socket;
-    stateObject["username"] = username;
-    console.log(stateObject);
-    const players = location.state?.stateObject.players || {"Guest": {id: "Guest", numAPlusses: 0}};
-    console.log(players);
-    const initialScores = Object.fromEntries(
-        Object.values(players).map(player => [player.id, player.numAPlusses])
-    );
-    const [scoreDict, updateScoreDict] = useState({...initialScores});
+    const [stateObject, setStateObject] = useState({});
+    const [players, setPlayers] = useState({});
+    const [scoreDict, updateScoreDict] = useState({});
+
     useEffect(() => {
-        socket.on("APlus_movement", (data) => {
+        const fetchSessionData = async () => {
+            const sessionData = await grabSession(roomCode, socket, username);
+            const updatedStateObject = {
+                ...sessionData,
+            };
+
+            setStateObject(updatedStateObject);  // Update state with the session data and socket
+            console.log(stateObject);
+            setPlayers(stateObject.players);
+            updateScoreDict(Object.fromEntries(
+                Object.values(players).map(player => [player.id, player.numAPlusses])
+            ));
+            if (!socket.current.connected) {
+                socket.current.connect();  // Ensure the socket connects if it was disconnected
+            }
+            socket.current.emit("join_room", { roomCode });
+        };
+
+        fetchSessionData();
+        // Cleanup on component unmount
+        return () => {
+            // Disconnect socket when leaving the page
+            socket.current.disconnect();
+            console.log("Socket disconnected");
+        };
+
+        
+    }, [roomCode, username]); 
+
+    useEffect(() => {
+        socket.current.on("APlus_movement", (data) => {
             updateScoreDict((prevScores) => ({
                 ...prevScores,
                 [data.collector]: (prevScores[data.collector] || 0) + 1 // Update score
@@ -32,7 +79,7 @@ const GamePage = () => {
         });
 
         return () => {
-            socket.off("APlus_movement");
+            socket.current.off("APlus_movement");
         };
     }, []);
 
