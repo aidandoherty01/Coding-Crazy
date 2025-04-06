@@ -54,8 +54,8 @@ function LobbyPage() {
             setJoined(true);
         });
 
-        socket.on("start_game", (data) => {
-            navigate(`/game`, {state: {"stateObject": data, "name": usernameRef.current, "roomCode": accessCode}});
+        socket.on("start_game", () => {
+            navigate(`/game`, {state: {"name": usernameRef.current}});
         });
 
         socket.on("countdown_update", (count) => {
@@ -76,6 +76,7 @@ function LobbyPage() {
         if (username.trim()) {
             console.log(username);
             socket.emit("join_lobby", {accessCode, username});
+            localStorage.setItem("roomCode", accessCode);
         }
     };
 

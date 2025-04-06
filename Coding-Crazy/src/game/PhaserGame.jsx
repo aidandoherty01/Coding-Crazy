@@ -9,7 +9,11 @@ export const PhaserGame = forwardRef(function PhaserGame({ currentActiveScene, S
 
     useLayoutEffect(() => {
         if (!game.current && containerRef.current) {
-            game.current = StartGame("game-container", SO);
+            containerRef.current.innerHTML = "";
+
+            console.log("Starting Game sam");
+
+            game.current = StartGame(containerRef.current, SO);
 
             if (ref) {
                 ref.current = { game: game.current, scene: null };
@@ -44,7 +48,7 @@ export const PhaserGame = forwardRef(function PhaserGame({ currentActiveScene, S
         };
     }, [currentActiveScene, ref]);
 
-    return <div id="game-container" ref={containerRef} />;
+    return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
 });
 
 PhaserGame.propTypes = {

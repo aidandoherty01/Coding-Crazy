@@ -17,6 +17,7 @@ class BoardScene extends Phaser.Scene {
   }
 
   create() {
+    console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
     this.players = Object.entries(this.game.config.stateObject.players).reduce(
@@ -117,9 +118,19 @@ class BoardScene extends Phaser.Scene {
       }
     });
 
+    this.socket.on("new_loc", (data) => {
+      if (data.movingPlayer != this.username) {
+        console.log("DATA LOC", data.loc);
+        this.players[data.movingPlayer].moveLoc(
+          this.original_board.getVertex(data.loc)
+        );
+      }
+    });
+
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
+      this.socket.off("new_loc");
     });
 
     // Emit an event to notify the React component that the scene is ready
@@ -253,7 +264,21 @@ class BoardScene extends Phaser.Scene {
           this.triggerEvents(playerIndex); //Eventually will be so it's based on the player
           this.moveSpace(spacesLeft - 1, playerIndex);
         } else {
+          console.log(
+            "PI ",
+            playerIndex,
+            " loc ",
+            this.players[playerIndex].loc
+          );
           this.triggerEvents(playerIndex);
+          if (this.socket && playerIndex == this.username) {
+            console.log("LOC", this.players[playerIndex].loc);
+            this.socket.emit("player_landing", {
+              roomCode: this.roomCode,
+              username: this.username,
+              loc: this.players[playerIndex].loc,
+            });
+          }
           return;
         }
       },
