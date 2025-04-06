@@ -149,6 +149,7 @@ io.on("connection", (socket) => {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
+
     lobbies[accessCode].addUser(username);
     socket.join(accessCode);
     socket.emit("lobby_good", { message: "Lobby is good to join!" });

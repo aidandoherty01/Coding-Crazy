@@ -9,7 +9,7 @@ const GamePage = () => {
     const socket = io("http://localhost:5000");
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
-    console.log(location.state);
+    console.log(`Location State: ${location.state}`);
     const roomCode = location.state?.roomCode || 0;
     const username = location.state?.name || "Guest";
     socket.emit("join_room",{roomCode, username});

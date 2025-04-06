@@ -16,6 +16,15 @@ function StudyPage() {
         .catch((error) => console.error("Loading collection failed: ", error))
     };
 
+    const storeCollection = async () => {    // Store the current collection in local storage as active study set
+        if(localStorage.getItem("username")) {  // If account exists
+            localStorage.setItem("subject", selectedSubject);
+            console.log(`Subject in local storage: ${localStorage.getItem("subject")}`);
+        } else {
+            console.log("Sign into an account to store subjects from this page!");
+        }
+    }
+
     /*useEffect(() => {
         fetchCollection(API);
     }, []);*/
@@ -29,8 +38,11 @@ function StudyPage() {
                     console.log("App selected subject: ", value);
                     setSelectedSubject(value);
                 }} />
-                <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
-                    () => fetchCollection(selectedSubject)}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
+                <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={ () => {
+                    fetchCollection(selectedSubject);
+                    storeCollection();  // could be combined into fetchCollection
+                }
+                }>Load Study Set</Button> {/* On button click, fetch the specified collection */}
             </Box>
 
             <div>
