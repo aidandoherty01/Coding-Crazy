@@ -70,6 +70,8 @@ export async function updateRoom(
     const jsonData = fs.readFileSync(jsonFilePath);
     const data = JSON.parse(jsonData);
 
+    console.log("Parsed ", data);
+
     if (!Array.isArray(data)) {
       throw new Error("JSON data must be an array of objects");
     }

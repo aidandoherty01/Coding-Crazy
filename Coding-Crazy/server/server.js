@@ -82,6 +82,23 @@ app.use(express.json()); // Enables json operations
 
 // Store lobby users
 const sessions = {};
+const roomQueue = {};
+
+function queueRoomTask(roomCode, task) {
+  console.log(`⏳ Queued task for ${roomCode}`);
+  if (!roomQueue[roomCode]) {
+    roomQueue[roomCode] = Promise.resolve();
+  }
+
+  // Add task to the chain
+  roomQueue[roomCode] = roomQueue[roomCode].then(() =>
+    task().catch((err) => {
+      console.error(`Error processing task for room ${roomCode}:`, err);
+    })
+  );
+
+  return roomQueue[roomCode];
+}
 
 async function sendRoomToDB(room) {
   const roomData = JSON.stringify([room]);
@@ -92,7 +109,7 @@ async function sendRoomToDB(room) {
 
 async function updateSession(room) {
   const roomData = JSON.stringify([room]);
-  console.log(roomData);
+  console.log("updating session ", roomData);
   fs.writeFileSync(update_to_mongo, roomData, "utf-8");
   await updateRoom("Sessions"); // Export data to specified collection
 }
@@ -249,7 +266,7 @@ io.on("connection", (socket) => {
     }
     console.log("Left", socket.id);
     socket.leave(accessCode);
-    updateSession(sessions[accessCode]);
+    //updateSession(sessions[accessCode]);
   });
 
   socket.on("join_room", ({ roomCode }) => {
@@ -268,26 +285,32 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 
-  socket.on("player_landing", ({ roomCode, username, loc }) => {
+  socket.on("player_landing", async ({ roomCode, username, loc }) => {
     try {
-      exportSessionToJson(roomCode);
-      const fileData = fs.readFileSync(_sessionPath, "utf-8");
-      const session = JSON.parse(fileData);
-      session.players[username].loc = loc;
-      delete session._id;
-      updateSession(session);
-      io.to(roomCode).emit("new_loc", { movingPlayer: username, loc: loc });
+      queueRoomTask(roomCode, async () => {
+        await exportSessionToJson(roomCode);
+        const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
+        const session = JSON.parse(fileData);
+        session.players[username].loc = loc;
+        delete session._id;
+        updateSession(session);
+        io.to(roomCode).emit("new_loc", { movingPlayer: username, loc: loc });
+      });
     } catch (err) {}
   });
 
-  socket.on("Aplus_moved", ({ roomCode, username, loc }) => {
-    exportSessionToJson(roomCode);
-    const fileData = fs.readFileSync(_sessionPath, "utf-8");
-    const session = JSON.parse(fileData);
-    session.APlusloc = loc;
-    delete session._id;
-    updateSession(session);
-    io.to(roomCode).emit("APlus_movement", { collector: username, loc: loc });
+  socket.on("Aplus_moved", async ({ roomCode, username, loc }) => {
+    queueRoomTask(roomCode, async () => {
+      await exportSessionToJson(roomCode);
+      const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
+      const session = JSON.parse(fileData);
+      session.APlusLoc = loc;
+      session.players[username].numAPlusses += 1;
+      console.log("US ", username, session);
+      delete session._id;
+      updateSession(session);
+      io.to(roomCode).emit("APlus_movement", { collector: username, loc: loc });
+    });
   });
 
   socket.on("disconnect", () => {

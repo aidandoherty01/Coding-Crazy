@@ -29,7 +29,7 @@ const grabSession = async (roomCode, socket, username) => {
 
 const GamePage = () => {
 
-    const socket = useRef(io("http://localhost:5000"));
+    const socket = useRef(null);
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
@@ -41,43 +41,59 @@ const GamePage = () => {
     const [scoreDict, updateScoreDict] = useState({});
 
     useEffect(() => {
+        if (!socket.current) {
+            socket.current = io("http://localhost:5000");
+        }
+    
         const fetchSessionData = async () => {
             const sessionData = await grabSession(roomCode, socket, username);
-            const updatedStateObject = {
-                ...sessionData,
-            };
+            setStateObject(sessionData);
 
-            setStateObject(updatedStateObject);  // Update state with the session data and socket
-            console.log(stateObject);
-            if (!socket.current.connected) {
-                socket.current.connect();  // Ensure the socket connects if it was disconnected
+            if (sessionData.players) {
+                const initialScores = {};
+                for (const username in sessionData.players) {
+                    initialScores[username] = sessionData.players[username].numAPlusses || 0;
+                }
+                updateScoreDict(initialScores);
             }
+    
+            if (!socket.current.connected) {
+                socket.current.connect();
+            }
+    
             socket.current.emit("join_room", { roomCode });
         };
-
+    
         fetchSessionData();
-        // Cleanup on component unmount
+    
         return () => {
-            // Disconnect socket when leaving the page
-            socket.current.disconnect();
-            console.log("Socket disconnected");
+            if (socket.current) {
+                socket.current.disconnect();
+                socket.current = null;
+                console.log("Socket disconnected");
+            }
         };
-
-        
-    }, [roomCode, username]); 
+    }, []); 
 
     useEffect(() => {
-        socket.current.on("APlus_movement", (data) => {
+        const handleAPlus = (data) => {
             updateScoreDict((prevScores) => ({
                 ...prevScores,
-                [data.collector]: (prevScores[data.collector] || 0) + 1 // Update score
+                [data.collector]: (prevScores[data.collector] || 0) + 1
             }));
-        });
-
+        };
+    
+        if (socket.current) {
+            socket.current.on("APlus_movement", handleAPlus);
+        }
+    
         return () => {
-            socket.current.off("APlus_movement");
+            if (socket.current) {
+                socket.current.off("APlus_movement", handleAPlus);
+            }
         };
     }, []);
+    
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", color: "white", display: "flex", flexDirection: "column" }}>
@@ -88,7 +104,9 @@ const GamePage = () => {
                     <Paper sx={{ bgcolor: "#1e293b", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {/* Embedded Phaser Game */}
                         <Box sx={{ width: "100%", height: "100%" }}>
-                            <PhaserGame ref={gameRef} SO={stateObject} />
+                        {Object.keys(stateObject).length > 0 && (
+                                <PhaserGame ref={gameRef} SO={stateObject} />
+                            )}
                         </Box>
                     </Paper>
                 </Grid>
