@@ -230,6 +230,7 @@ io.on("connection", (socket) => {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
+
     sessions[accessCode].addUser(username);
     socket.join(accessCode);
     updateSession(sessions[accessCode]);

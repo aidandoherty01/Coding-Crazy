@@ -2,6 +2,7 @@ import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField 
 import React, { useEffect, useState, useRef} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
+import SelectionMenu from "../components/SelectionMenu";
 
 const socket = io("http://localhost:5000");
 
@@ -12,9 +13,22 @@ function LobbyPage() {
     const [joined, setJoined] = useState(false);
     const [error, setError] = useState(null);
     const [counter, setCounter] = useState(10);
+    const [selectedSubject, setSelectedSubject] = useState("");
+    const [canJoin, setCanJoin] = useState(false);
     const navigate = useNavigate();
     
     const usernameRef = useRef("");
+
+    useEffect(() => {
+        initUsername(); // Initialize username variable
+    },[]);
+
+    /*
+        Is there potential redundancy here?
+        I removed the username input box to instead work with the local storage variable.
+        Now username is checked on page load, and if they are a guest (i.e., don't have a username in storage) a random username is generated.
+        Also, I am unfamiliar with useRef(), so I avoided it for now :p
+    */
     
     useEffect(() => {
         usernameRef.current = username;
@@ -66,6 +80,32 @@ function LobbyPage() {
         }
     };
 
+    const initUsername = async () => {
+        try {
+            if(localStorage.getItem("username")) {  // If user account exists, load into lobby
+                setUsername(
+                    localStorage.getItem("username")
+                    .trim()
+                );
+            } else {    // If user account does not exist, create random guest name
+                const rand = 1 + (Math.random() * 5000);  // Generate random floating-point number between 1 - 5000 (inclusive)
+                const guestUser = "guest_".concat(
+                    rand.toString()
+                );  // Create user guest id
+                setUsername(guestUser.trim());
+            }
+        } catch (error) {
+            console.error("Initializing user failed: ", error);
+        }
+    };
+
+    const fetchCollection = async (subject) => {
+        if(subject === "") { throw new Error("TEMP ERROR"); }
+        fetch(`http://localhost:5000/collection/${subject}`)
+        .then(setCanJoin(true)) // User can now join the lobby
+        .catch((error) => console.error("Loading collection failed: ", error))
+    };
+
     const leaveLobby = () => {
         if (joined) {
             socket.emit("leave_lobby", accessCode);
@@ -100,15 +140,24 @@ function LobbyPage() {
         <Box>
             {!joined ? (
                 <Box>
-                    <Typography variant="h4">Enter Your Name</Typography>
+                    {/*<Typography variant="h4">Enter Your Name</Typography>
                     <TextField
                         variant="outlined"
                         placeholder="Your Name"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         sx={{ mt: 2, bgcolor: "white" , input:{ color: "black"}}}
-                    />
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={joinLobby}>
+                    />*/}
+                    <h2>Selected Subject: {selectedSubject || "None"}</h2>
+                    <SelectionMenu onSelect={(value) => {
+                        console.log("App selected subject: ", value);
+                        setSelectedSubject(value);
+                    }} />
+                    <Button variant="contained" color="primary" sx={{ mx: 1 }} disabled={!selectedSubject} onClick={ () => {
+                        fetchCollection(selectedSubject)
+                    }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
+
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={joinLobby}>
                         Join Lobby
                     </Button>
                 </Box>
@@ -121,6 +170,7 @@ function LobbyPage() {
                             <li key={index}>{user}</li>
                         ))}
                     </ul>
+
                     <Box>
                         <Typography variant="h6">Countdown: {counter}</Typography>
                     </Box>

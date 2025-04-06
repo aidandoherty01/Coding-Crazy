@@ -43,7 +43,7 @@ function HostPage() {
                         },
                       }}
                     >
-                    {[2, 3, 4, 5, 6].map((num) => (
+                    {[1, 2, 3, 4, 5, 6].map((num) => (
                         <MenuItem key={num} value={num} sx={{color: "text.secondary"}}>
                         {num}
                         </MenuItem>

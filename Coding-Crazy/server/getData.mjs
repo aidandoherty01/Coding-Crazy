@@ -152,7 +152,8 @@ export async function exportAccountToJson(
 
     console.log(`Account exported to '${filePath}'`);
   } catch (err) {
-    console.error("Error importing data: ", err);
+    console.error('Error importing data: ', err);
+    throw new Error(err); // Throw an error to server so it can be relayed to the client
   } finally {
     await client.close();
   }

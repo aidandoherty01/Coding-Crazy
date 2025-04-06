@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [success, setSuccess] = useState("");
 
     const loginAccount = async () => {
         try {
+            setSuccess(""); // Reset Success Message
             /* Check Formatting */
             if (!username || !password) {
                 throw new Error("Ensure all fields are filled and valid typing.");
@@ -31,10 +33,14 @@ function LoginPage() {
             
             /* Login Success */
             const data = await response.json();
-            console.log("Great Success!", data);
-            
+            console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            localStorage.setItem("username", data.username);    // Store username in local storage
+            console.log(`Local Storage: ${localStorage.getItem("username")}`);
+            setSuccess("Login Successful.");    // Update success message
+
         } catch (error) {
             console.error("Error logging into account:", error);
+            setSuccess(`Account Login Failed. ${error}`);
         }
     };
 
@@ -61,6 +67,7 @@ function LoginPage() {
                 <h3>Your Paswword: {password}</h3>
                 <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                     () => loginAccount()}>Submit Login Info</Button>
+                <h2>{success || ""}</h2> {/* Display success message */}
             </Box>
 
             {/* Reference Formatting */}

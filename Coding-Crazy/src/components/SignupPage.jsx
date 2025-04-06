@@ -2,11 +2,14 @@ import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mu
 import { useEffect, useState } from "react";
 
 function SignupPage() {
+    /* IMPLEMENT EMAIL CHECKING TO PREVENT ACCOUNT CREATION SPAM */
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [success, setSuccess] = useState("");
 
     const signupAccount = async () => {
         try {
+            setSuccess(""); // Reset Success Message
             /* Check Formatting */
             if (!username || !password) {
                 throw new Error("Ensure all fields are filled and valid typing.");
@@ -31,11 +34,15 @@ function SignupPage() {
             }
             
             /* Signup Success */
-            const data = await response.json();
-            console.log("Great Success!", data);
-            
+            const temp = await response.json();
+            const data = temp[0];   // Data comes back in array form with single element
+            console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            localStorage.setItem("username", data.username);    // Set username is local storage
+            console.log(`Local Storage: ${localStorage.getItem("username")}`);
+            setSuccess("Account Successfully Created.");    // Update success message
         } catch (error) {
             console.error("Error creating account:", error);
+            setSuccess(`Account Creation Failed. ${error}`);
         }
     };
 
@@ -62,6 +69,7 @@ function SignupPage() {
                 <h3>Your Paswword: {password}</h3>
                 <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                     () => signupAccount()}>Submit Signup Info</Button>
+                <h2>{success || ""}</h2> {/* Display success message */}
             </Box>
 
             {/* Reference Formatting */}
