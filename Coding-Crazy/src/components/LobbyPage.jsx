@@ -76,15 +76,15 @@ function LobbyPage() {
         if (username.trim()) {
             console.log(username);
             socket.emit("join_lobby", {accessCode, username});
-            localStorage.setItem("roomCode", accessCode);
+            sessionStorage.setItem("roomCode", accessCode);
         }
     };
 
     const initUsername = async () => {
         try {
-            if(localStorage.getItem("username")) {  // If user account exists, load into lobby
+            if(sessionStorage.getItem("username")) {  // If user account exists, load into lobby
                 setUsername(
-                    localStorage.getItem("username")
+                    sessionStorage.getItem("username")
                     .trim()
                 );
             } else {    // If user account does not exist, create random guest name

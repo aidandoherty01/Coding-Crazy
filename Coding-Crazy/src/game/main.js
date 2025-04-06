@@ -28,7 +28,7 @@ const baseConfig = {
 
 // Function to start the game
 
-const StartGame = (parentElement, SO, subject = testSubject) => {
+const StartGame = (parentElement, SO) => {
   const game = new Phaser.Game({ ...baseConfig, parent: parentElement });
   game.config.stateObject = SO;
 

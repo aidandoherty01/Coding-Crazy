@@ -32,6 +32,13 @@ const _sessionPath = path.join(
   "data",
   "session_data.json"
 );
+const _pLobbyPath = path.join(
+  import.meta.dirname,
+  "..",
+  "src",
+  "data",
+  "public_lobby_data.json"
+);
 /*  Input Parameters:
 - uri: Connection String
 - dbName: Name of the Database
@@ -152,7 +159,7 @@ export async function exportAccountToJson(
 
     console.log(`Account exported to '${filePath}'`);
   } catch (err) {
-    console.error('Error importing data: ', err);
+    console.error("Error importing data: ", err);
     throw new Error(err); // Throw an error to server so it can be relayed to the client
   } finally {
     await client.close();
@@ -176,6 +183,32 @@ export async function exportSessionToJson(_roomCode, filePath = _sessionPath) {
 
     /* Return questions with matching subject */
     const jsonData = JSON.stringify(session, null, 2);
+    fs.writeFileSync(filePath, jsonData);
+
+    console.log(`Session exported to '${filePath}'`);
+  } catch (err) {
+    console.error("Error importing data: ", err);
+  } finally {
+    await client.close();
+  }
+}
+
+export async function getPublicLobbies(offset, limit, filePath = _pLobbyPath) {
+  const client = new MongoClient(uri, { monitorCommands: true }); // Initialize MongoClient class (with debugging enabled)
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(_sessionCollection);
+
+    const lobbies = await collection
+      .find({ isPublic: true, gameStarted: false })
+      .skip(offset)
+      .limit(limit)
+      .toArray();
+
+    /* Return questions with matching subject */
+    const jsonData = JSON.stringify(lobbies, null, 2);
     fs.writeFileSync(filePath, jsonData);
 
     console.log(`Session exported to '${filePath}'`);

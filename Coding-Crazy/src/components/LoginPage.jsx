@@ -34,8 +34,8 @@ function LoginPage() {
             /* Login Success */
             const data = await response.json();
             console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
-            localStorage.setItem("username", data.username);    // Store username in local storage
-            console.log(`Local Storage: ${localStorage.getItem("username")}`);
+            sessionStorage.setItem("username", data.username);    // Store username in local storage
+            console.log(`Local Storage: ${sessionStorage.getItem("username")}`);
             setSuccess("Login Successful.");    // Update success message
 
         } catch (error) {
@@ -64,7 +64,7 @@ function LoginPage() {
             {/* Confirmation Section */}
             <Box textAlign="center" py={5}>
                 <h3>Your Username: {username}</h3>
-                <h3>Your Paswword: {password}</h3>
+                <h3>Your Password: {password}</h3>
                 <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                     () => loginAccount()}>Submit Login Info</Button>
                 <h2>{success || ""}</h2> {/* Display success message */}

@@ -1,4 +1,4 @@
-import { Box, Button, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Card, CardContent, Container, TextField } from "@mui/material";
+import { Box, Button, Checkbox, Typography, Grid, FormControl, FormControlLabel, InputLabel, Select, MenuItem, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
@@ -8,13 +8,14 @@ function HostPage() {
 
     const [numPlayers, setNumPlayers] = useState(2);
     const [difficulty, setDifficulty] = useState(5);
+    const [isPublic, setPublic] = useState(false);
     const navigate = useNavigate();
 
     const createLobby = async () => {
         const response = await fetch("http://localhost:5000/create_lobby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ numPlayers, difficulty }),
+            body: JSON.stringify({ numPlayers, difficulty, isPublic }),
         });
         console.log(response);
         if(!response.ok){
@@ -72,6 +73,23 @@ function HostPage() {
                     ))}
                     </Select>
                 </FormControl>
+
+                <FormControlLabel
+                    control={
+                    <Checkbox
+                        checked={isPublic}
+                        onChange={(e) => setPublic(e.target.checked)}
+                        sx={{
+                        color: "background.paper",
+                        "&.Mui-checked": {
+                            color: "primary.main",
+                        },
+                        }}
+                    />
+                    }
+                    label="Make Lobby Public"
+                    sx={{ mb: 2 }}
+                />
 
                 <Button variant="contained" color="primary" onClick={createLobby}>
                     Start

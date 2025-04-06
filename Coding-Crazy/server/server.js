@@ -6,6 +6,7 @@ import {
   exportUniqueSubjectsToJson,
   exportAccountToJson,
   exportSessionToJson,
+  getPublicLobbies,
 } from "./getData.mjs";
 import { exportJsonToMongo, updateRoom, resetDB } from "./sendData.mjs";
 import path from "path";
@@ -115,12 +116,33 @@ async function updateSession(room) {
 }
 
 app.post("/create_lobby", async (req, res) => {
-  const { numPlayers, difficulty } = req.body;
+  const { numPlayers, difficulty, isPublic } = req.body;
   console.log(Object.keys(sessions).length);
   const acCode = generateRoomCode(Object.keys(sessions).length);
-  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty);
+  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty, isPublic);
   sendRoomToDB(sessions[acCode]);
   res.status(200).json(acCode);
+});
+
+//Pull public lobbies for people finding lobbies
+app.get("/public_lobbies", async (req, res) => {
+  try {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    await getPublicLobbies(offset, limit);
+    res.sendFile(
+      path.join(
+        import.meta.dirname,
+        "..",
+        "src",
+        "data",
+        "public_lobby_data.json"
+      )
+    );
+  } catch (err) {
+    console.error("Error fetching public lobbies:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 /*Get Collection*/
@@ -249,6 +271,8 @@ io.on("connection", (socket) => {
 
         if (sessions[accessCode].reachedZero()) {
           clearInterval(interval);
+          sessions[accessCode].gameStarted = true;
+          updateSession(sessions[accessCode]);
           io.to(accessCode).emit("start_game");
         }
       }, 1000);

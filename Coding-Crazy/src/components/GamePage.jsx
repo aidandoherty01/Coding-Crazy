@@ -33,8 +33,8 @@ const GamePage = () => {
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
-    console.log("STRG", localStorage.getItem("roomCode"));
-    const roomCode = localStorage.getItem("roomCode");
+    console.log("STRG", sessionStorage.getItem("roomCode"));
+    const roomCode = sessionStorage.getItem("roomCode");
     const username = location.state?.name || "Guest";
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});

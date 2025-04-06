@@ -17,9 +17,9 @@ function StudyPage() {
     };
 
     const storeCollection = async () => {    // Store the current collection in local storage as active study set
-        if(localStorage.getItem("username")) {  // If account exists
-            localStorage.setItem("subject", selectedSubject);
-            console.log(`Subject in local storage: ${localStorage.getItem("subject")}`);
+        if(sessionStorage.getItem("username")) {  // If account exists
+            sessionStorage.setItem("subject", selectedSubject);
+            console.log(`Subject in local storage: ${sessionStorage.getItem("subject")}`);
         } else {
             console.log("Sign into an account to store subjects from this page!");
         }

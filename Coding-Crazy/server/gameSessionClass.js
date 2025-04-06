@@ -1,14 +1,16 @@
 import { Player } from "../src/classes/playerClass.js";
 
 export class gameSession {
-  constructor(accessCode, maxPlayers = 6, difficulty = 5) {
+  constructor(accessCode, maxPlayers = 6, difficulty = 5, isPublic = true) {
     this.roomCode = accessCode;
     this.usernames = [];
     this.players = {};
     this.maxPlayers = maxPlayers;
     this.difficulty = difficulty;
+    this.isPublic = isPublic;
     this.countdownStarted = false;
     this.countdown = 10;
+    this.gameStarted = false;
     this.APlusLoc = Math.floor(Math.random() * 41) + 1; //In the future we'll make this based on the board selected
   }
 
