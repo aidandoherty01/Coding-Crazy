@@ -6,12 +6,12 @@ function SignupPage() {
     /* IMPLEMENT EMAIL CHECKING TO PREVENT ACCOUNT CREATION SPAM */
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [success, setSuccess] = useState("");
+    const [signUpError, setSignUpError] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
 
     const signupAccount = async () => {
         try {
-            setSuccess(""); // Reset Success Message
+            setSignUpError(""); // Reset Success Message
             /* Check Formatting */
             if (!username || !password) {
                 throw new Error("Ensure all fields are filled and valid typing.");
@@ -39,14 +39,14 @@ function SignupPage() {
             const temp = await response.json();
             const data = temp[0];   // Data comes back in array form with single element
             console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            
             localStorage.setItem("username", data.username);    // Set username is local storage
-            console.log(`Local Storage: ${localStorage.getItem("username")}`);
-            setIsLoggedIn(true);
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has changed
-            setSuccess("Account Successfully Created.");    // Update success message
+            
+            setIsLoggedIn(true);    // Block sign in page from user who is already signed in
         } catch (error) {
             console.error("Error creating account:", error);
-            setSuccess(`Account Creation Failed. ${error}`);
+            setSignUpError(`Account Creation Failed.\n${error}`);
         }
     };
 
@@ -77,10 +77,10 @@ function SignupPage() {
                     {/* Confirmation Section */}
                     <Box textAlign="center" py={5}>
                         <h3>Your Username: {username}</h3>
-                        <h3>Your Paswword: {password}</h3>
+                        <h3>Your Password: {password}</h3>
                         <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                             () => signupAccount()}>Submit Signup Info</Button>
-                        <h2>{success || ""}</h2> {/* Display success message */}
+                        <h2>{signUpError || ""}</h2> {/* Display success message */}
                     </Box>
                 </Box>
             )}

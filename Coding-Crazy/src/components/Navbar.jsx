@@ -59,11 +59,11 @@ function Navbar() {
                         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2 }}>
                             <Button color="inherit" component={Link} to="/">🏠 Home</Button>
                             <Button color="inherit" component={Link} to="/game">🎮 Play Game</Button>
-                            <Button color="inherit" component={Link} to="/account">Account</Button>
                             <Button color="inherit" component={Link} to="/setupGame">Setup Game</Button>
+                            <Button color="inherit" component={Link} to="/account" disabled={!isLoggedIn}>Account</Button>
                         </Box>
                         {/* Log In & Sign Up Buttons (Desktop) */}
-                        <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
+                        <Box>
                             { !isLoggedIn ? (
                                 <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
                                     <Button color="inherit" variant="outlined" component={Link} to="/login">Log In</Button>
@@ -71,6 +71,7 @@ function Navbar() {
                                 </Box>
                             ) : (
                                 <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
+                                    <Typography>Logged in as: {localStorage.getItem("username")}</Typography>
                                     <Button color="inherit" variant="outlined" onClick={() => signOut()} component={Link} to="/">Sign Out</Button>
                                 </Box>
                             )}

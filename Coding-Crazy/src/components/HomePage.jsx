@@ -15,7 +15,6 @@ function HomePage() {
                     <Button variant="contained" color="secondary" sx={{ mx: 1 }}>Start as Guest</Button>
                     <Button variant="contained" color="success" sx={{ mx: 1 }} component={Link} to="/signup">Sign Up</Button>
                     <Button variant="contained" color="primary" sx={{ mx: 1 }} component={Link} to="/login">Log In</Button>
-                    {/* <Button color="inherit" variant="outlined" component={Link} to="/login">Log In</Button> */}
                 </Box>
             </Box>
 

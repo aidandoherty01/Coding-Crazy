@@ -7,7 +7,7 @@ import {
   exportAccountToJson,
   exportSessionToJson,
 } from "./getData.mjs";
-import { exportJsonToMongo, updateRoom, resetDB } from "./sendData.mjs";
+import { exportJsonToMongo, updateRoom, resetDB, removeEntryFromDB } from "./sendData.mjs";
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
@@ -163,20 +163,20 @@ app.get("/subjects", async (req, res) => {
 });
 
 /* Send Json to Mongo */
-app.post("/send/:collection?", async (req, res) => {
+app.post("/send/:collection", async (req, res) => {
   try {
     /* Store parameters */
     const collection = req.params.collection;
     const jsonData = JSON.stringify(req.body, null, 2);
 
     /* Write to json and request export */
-    if (collection && ["Collection", "Accounts"].includes(collection)) {
+    if (["Collection", "Accounts"].includes(collection)) {
       // Check valid collection name
       fs.writeFileSync(export_to_mongo, jsonData, "utf-8");
       await exportJsonToMongo(collection); // Export data to specified collection
       res.sendFile(export_to_mongo); // Send valid response
     } else {
-      throw new Error("Please specify a valid Collection name.");
+      throw new Error(`Please specify a valid Collection name. ${collection} is invalid.`);
     }
   } catch (err) {
     console.error("Sending Data Failed: ", err);
@@ -184,6 +184,28 @@ app.post("/send/:collection?", async (req, res) => {
   }
 });
 
+/* Remove entry from Database */
+app.post("/remove/:collection", async (req, res) => {
+  try {
+    /* Store Parameters */
+    const collection = req.params.collection;
+    const jsonData = JSON.stringify(req.body, null, 2);
+    /* INCLUDE SESSIONS?? */
+    if(["Collection", "Accounts"].includes(collection)) { // Check valid collection name
+      console.log("Hooray!");
+      fs.writeFileSync(export_to_mongo, jsonData, "utf-8");
+      await removeEntryFromDB(collection);
+      res.sendFile(export_to_mongo);
+    } else {
+      throw new Error(`Please specify a valid collection name. ${collection} is invalid.`);
+    }
+  } catch (err) {
+    console.error("Error removing entry from Database: ", err);
+    res.status(400).json({ error: err.message })
+  }
+});
+
+/* Login to Account */
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -194,6 +216,7 @@ app.post("/login", async (req, res) => {
     res.status(400).json({ error: err.message }); // Send error message to client
   }
 });
+
 
 app.get("/getSession", async (req, res) => {
   const roomCode = req.query.roomCode;

@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [success, setSuccess] = useState("");
+    const [loginError, setLoginError] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
 
     const loginAccount = async () => {
         try {
-            setSuccess(""); // Reset Success Message
+            setLoginError(""); // Reset Success Message
             /* Check Formatting */
             if (!username || !password) {
                 throw new Error("Ensure all fields are filled and valid typing.");
@@ -26,7 +26,7 @@ function LoginPage() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(userData),
+                body: JSON.stringify(userData), // send data in json package
             });
             
             if (!response.ok) {
@@ -36,14 +36,14 @@ function LoginPage() {
             /* Login Success */
             const data = await response.json();
             console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
+            
             localStorage.setItem("username", data.username);    // Store username in local storage
-            console.log(`Local Storage: ${localStorage.getItem("username")}`);
-            setIsLoggedIn(true);
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has been modified
-            setSuccess("Login Successful.");    // Update success message
+            
+            setIsLoggedIn(true);    // Block log in page for user who is already logged in
         } catch (error) {
             console.error("Error logging into account:", error);
-            setSuccess(`Account Login Failed. ${error}`);
+            setLoginError(`Account Login Failed.\n${error}`);
         }
     };
 
@@ -59,25 +59,25 @@ function LoginPage() {
                     {/* Input Section */}
                     <Box textAlign="center" py={5}>
                         {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
-                        <div>
+                        <Box>
                             <label>
                                 Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
                             </label>
-                        </div>
-                        <div>
+                        </Box>
+                        <Box>
                             <label>
                                 Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
                             </label>
-                        </div>
+                        </Box>
                     </Box>
 
                     {/* Confirmation Section */}
                     <Box textAlign="center" py={5}>
                         <h3>Your Username: {username}</h3>
-                        <h3>Your Paswword: {password}</h3>
+                        <h3>Your Password: {password}</h3>
                         <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
                             () => loginAccount()}>Submit Login Info</Button>
-                        <h2>{success || ""}</h2> {/* Display success message */}
+                        <h2>{loginError || ""}</h2> {/* Display success message */}
                     </Box>
                 </Box>
             )}
