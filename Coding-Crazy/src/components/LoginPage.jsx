@@ -1,10 +1,12 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [success, setSuccess] = useState("");
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
 
     const loginAccount = async () => {
         try {
@@ -36,8 +38,9 @@ function LoginPage() {
             console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
             localStorage.setItem("username", data.username);    // Store username in local storage
             console.log(`Local Storage: ${localStorage.getItem("username")}`);
+            setIsLoggedIn(true);
+            window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has been modified
             setSuccess("Login Successful.");    // Update success message
-
         } catch (error) {
             console.error("Error logging into account:", error);
             setSuccess(`Account Login Failed. ${error}`);
@@ -46,38 +49,38 @@ function LoginPage() {
 
     return (
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
-            {/* Input Section */}
-            <Box textAlign="center" py={5}>
-                {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
-                <div>
-                    <label>
-                        Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
-                    </label>
-                </div>
-            </Box>
-
-            {/* Confirmation Section */}
-            <Box textAlign="center" py={5}>
-                <h3>Your Username: {username}</h3>
-                <h3>Your Paswword: {password}</h3>
-                <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
-                    () => loginAccount()}>Submit Login Info</Button>
-                <h2>{success || ""}</h2> {/* Display success message */}
-            </Box>
-
-            {/* Reference Formatting */}
-            <Box textAlign="center" py={5}>
-                <Typography variant="h3" color="primary">TEMP TITLE</Typography>
-                <Typography variant="subtitle1">Temp text.</Typography>
-                <Box mt={3}>
-                    <Button variant="contained" color="secondary" sx={{ mx: 1 }}>temp button</Button>
+            { isLoggedIn ? (
+                <Box textAlign="center" py={5}>
+                    <h1>You are signed in.</h1>
+                    <Button component={Link} to="/">Return to Home Page</Button>
                 </Box>
-            </Box>
+            ) : (
+                <Box>
+                    {/* Input Section */}
+                    <Box textAlign="center" py={5}>
+                        {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
+                        <div>
+                            <label>
+                                Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
+                            </label>
+                        </div>
+                    </Box>
+
+                    {/* Confirmation Section */}
+                    <Box textAlign="center" py={5}>
+                        <h3>Your Username: {username}</h3>
+                        <h3>Your Paswword: {password}</h3>
+                        <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
+                            () => loginAccount()}>Submit Login Info</Button>
+                        <h2>{success || ""}</h2> {/* Display success message */}
+                    </Box>
+                </Box>
+            )}
 
             {/* Footer */}
             <Box sx={{ bgcolor: "#1e293b", mt: 5, py: 3, textAlign: "center" }}>

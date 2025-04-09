@@ -3,6 +3,8 @@ import React, { useEffect, useState, useRef} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
 import SelectionMenu from "../components/SelectionMenu";
+import DynamicTable from "../components/DynamicTable";
+import { col } from "framer-motion/client";
 
 const socket = io("http://localhost:5000");
 
@@ -14,6 +16,7 @@ function LobbyPage() {
     const [error, setError] = useState(null);
     const [counter, setCounter] = useState(10);
     const [selectedSubject, setSelectedSubject] = useState("");
+    const [collection, setCollection] = useState([]);
     const [canJoin, setCanJoin] = useState(false);
     const navigate = useNavigate();
     
@@ -102,6 +105,8 @@ function LobbyPage() {
     const fetchCollection = async (subject) => {
         if(subject === "") { throw new Error("TEMP ERROR"); }
         fetch(`http://localhost:5000/collection/${subject}`)
+        .then((res) => res.json())
+        .then((data) => setCollection(data))
         .then(setCanJoin(true)) // User can now join the lobby
         .catch((error) => console.error("Loading collection failed: ", error))
     };
@@ -160,6 +165,11 @@ function LobbyPage() {
                     <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={joinLobby}>
                         Join Lobby
                     </Button>
+
+                    <Box>
+                        <DynamicTable collection={collection} />
+                    </Box>
+
                 </Box>
             ) : (
                 <Box>
