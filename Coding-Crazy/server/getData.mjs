@@ -166,7 +166,7 @@ export async function exportSessionToJson(_roomCode, filePath = _sessionPath) {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(_sessionCollection);
-    console.log("_RC", _roomCode);
+    // console.log("_RC", _roomCode);
 
     /* Check if username and password combination exists */
     const session = await collection.findOne({ roomCode: _roomCode });

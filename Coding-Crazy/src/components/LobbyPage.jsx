@@ -130,7 +130,7 @@ function LobbyPage() {
 
             /* Attempt Reconnect */
             if(isReconnect) { joinLobby(roomCode, user); }    // Reconnect user to lobby if disconnected
-
+            // if reconnecting, and the game has started, navigate to game page and let logic be handled there
         } catch (error) {
             console.error("Initializing user failed:", error);
         }

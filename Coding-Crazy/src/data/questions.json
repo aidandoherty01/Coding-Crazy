@@ -1,42 +1,42 @@
 [
   {
-    "question": "What does HTML stand for?",
+    "question": "Which year did World War II end?",
     "options": [
-      "HyperText Markup Language",
-      "High-Level Machine Learning",
-      "Hyper Transfer Machine Logic",
-      "HyperText Markdown Language"
+      "1943",
+      "1944",
+      "1945",
+      "1946"
     ],
-    "answer": "HyperText Markup Language"
+    "answer": "1945"
   },
   {
-    "question": "What is the main function of an operating system?",
+    "question": "Who wrote the Declaration of Independence?",
     "options": [
-      "Managing hardware resources",
-      "Compiling code",
-      "Running web browsers",
-      "Writing software"
+      "George Washington",
+      "Benjamin Franklin",
+      "John Adams",
+      "Thomas Jefferson"
     ],
-    "answer": "Managing hardware resources"
+    "answer": "Thomas Jefferson"
   },
   {
-    "question": "Which language is primarily used for web development?",
+    "question": "Who was the first President of the United States?",
     "options": [
-      "Python",
-      "C++",
-      "JavaScript",
-      "Ruby"
+      "Thomas Jefferson",
+      "John Adams",
+      "Abraham Lincoln",
+      "George Washington"
     ],
-    "answer": "JavaScript"
+    "answer": "George Washington"
   },
   {
-    "question": "Which data structure uses FIFO (First In, First Out)?",
+    "question": "Which ancient civilization built the pyramids?",
     "options": [
-      "Stack",
-      "Queue",
-      "Linked List",
-      "Tree"
+      "Greek",
+      "Roman",
+      "Egyptian",
+      "Mayan"
     ],
-    "answer": "Queue"
+    "answer": "Egyptian"
   }
 ]
