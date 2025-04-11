@@ -1,9 +1,9 @@
 {
-  "_id": "67f96a0b9c9854e5bb2eac25",
-  "roomCode": "ALVODA",
+  "_id": "67f97055fd29759bf7ce576c",
+  "roomCode": "AAWTJC",
   "players": {
-    "guest_316": {
-      "id": "guest_316",
+    "guest_1385": {
+      "id": "guest_1385",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -14,5 +14,5 @@
   "difficulty": 5,
   "countdownStarted": false,
   "countdown": 10,
-  "APlusLoc": 32
+  "APlusLoc": 10
 }

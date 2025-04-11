@@ -10,6 +10,15 @@ const socket = io("http://localhost:5000");
 
 function LobbyPage() {
     const { accessCode } = useParams();
+
+    /*  Bug here with reconnecting.
+        Since I reconnect through the host page, the url and roomCode end up not being the same.
+        To recreate: create and join a lobby, close out, reconnect by setting up another game.
+        The logic will replace you in the lobby you closed out from, BUT! the url differs.
+        Compare the url to the access code on screen and in console logs.
+    */
+
+    const [acCode, setAcCode] = useState(accessCode);   // mutable variable for reconnects
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
@@ -104,6 +113,10 @@ function LobbyPage() {
                     console.log("Removing stale roomCode.");
                     localStorage.removeItem("roomCode");
                 } else {    // User is involved with an active room, attempt to reconnect them
+                    /*
+                    insert remove session function here when complete
+                    */
+                    setAcCode(roomCode);
                     console.log(`Attempting Reconnect to ${roomCode}`);
                     isReconnect = true;
                 }
@@ -147,7 +160,7 @@ function LobbyPage() {
 
     const leaveLobby = () => {
         if (joined) {
-            socket.emit("leave_lobby", accessCode);
+            socket.emit("leave_lobby", acCode);
             setJoined(false);
         }
     };
@@ -196,7 +209,7 @@ function LobbyPage() {
                         fetchCollection(selectedSubject)
                     }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
 
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(accessCode, username); }}>
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(acCode, username); }}>
                         Join Lobby
                     </Button>
 
@@ -207,7 +220,7 @@ function LobbyPage() {
                 </Box>
             ) : (
                 <Box>
-                    <Typography variant="h4">Lobby: {accessCode}</Typography>
+                    <Typography variant="h4">Lobby: {acCode}</Typography>
                     <Typography variant="h6">Players:</Typography>
                     <ul>
                         {users.map((user, index) => (

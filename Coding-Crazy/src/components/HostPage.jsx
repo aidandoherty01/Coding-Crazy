@@ -17,7 +17,7 @@ function HostPage() {
             body: JSON.stringify({ numPlayers, difficulty }),
         });
         console.log(response);
-        if(!response.ok){
+        if(!response.ok) {
             console.log(response);
             return;
         }
