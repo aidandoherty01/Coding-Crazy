@@ -1,9 +1,16 @@
 {
-  "_id": "67f97055fd29759bf7ce576c",
-  "roomCode": "AAWTJC",
+  "_id": "67f98851b973ce3fc125fbf3",
+  "roomCode": "AARDWA",
   "players": {
-    "guest_1385": {
-      "id": "guest_1385",
+    "guest_4411": {
+      "id": "guest_4411",
+      "loc": 0,
+      "x": 0,
+      "y": 0,
+      "numAPlusses": 0
+    },
+    "guest_3284": {
+      "id": "guest_3284",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -12,7 +19,9 @@
   },
   "maxPlayers": 2,
   "difficulty": 5,
-  "countdownStarted": false,
-  "countdown": 10,
-  "APlusLoc": 10
+  "isPublic": true,
+  "countdownStarted": true,
+  "countdown": 0,
+  "gameStarted": true,
+  "APlusLoc": 7
 }

@@ -1,24 +1,13 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import {useParams, useNavigate, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import SelectionMenu from "../components/SelectionMenu";
 import DynamicTable from "../components/DynamicTable";
-import { col } from "framer-motion/client";
-
 const socket = io("http://localhost:5000");
 
 function LobbyPage() {
     const { accessCode } = useParams();
-
-    /*  Bug here with reconnecting.
-        Since I reconnect through the host page, the url and roomCode end up not being the same.
-        To recreate: create and join a lobby, close out, reconnect by setting up another game.
-        The logic will replace you in the lobby you closed out from, BUT! the url differs.
-        Compare the url to the access code on screen and in console logs.
-    */
-
-    const [acCode, setAcCode] = useState(accessCode);   // mutable variable for reconnects
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
     const [joined, setJoined] = useState(false);
@@ -28,6 +17,9 @@ function LobbyPage() {
     const [collection, setCollection] = useState([]);
     const [canJoin, setCanJoin] = useState(false);
     const navigate = useNavigate();
+    
+    const location = useLocation();
+    const isReconnect = location.state?.isReconnect === true;
     
     const usernameRef = useRef("");
 
@@ -48,13 +40,11 @@ function LobbyPage() {
         socket.on("lobby_full", (message) => {
             console.log(message);
             setError(message);  // Set the error message if the lobby is full
-            setJoined(false);  // Make sure joined is false
           });
 
         socket.on("lobby_not_found", (message) => {
             console.log(message);
             setError(message);  // Set the error message if the lobby is not found
-            setJoined(false);  // Make sure joined is false
         });
 
         socket.on("lobby_good", (message) => {
@@ -98,30 +88,6 @@ function LobbyPage() {
 
     const initUser = async () => {
         try {
-            console.log(`Initializing user for ${accessCode}`)
-            /* Check if already in active lobby */
-            let isReconnect = false;
-            const roomCode = localStorage.getItem("roomCode");
-            if (roomCode) {
-                const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                });
-                if (!response.ok) { // Room code is no longer valid, remove from user
-                    console.log("Removing stale roomCode.");
-                    localStorage.removeItem("roomCode");
-                } else {    // User is involved with an active room, attempt to reconnect them
-                    /*
-                    insert remove session function here when complete
-                    */
-                    setAcCode(roomCode);
-                    console.log(`Attempting Reconnect to ${roomCode}`);
-                    isReconnect = true;
-                }
-            }
-
             let user = "";
             /* Store Username */
             if(localStorage.getItem("username")) {  // If user account exists, store active username
@@ -142,8 +108,8 @@ function LobbyPage() {
             }
 
             /* Attempt Reconnect */
-            if(isReconnect) { joinLobby(roomCode, user); }    // Reconnect user to lobby if disconnected
-            // if reconnecting, and the game has started, navigate to game page and let logic be handled there
+            if(isReconnect) { joinLobby(accessCode, user); }    // Reconnect user to lobby if disconnected
+
         } catch (error) {
             console.error("Initializing user failed:", error);
         }
@@ -160,7 +126,7 @@ function LobbyPage() {
 
     const leaveLobby = () => {
         if (joined) {
-            socket.emit("leave_lobby", acCode);
+            socket.emit("leave_lobby", accessCode);
             setJoined(false);
         }
     };
@@ -192,14 +158,6 @@ function LobbyPage() {
         <Box>
             {!joined ? (
                 <Box>
-                    {/*<Typography variant="h4">Enter Your Name</Typography>
-                    <TextField
-                        variant="outlined"
-                        placeholder="Your Name"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        sx={{ mt: 2, bgcolor: "white" , input:{ color: "black"}}}
-                    />*/}
                     <h2>Selected Subject: {selectedSubject || "None"}</h2>
                     <SelectionMenu onSelect={(value) => {
                         console.log("App selected subject: ", value);
@@ -209,7 +167,7 @@ function LobbyPage() {
                         fetchCollection(selectedSubject)
                     }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
 
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(acCode, username); }}>
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(accessCode, username); }}>
                         Join Lobby
                     </Button>
 
@@ -220,7 +178,7 @@ function LobbyPage() {
                 </Box>
             ) : (
                 <Box>
-                    <Typography variant="h4">Lobby: {acCode}</Typography>
+                    <Typography variant="h4">Lobby: {accessCode}</Typography>
                     <Typography variant="h6">Players:</Typography>
                     <ul>
                         {users.map((user, index) => (

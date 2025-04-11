@@ -1,42 +1,42 @@
 [
   {
-    "question": "If a triangle has angles of 30° and 60°, what is the third angle?",
+    "question": "Which year did World War II end?",
     "options": [
-      "60°",
-      "90°",
-      "100°",
-      "120°"
+      "1943",
+      "1944",
+      "1945",
+      "1946"
     ],
-    "answer": "90°"
+    "answer": "1945"
   },
   {
-    "question": "What is 5 + 7?",
+    "question": "Who wrote the Declaration of Independence?",
     "options": [
-      "10",
-      "11",
-      "12",
-      "9"
+      "George Washington",
+      "Benjamin Franklin",
+      "John Adams",
+      "Thomas Jefferson"
     ],
-    "answer": "12"
+    "answer": "Thomas Jefferson"
   },
   {
-    "question": "What is the value of π (pi) rounded to two decimal places?",
+    "question": "Who was the first President of the United States?",
     "options": [
-      "3.12",
-      "3.14",
-      "3.16",
-      "3.18"
+      "Thomas Jefferson",
+      "John Adams",
+      "Abraham Lincoln",
+      "George Washington"
     ],
-    "answer": "3.14"
+    "answer": "George Washington"
   },
   {
-    "question": "What is the square root of 64?",
+    "question": "Which ancient civilization built the pyramids?",
     "options": [
-      "6",
-      "7",
-      "8",
-      "9"
+      "Greek",
+      "Roman",
+      "Egyptian",
+      "Mayan"
     ],
-    "answer": "8"
+    "answer": "Egyptian"
   }
 ]

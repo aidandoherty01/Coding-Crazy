@@ -236,7 +236,7 @@ app.post("/create_lobby", async (req, res) => {
 /* Called on page load in GamePage.jsx */
 app.get("/getSession", async (req, res) => {
   const roomCode = req.query.roomCode;
-  console.log("getSession. RC: ", roomCode);
+  console.log("In getSession\nRC: ", roomCode);
   try {
     await exportSessionToJson(roomCode);  // Writes sesion to _sessionPath
     const fileData = fs.readFileSync(_sessionPath, "utf-8");
@@ -274,49 +274,52 @@ io.on("connection", (socket) => {
   
   socket.on("join_lobby", ({ accessCode, username }) => {
     
-    const session = sessions[accessCode];
     console.log(`In Join_Lobby\nUser: ${username}\nAccess: ${accessCode}`);
     
-    if (!session) {
+    if (!sessions[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
       return;
     }
     
-    /* 
-    Attempting to rejoin lobby if disconnected
-    - current bug: Reconnecting to a lobby puts you into a lobby with yourself, and then begins the game since lobby is now "full" (size 2).
-    */
-    if (session.findUsername(username)) {
+    /* Attempting to rejoin lobby if disconnected */
+    if (sessions[accessCode].findUsername(username)) {
+      
       console.log(`${username} is reconnecting to ${accessCode}\nYAHOOOOO!`);
+      
       socket.join(accessCode);  // reconnect socket to room
-      socket.emit("lobby_good", { message: "Reconnected to Lobby."});
-      io.to(accessCode).emit("lobby_users", session.getUsernames());
+      io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());
+      
+      if(sessions[accessCode].gameStarted) {
+        socket.emit("game_start");
+      } else {
+        socket.emit("lobby_good", { message: "Reconnected to Lobby."});
+      }
       return;
     }
     
-    if (session.full()) {
+    if (sessions[accessCode].full()) {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
     
     socket.join(accessCode);  // add user to socket room
-    session.addUser(username);
-    updateSession(session);  // update all users in the session
+    sessions[accessCode].addUser(username);
+    updateSession(sessions[accessCode]);  // update all users in the session
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", session.getUsernames());  // broadcast full list of names
+    io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());  // broadcast full list of names
     
     //Check if it's now full
-    if (session.full() && !session.countingDown()) {
-      session.startCountdown();
+    if (sessions[accessCode].full() && !sessions[accessCode].countingDown()) {
+      sessions[accessCode].startCountdown();
       const interval = setInterval(() => {
         io.to(accessCode).emit(
           "countdown_update",
-          session.countdown
+          sessions[accessCode].countdown
         );
-        session.tickCount();
-        console.log(session.countdown);
+        sessions[accessCode].tickCount();
+        console.log(sessions[accessCode].countdown);
 
-        if (session.reachedZero()) {
+        if (sessions[accessCode].reachedZero()) {
           clearInterval(interval);
           sessions[accessCode].gameStarted = true;
           updateSession(sessions[accessCode]);
