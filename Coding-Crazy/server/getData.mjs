@@ -143,7 +143,7 @@ export async function exportAccountToJson(
       password: _password,
     });
     if (!user) {
-      throw new Error(`Incorrect combo bruh`);
+      throw new Error(`Incorrect username or password.`);
     }
 
     /* Return questions with matching subject */
@@ -181,6 +181,7 @@ export async function exportSessionToJson(_roomCode, filePath = _sessionPath) {
     console.log(`Session exported to '${filePath}'`);
   } catch (err) {
     console.error("Error importing data: ", err);
+    throw new Error(err); // Relay error to server
   } finally {
     await client.close();
   }

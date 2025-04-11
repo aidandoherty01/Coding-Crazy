@@ -217,7 +217,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
+/* Get active session */
 app.get("/getSession", async (req, res) => {
   const roomCode = req.query.roomCode;
   console.log("RC ", roomCode);
@@ -244,6 +244,12 @@ io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("join_lobby", ({ accessCode, username }) => {
+
+    /* Implement check to see if user is attempting to reconnect to an existing lobby */
+    
+    console.log(`In Join_Lobby\nUser: ${username}\nAccess: ${accessCode}`);
+    console.log(sessions);
+
     if (!sessions[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
       return;

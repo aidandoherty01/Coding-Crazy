@@ -35,7 +35,7 @@ const GamePage = () => {
     console.log(location.state);
     console.log("STRG", localStorage.getItem("roomCode"));
     const roomCode = localStorage.getItem("roomCode");
-    const username = location.state?.name || "Guest";
+    const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});
     const [scoreDict, updateScoreDict] = useState({});

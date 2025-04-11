@@ -155,22 +155,23 @@ export async function removeEntryFromDB(
     /* Collection */
     if(collectionName == _collectionName) {
       console.log("collection");
-
+      // removing questions from study sets
     }
     /* Accounts */
     else if (collectionName == _accountName) {
       console.log("account");
       await collection.deleteMany({
-        username : { $in : data.username } // 'in' query checks if value matches in array of items (usernames)
+        username : { $in : data.username } // 'in' modifier checks if value matches in array of items (usernames)
       });
     }
     /* Sessions */
     else if (collectionName == _sessionName) {
       console.log("session");
-
-    } else {
-      throw new Error(`Invalid collection name: ${collectionName}`);
+      // removing game lobbies
+      
     }
+    
+    else { throw new Error(`Invalid collection name: ${collectionName}`); }
 
     console.log(`Removed entries from ${collectionName}.`);
 

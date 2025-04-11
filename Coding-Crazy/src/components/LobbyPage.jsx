@@ -23,7 +23,7 @@ function LobbyPage() {
     const usernameRef = useRef("");
 
     useEffect(() => {
-        initUsername(); // Initialize username variable
+        initUser(); // Initialize username variable
     },[]);
 
     /*
@@ -44,16 +44,19 @@ function LobbyPage() {
         });
 
         socket.on("lobby_full", (message) => {
+            console.log(message);
             setError(message);  // Set the error message if the lobby is full
             setJoined(false);  // Make sure joined is false
           });
 
         socket.on("lobby_not_found", (message) => {
+            console.log(message);
             setError(message);  // Set the error message if the lobby is not found
             setJoined(false);  // Make sure joined is false
         });
 
         socket.on("lobby_good", (message) => {
+            console.log(message);
             setJoined(true);
         });
 
@@ -75,30 +78,68 @@ function LobbyPage() {
         };
     }, []);
 
-    const joinLobby = () => {
-        if (username.trim()) {
-            console.log(username);
-            socket.emit("join_lobby", {accessCode, username});
-            localStorage.setItem("roomCode", accessCode);
+    const joinLobby = (roomCode, user) => {
+        try {
+            console.log(`Attempting to Join Lobby.\nUser: ${user}\nRoom Code: ${roomCode}`);
+
+            /* Code is not setting joined to true */
+            socket.emit("join_lobby", {
+                "accessCode" : accessCode,
+                "username" : user
+            });
+
+            localStorage.setItem("roomCode", roomCode);
+
+        } catch (error) {
+            console.error("Joining Lobby Failed.", error);
         }
     };
 
-    const initUsername = async () => {
+    const initUser = async () => {
         try {
-            if(localStorage.getItem("username")) {  // If user account exists, load into lobby
-                setUsername(
-                    localStorage.getItem("username")
-                    .trim()
-                );
-            } else {    // If user account does not exist, create random guest name
-                const rand = 1 + (Math.random() * 5000);  // Generate random floating-point number between 1 - 5000 (inclusive)
-                const guestUser = "guest_".concat(
-                    rand.toString()
-                );  // Create user guest id
-                setUsername(guestUser.trim());
+            console.log(`Initializing user for ${accessCode}`)
+            /* Check if already in active lobby */
+            let isReconnect = false;
+            const roomCode = localStorage.getItem("roomCode");
+            if (roomCode) {
+                const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                });
+                if (!response.ok) { // Room code is no longer valid, remove from user
+                    console.log("Removing stale roomCode.");
+                    localStorage.removeItem("roomCode");
+                } else {    // User is involved with an active room, attempt to reconnect them
+                    console.log(`Attempting Reconnect to ${roomCode}`);
+                    isReconnect = true;
+                }
             }
+
+            let user = "";
+            /* Store Username */
+            if(localStorage.getItem("username")) {  // If user account exists, store active username
+                console.log("1");
+                user = localStorage.getItem("username").trim();
+                setUsername(user);
+            } else if (isReconnect && localStorage.getItem("guest")) {  // If guest user is reconnecting
+                console.log("2");
+                user = localStorage.getItem("guest");
+                setUsername(user);
+            } else {    // If user account does not exist, create randomized guest name
+                console.log("3");
+                const rand = 1 + (Math.random() * 5000);  // Generate random floating-point number between 1 - 5000 (inclusive)
+                user = "guest_".concat(rand.toString());  // Create user guest id
+                setUsername(user);
+                localStorage.setItem("guest", user);    // Store guest name for reconnects
+            }
+
+            /* Attempt Reconnect */
+            if(isReconnect) { joinLobby(roomCode, user); }    // Reconnect user to lobby if disconnected
+
         } catch (error) {
-            console.error("Initializing user failed: ", error);
+            console.error("Initializing user failed:", error);
         }
     };
 
@@ -162,7 +203,7 @@ function LobbyPage() {
                         fetchCollection(selectedSubject)
                     }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
 
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={joinLobby}>
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(accessCode, username); }}>
                         Join Lobby
                     </Button>
 

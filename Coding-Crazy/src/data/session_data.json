@@ -1,20 +1,20 @@
 {
-  "_id": "67f171df60990a867ce3f4db",
-  "roomCode": "ARSSUD",
+  "_id": "67f873a8c6f22280e73105c8",
+  "roomCode": "ACLCXD",
   "usernames": [
-    "Samuel",
-    "Jamie Rup"
+    "guest_1929.9742429242408",
+    ""
   ],
   "players": {
-    "Samuel": {
-      "id": "Samuel",
+    "guest_1929.9742429242408": {
+      "id": "guest_1929.9742429242408",
       "loc": 0,
       "x": 0,
       "y": 0,
       "numAPlusses": 0
     },
-    "Jamie Rup": {
-      "id": "Jamie Rup",
+    "": {
+      "id": "",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -23,7 +23,7 @@
   },
   "maxPlayers": 2,
   "difficulty": 5,
-  "countdownStarted": true,
-  "countdown": 0,
-  "APlusLoc": 40
+  "countdownStarted": false,
+  "countdown": 10,
+  "APlusLoc": 1
 }
