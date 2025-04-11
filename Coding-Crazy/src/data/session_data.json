@@ -1,20 +1,13 @@
 {
-  "_id": "67f873a8c6f22280e73105c8",
-  "roomCode": "ACLCXD",
+  "_id": "67f87c2bb62468dc8f4328cb",
+  "roomCode": "AQMLDB",
   "usernames": [
-    "guest_1929.9742429242408",
-    ""
+    "guest_878",
+    "guest_878"
   ],
   "players": {
-    "guest_1929.9742429242408": {
-      "id": "guest_1929.9742429242408",
-      "loc": 0,
-      "x": 0,
-      "y": 0,
-      "numAPlusses": 0
-    },
-    "": {
-      "id": "",
+    "guest_878": {
+      "id": "guest_878",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -25,5 +18,5 @@
   "difficulty": 5,
   "countdownStarted": false,
   "countdown": 10,
-  "APlusLoc": 1
+  "APlusLoc": 23
 }

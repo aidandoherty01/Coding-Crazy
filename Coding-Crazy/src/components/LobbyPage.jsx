@@ -26,13 +26,6 @@ function LobbyPage() {
         initUser(); // Initialize username variable
     },[]);
 
-    /*
-        Is there potential redundancy here?
-        I removed the username input box to instead work with the local storage variable.
-        Now username is checked on page load, and if they are a guest (i.e., don't have a username in storage) a random username is generated.
-        Also, I am unfamiliar with useRef(), so I avoided it for now :p
-    */
-    
     useEffect(() => {
         usernameRef.current = username;
     }, [username]);
@@ -82,9 +75,8 @@ function LobbyPage() {
         try {
             console.log(`Attempting to Join Lobby.\nUser: ${user}\nRoom Code: ${roomCode}`);
 
-            /* Code is not setting joined to true */
             socket.emit("join_lobby", {
-                "accessCode" : accessCode,
+                "accessCode" : roomCode,
                 "username" : user
             });
 
@@ -130,7 +122,8 @@ function LobbyPage() {
             } else {    // If user account does not exist, create randomized guest name
                 console.log("3");
                 const rand = 1 + (Math.random() * 5000);  // Generate random floating-point number between 1 - 5000 (inclusive)
-                user = "guest_".concat(rand.toString());  // Create user guest id
+                const randInt = Math.floor(rand);   // Convert floating-point to int
+                user = "guest_".concat(randInt.toString());  // Create user guest id
                 setUsername(user);
                 localStorage.setItem("guest", user);    // Store guest name for reconnects
             }

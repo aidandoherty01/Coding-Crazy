@@ -245,14 +245,22 @@ io.on("connection", (socket) => {
 
   socket.on("join_lobby", ({ accessCode, username }) => {
 
-    /* Implement check to see if user is attempting to reconnect to an existing lobby */
-    
     console.log(`In Join_Lobby\nUser: ${username}\nAccess: ${accessCode}`);
     console.log(sessions);
-
+    
     if (!sessions[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
       return;
+    }
+    
+    /* 
+        Attempting to rejoin lobby if disconnected
+        - current bug: Reconnecting to a lobby puts you into a lobby with yourself, and then begins the game since lobby is now "full" (size 2).
+    */
+    if(sessions[accessCode].findUsername(username)) {
+      console.log(`${username} is reconnecting to ${accessCode}`);
+      socket.join(accessCode);
+      io.to(accessCode).emit("lobby_users", sessions[accessCode.usernames]);
     }
 
     if (sessions[accessCode].full()) {
@@ -261,10 +269,11 @@ io.on("connection", (socket) => {
     }
 
     sessions[accessCode].addUser(username);
-    socket.join(accessCode);
-    updateSession(sessions[accessCode]);
+    socket.join(accessCode);  // add user to socket room
+    updateSession(sessions[accessCode]);  // update all users in the session
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", sessions[accessCode].usernames);
+    io.to(accessCode).emit("lobby_users", sessions[accessCode].usernames);  // broadcast full list of names
+    
     //Check if it's now full
     if (sessions[accessCode].full() && !sessions[accessCode].countingDown()) {
       sessions[accessCode].startCountdown();
