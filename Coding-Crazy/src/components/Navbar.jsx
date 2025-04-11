@@ -61,6 +61,7 @@ function Navbar() {
                             <Button color="inherit" component={Link} to="/game">🎮 Play Game</Button>
                             <Button color="inherit" component={Link} to="/setupGame">Setup Game</Button>
                             <Button color="inherit" component={Link} to="/account" disabled={!isLoggedIn}>Account</Button>
+                            <Button color="inherit" component={Link} to="/findLobby">Find Public Game</Button>
                         </Box>
                         {/* Log In & Sign Up Buttons (Desktop) */}
                         <Box>

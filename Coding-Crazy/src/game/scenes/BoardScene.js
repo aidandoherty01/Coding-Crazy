@@ -124,6 +124,20 @@ class BoardScene extends Phaser.Scene {
         this.players[data.movingPlayer].moveLoc(
           this.original_board.getVertex(data.loc)
         );
+        this.tweens.add({
+          targets: this.playerSprites[data.movingPlayer],
+          x: this.players[data.movingPlayer].x,
+          y: this.players[data.movingPlayer].y,
+          duration: 20,
+          ease: "Linear",
+          onUpdate: () => {
+            // Keep the text above the sprite
+            this.playerTitles[data.movingPlayer].setPosition(
+              this.playerSprites[data.movingPlayer].x,
+              this.playerSprites[data.movingPlayer].y - 24
+            );
+          },
+        });
       }
     });
 

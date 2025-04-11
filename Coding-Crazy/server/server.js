@@ -6,6 +6,7 @@ import {
   exportUniqueSubjectsToJson,
   exportAccountToJson,
   exportSessionToJson,
+  getPublicLobbies,
 } from "./getData.mjs";
 import { exportJsonToMongo, updateRoom, resetDB, removeEntryFromDB } from "./sendData.mjs";
 import path from "path";
@@ -195,14 +196,14 @@ function queueRoomTask(roomCode, task) {
   if (!roomQueue[roomCode]) {
     roomQueue[roomCode] = Promise.resolve();
   }
-  
+
   // Add task to the chain
   roomQueue[roomCode] = roomQueue[roomCode].then(() =>
     task().catch((err) => {
       console.error(`Error processing task for room ${roomCode}:`, err);
     })
   );
-  
+
   return roomQueue[roomCode];
 }
 
@@ -224,11 +225,11 @@ async function updateSession(room) {
 
 /* Called after confirming settings in HostPage.jsx */
 app.post("/create_lobby", async (req, res) => {
-  const { numPlayers, difficulty } = req.body;
+  const { numPlayers, difficulty, isPublic } = req.body;
   console.log(Object.keys(sessions).length);
   const acCode = generateRoomCode(Object.keys(sessions).length);
-  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty);
-  sendRoomToDB(sessions[acCode]); // helper function which calls sendJsonToMongo
+  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty, isPublic);
+  sendRoomToDB(sessions[acCode]);
   res.status(200).json(acCode);
 });
 
@@ -243,6 +244,27 @@ app.get("/getSession", async (req, res) => {
     res.status(200).json(session);  // On successful read, returns session to client
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+//Pull public lobbies for people finding lobbies
+app.get("/public_lobbies", async (req, res) => {
+  try {
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    await getPublicLobbies(offset, limit);
+    res.sendFile(
+      path.join(
+        import.meta.dirname,
+        "..",
+        "src",
+        "data",
+        "public_lobby_data.json"
+      )
+    );
+  } catch (err) {
+    console.error("Error fetching public lobbies:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -296,6 +318,8 @@ io.on("connection", (socket) => {
 
         if (session.reachedZero()) {
           clearInterval(interval);
+          sessions[accessCode].gameStarted = true;
+          updateSession(sessions[accessCode]);
           io.to(accessCode).emit("start_game");
         }
       }, 1000);

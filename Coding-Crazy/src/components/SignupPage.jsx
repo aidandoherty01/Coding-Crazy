@@ -44,6 +44,7 @@ function SignupPage() {
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has changed
             
             setIsLoggedIn(true);    // Block sign in page from user who is already signed in
+
         } catch (error) {
             console.error("Error creating account:", error);
             setSignUpError(`Account Creation Failed.\n${error}`);

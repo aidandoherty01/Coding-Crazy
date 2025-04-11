@@ -41,6 +41,7 @@ function LoginPage() {
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has been modified
             
             setIsLoggedIn(true);    // Block log in page for user who is already logged in
+
         } catch (error) {
             console.error("Error logging into account:", error);
             setLoginError(`Account Login Failed.\n${error}`);
