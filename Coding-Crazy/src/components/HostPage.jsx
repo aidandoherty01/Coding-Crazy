@@ -11,14 +11,19 @@ function HostPage() {
     const [isPublic, setPublic] = useState(false);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        checkReconnect();
+    })
+
     const createLobby = async () => {
+        console.log("In create lobby.");
         const response = await fetch("http://localhost:5000/create_lobby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ numPlayers, difficulty, isPublic }),
         });
         console.log(response);
-        if(!response.ok){
+        if(!response.ok) {
             console.log(response);
             return;
         }
@@ -26,6 +31,25 @@ function HostPage() {
         const data = await response.json();
         navigate(`/lobby/${data}`, {state: data});
     };
+
+    const checkReconnect = async () => {
+        const roomCode = localStorage.getItem("roomCode");
+        const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+        if (!response.ok) {
+            console.log("Removing stale roomCode.");
+            localStorage.removeItem("roomCode");
+        } else {
+            console.log(`Attempting Reconnect to ${roomCode}`);
+            navigate(`/lobby/${roomCode}`, {
+                state: { isReconnect: true }
+            });
+        }
+    }
 
     return (
         <Box>

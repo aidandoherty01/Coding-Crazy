@@ -1,9 +1,9 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import {useParams, useNavigate, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import SelectionMenu from "../components/SelectionMenu";
-
+import DynamicTable from "../components/DynamicTable";
 const socket = io("http://localhost:5000");
 
 function LobbyPage() {
@@ -14,22 +14,19 @@ function LobbyPage() {
     const [error, setError] = useState(null);
     const [counter, setCounter] = useState(10);
     const [selectedSubject, setSelectedSubject] = useState("");
+    const [collection, setCollection] = useState([]);
     const [canJoin, setCanJoin] = useState(false);
     const navigate = useNavigate();
+    
+    const location = useLocation();
+    const isReconnect = location.state?.isReconnect === true;
     
     const usernameRef = useRef("");
 
     useEffect(() => {
-        initUsername(); // Initialize username variable
+        initUser(); // Initialize username variable
     },[]);
 
-    /*
-        Is there potential redundancy here?
-        I removed the username input box to instead work with the local storage variable.
-        Now username is checked on page load, and if they are a guest (i.e., don't have a username in storage) a random username is generated.
-        Also, I am unfamiliar with useRef(), so I avoided it for now :p
-    */
-    
     useEffect(() => {
         usernameRef.current = username;
     }, [username]);
@@ -41,16 +38,17 @@ function LobbyPage() {
         });
 
         socket.on("lobby_full", (message) => {
+            console.log(message);
             setError(message);  // Set the error message if the lobby is full
-            setJoined(false);  // Make sure joined is false
           });
 
         socket.on("lobby_not_found", (message) => {
+            console.log(message);
             setError(message);  // Set the error message if the lobby is not found
-            setJoined(false);  // Make sure joined is false
         });
 
         socket.on("lobby_good", (message) => {
+            console.log(message);
             setJoined(true);
         });
 
@@ -72,36 +70,56 @@ function LobbyPage() {
         };
     }, []);
 
-    const joinLobby = () => {
-        if (username.trim()) {
-            console.log(username);
-            socket.emit("join_lobby", {accessCode, username});
-            sessionStorage.setItem("roomCode", accessCode);
+    const joinLobby = (roomCode, user) => {
+        try {
+            console.log(`Attempting to Join Lobby.\nUser: ${user}\nRoom Code: ${roomCode}`);
+
+            socket.emit("join_lobby", {
+                "accessCode" : roomCode,
+                "username" : user
+            });
+
+            localStorage.setItem("roomCode", roomCode);
+
+        } catch (error) {
+            console.error("Joining Lobby Failed.", error);
         }
     };
 
-    const initUsername = async () => {
+    const initUser = async () => {
         try {
-            if(sessionStorage.getItem("username")) {  // If user account exists, load into lobby
-                setUsername(
-                    sessionStorage.getItem("username")
-                    .trim()
-                );
-            } else {    // If user account does not exist, create random guest name
+            let user = "";
+            /* Store Username */
+            if(localStorage.getItem("username")) {  // If user account exists, store active username
+                console.log("1");
+                user = localStorage.getItem("username").trim();
+                setUsername(user);
+            } else if (isReconnect && localStorage.getItem("guest")) {  // If guest user is reconnecting
+                console.log("2");
+                user = localStorage.getItem("guest");
+                setUsername(user);
+            } else {    // If user account does not exist, create randomized guest name
+                console.log("3");
                 const rand = 1 + (Math.random() * 5000);  // Generate random floating-point number between 1 - 5000 (inclusive)
-                const guestUser = "guest_".concat(
-                    rand.toString()
-                );  // Create user guest id
-                setUsername(guestUser.trim());
+                const randInt = Math.floor(rand);   // Convert floating-point to int
+                user = "guest_".concat(randInt.toString());  // Create user guest id
+                setUsername(user);
+                localStorage.setItem("guest", user);    // Store guest name for reconnects
             }
+
+            /* Attempt Reconnect */
+            if(isReconnect) { joinLobby(accessCode, user); }    // Reconnect user to lobby if disconnected
+
         } catch (error) {
-            console.error("Initializing user failed: ", error);
+            console.error("Initializing user failed:", error);
         }
     };
 
     const fetchCollection = async (subject) => {
         if(subject === "") { throw new Error("TEMP ERROR"); }
         fetch(`http://localhost:5000/collection/${subject}`)
+        .then((res) => res.json())
+        .then((data) => setCollection(data))
         .then(setCanJoin(true)) // User can now join the lobby
         .catch((error) => console.error("Loading collection failed: ", error))
     };
@@ -140,14 +158,6 @@ function LobbyPage() {
         <Box>
             {!joined ? (
                 <Box>
-                    {/*<Typography variant="h4">Enter Your Name</Typography>
-                    <TextField
-                        variant="outlined"
-                        placeholder="Your Name"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        sx={{ mt: 2, bgcolor: "white" , input:{ color: "black"}}}
-                    />*/}
                     <h2>Selected Subject: {selectedSubject || "None"}</h2>
                     <SelectionMenu onSelect={(value) => {
                         console.log("App selected subject: ", value);
@@ -157,9 +167,14 @@ function LobbyPage() {
                         fetchCollection(selectedSubject)
                     }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
 
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={joinLobby}>
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(accessCode, username); }}>
                         Join Lobby
                     </Button>
+
+                    <Box>
+                        <DynamicTable collection={collection} />
+                    </Box>
+
                 </Box>
             ) : (
                 <Box>

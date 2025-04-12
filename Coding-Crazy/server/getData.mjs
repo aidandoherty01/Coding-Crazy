@@ -150,7 +150,7 @@ export async function exportAccountToJson(
       password: _password,
     });
     if (!user) {
-      throw new Error(`Incorrect combo bruh`);
+      throw new Error(`Incorrect username or password.`);
     }
 
     /* Return questions with matching subject */
@@ -173,7 +173,7 @@ export async function exportSessionToJson(_roomCode, filePath = _sessionPath) {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection(_sessionCollection);
-    console.log("_RC", _roomCode);
+    // console.log("_RC", _roomCode);
 
     /* Check if username and password combination exists */
     const session = await collection.findOne({ roomCode: _roomCode });
@@ -188,6 +188,7 @@ export async function exportSessionToJson(_roomCode, filePath = _sessionPath) {
     console.log(`Session exported to '${filePath}'`);
   } catch (err) {
     console.error("Error importing data: ", err);
+    throw new Error(err); // Relay error to server
   } finally {
     await client.close();
   }

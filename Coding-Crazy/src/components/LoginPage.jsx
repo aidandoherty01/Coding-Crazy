@@ -1,14 +1,16 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [success, setSuccess] = useState("");
+    const [loginError, setLoginError] = useState("");
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
 
     const loginAccount = async () => {
         try {
-            setSuccess(""); // Reset Success Message
+            setLoginError(""); // Reset Success Message
             /* Check Formatting */
             if (!username || !password) {
                 throw new Error("Ensure all fields are filled and valid typing.");
@@ -24,7 +26,7 @@ function LoginPage() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(userData),
+                body: JSON.stringify(userData), // send data in json package
             });
             
             if (!response.ok) {
@@ -34,50 +36,52 @@ function LoginPage() {
             /* Login Success */
             const data = await response.json();
             console.log(`Great Success!\nUsername: ${data.username}\nPassword: ${data.password}\nID: ${data._id}`);
-            sessionStorage.setItem("username", data.username);    // Store username in local storage
-            console.log(`Local Storage: ${sessionStorage.getItem("username")}`);
-            setSuccess("Login Successful.");    // Update success message
+            
+            localStorage.setItem("username", data.username);    // Store username in local storage
+            window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has been modified
+            
+            setIsLoggedIn(true);    // Block log in page for user who is already logged in
 
         } catch (error) {
             console.error("Error logging into account:", error);
-            setSuccess(`Account Login Failed. ${error}`);
+            setLoginError(`Account Login Failed.\n${error}`);
         }
     };
 
     return (
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
-            {/* Input Section */}
-            <Box textAlign="center" py={5}>
-                {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
-                <div>
-                    <label>
-                        Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
-                    </label>
-                </div>
-            </Box>
-
-            {/* Confirmation Section */}
-            <Box textAlign="center" py={5}>
-                <h3>Your Username: {username}</h3>
-                <h3>Your Password: {password}</h3>
-                <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
-                    () => loginAccount()}>Submit Login Info</Button>
-                <h2>{success || ""}</h2> {/* Display success message */}
-            </Box>
-
-            {/* Reference Formatting */}
-            <Box textAlign="center" py={5}>
-                <Typography variant="h3" color="primary">TEMP TITLE</Typography>
-                <Typography variant="subtitle1">Temp text.</Typography>
-                <Box mt={3}>
-                    <Button variant="contained" color="secondary" sx={{ mx: 1 }}>temp button</Button>
+            { isLoggedIn ? (
+                <Box textAlign="center" py={5}>
+                    <h1>You are signed in.</h1>
+                    <Button component={Link} to="/">Return to Home Page</Button>
                 </Box>
-            </Box>
+            ) : (
+                <Box>
+                    {/* Input Section */}
+                    <Box textAlign="center" py={5}>
+                        {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
+                        <Box>
+                            <label>
+                                Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
+                            </label>
+                        </Box>
+                        <Box>
+                            <label>
+                                Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
+                            </label>
+                        </Box>
+                    </Box>
+
+                    {/* Confirmation Section */}
+                    <Box textAlign="center" py={5}>
+                        <h3>Your Username: {username}</h3>
+                        <h3>Your Password: {password}</h3>
+                        <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
+                            () => loginAccount()}>Submit Login Info</Button>
+                        <h2>{loginError || ""}</h2> {/* Display success message */}
+                    </Box>
+                </Box>
+            )}
 
             {/* Footer */}
             <Box sx={{ bgcolor: "#1e293b", mt: 5, py: 3, textAlign: "center" }}>

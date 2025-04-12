@@ -1,15 +1,5 @@
 [
   {
-    "question": "Who was the first President of the United States?",
-    "options": [
-      "Thomas Jefferson",
-      "John Adams",
-      "Abraham Lincoln",
-      "George Washington"
-    ],
-    "answer": "George Washington"
-  },
-  {
     "question": "Which year did World War II end?",
     "options": [
       "1943",
@@ -20,16 +10,6 @@
     "answer": "1945"
   },
   {
-    "question": "Which ancient civilization built the pyramids?",
-    "options": [
-      "Greek",
-      "Roman",
-      "Egyptian",
-      "Mayan"
-    ],
-    "answer": "Egyptian"
-  },
-  {
     "question": "Who wrote the Declaration of Independence?",
     "options": [
       "George Washington",
@@ -38,5 +18,25 @@
       "Thomas Jefferson"
     ],
     "answer": "Thomas Jefferson"
+  },
+  {
+    "question": "Who was the first President of the United States?",
+    "options": [
+      "Thomas Jefferson",
+      "John Adams",
+      "Abraham Lincoln",
+      "George Washington"
+    ],
+    "answer": "George Washington"
+  },
+  {
+    "question": "Which ancient civilization built the pyramids?",
+    "options": [
+      "Greek",
+      "Roman",
+      "Egyptian",
+      "Mayan"
+    ],
+    "answer": "Egyptian"
   }
 ]

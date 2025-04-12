@@ -3,8 +3,8 @@ import { PhaserGame } from "../game/PhaserGame";
 import { useRef, useState, useEffect } from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
-import { gameSession } from "../../server/gameSessionClass";
 
+/* Grabs session from backend, updates with current information */
 const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
         return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
@@ -14,15 +14,16 @@ const grabSession = async (roomCode, socket, username) => {
         headers: {
             "Content-Type": "application/json"
         },
-    });
+    }); // Grabs entire session from DB
     console.log(response);
     if(!response.ok){
         console.log(response);
         return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
     }else{
         const jsonData = await response.json();
-        jsonData.socket = socket.current;
-        jsonData.username = username;
+        console.log(jsonData);
+        jsonData.socket = socket.current;   // Update socket with current socket (refreshes/reconnects)
+        jsonData.username = username;   // Update user with current username
         return jsonData;
     }
 };
@@ -33,9 +34,9 @@ const GamePage = () => {
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
-    console.log("STRG", sessionStorage.getItem("roomCode"));
-    const roomCode = sessionStorage.getItem("roomCode");
-    const username = location.state?.name || "Guest";
+    console.log("STRG", localStorage.getItem("roomCode"));
+    const roomCode = localStorage.getItem("roomCode");
+    const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});
     const [scoreDict, updateScoreDict] = useState({});

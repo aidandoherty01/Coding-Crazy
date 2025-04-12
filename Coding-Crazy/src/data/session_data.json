@@ -1,20 +1,16 @@
 {
-  "_id": "67f171df60990a867ce3f4db",
-  "roomCode": "ARSSUD",
-  "usernames": [
-    "Samuel",
-    "Jamie Rup"
-  ],
+  "_id": "67f98851b973ce3fc125fbf3",
+  "roomCode": "AARDWA",
   "players": {
-    "Samuel": {
-      "id": "Samuel",
+    "guest_4411": {
+      "id": "guest_4411",
       "loc": 0,
       "x": 0,
       "y": 0,
       "numAPlusses": 0
     },
-    "Jamie Rup": {
-      "id": "Jamie Rup",
+    "guest_3284": {
+      "id": "guest_3284",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -23,7 +19,9 @@
   },
   "maxPlayers": 2,
   "difficulty": 5,
+  "isPublic": true,
   "countdownStarted": true,
   "countdown": 0,
-  "APlusLoc": 40
+  "gameStarted": true,
+  "APlusLoc": 7
 }
