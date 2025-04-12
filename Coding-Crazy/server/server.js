@@ -316,10 +316,25 @@ io.on("connection", (socket) => {
         await exportSessionToJson(roomCode);
         const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
         const session = JSON.parse(fileData);
+        if (session.usernames[session.currPlayer] !== username) {
+          throw new Error("Player ending turn is not sequentially ordered");
+        }
         session.players[username].loc = loc;
+        if (session.currPlayer === session.usernames.length - 1) {
+          session.currPlayer = 0;
+          session.currTurn++;
+          //Do items for turn changing
+        } else {
+          session.currPlayer++;
+          //Do what happens when turn doesn't change
+        }
         delete session._id;
         updateSession(session);
-        io.to(roomCode).emit("new_loc", { movingPlayer: username, loc: loc });
+        io.to(roomCode).emit("next_turn", {
+          movingPlayer: username,
+          loc: loc,
+          nextPlayer: session.usernames[session.currPlayer],
+        });
       });
     } catch (err) {}
   });

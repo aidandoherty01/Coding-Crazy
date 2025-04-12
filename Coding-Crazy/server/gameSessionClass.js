@@ -1,7 +1,13 @@
 import { Player } from "../src/classes/playerClass.js";
 
 export class gameSession {
-  constructor(accessCode, maxPlayers = 6, difficulty = 5, isPublic = true) {
+  constructor(
+    accessCode,
+    maxPlayers = 6,
+    difficulty = 5,
+    isPublic = true,
+    numTurns = 10
+  ) {
     this.roomCode = accessCode;
     this.usernames = [];
     this.players = {};
@@ -12,6 +18,9 @@ export class gameSession {
     this.countdown = 10;
     this.gameStarted = false;
     this.APlusLoc = Math.floor(Math.random() * 41) + 1; //In the future we'll make this based on the board selected
+    this.currTurn = 0;
+    this.currPlayer = 0;
+    this.numTurns = numTurns;
   }
 
   addUser(username) {
@@ -59,5 +68,20 @@ export class gameSession {
   resetCountdown() {
     this.countdown = 10;
     this.countdownStarted = false;
+  }
+
+  endPlayerTurn(name) {
+    if (this.usernames[this.currPlayer] !== name) {
+      throw new Error("Player ending turn is not sequentially ordered");
+    }
+    if (this.currPlayer === this.usernames.length) {
+      this.currPlayer = 0;
+      this.currTurn++;
+      return true;
+    } else {
+      this.currPlayer++;
+      return false;
+    }
+    //Boolean for whether the turn is over (i.e. should server start minigame)
   }
 }

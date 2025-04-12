@@ -20,6 +20,18 @@ class BoardScene extends Phaser.Scene {
     console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
+    this.yourTurn =
+      this.username ===
+      this.game.config.stateObject.usernames[
+        this.game.config.stateObject.currPlayer
+      ];
+    console.log(this.game.config.stateObject.currPlayer);
+    console.log(
+      this.game.config.stateObject.usernames[
+        this.game.config.stateObject.currPlayer
+      ]
+    );
+    console.log(this.yourTurn);
     this.players = Object.entries(this.game.config.stateObject.players).reduce(
       (acc, [key, p]) => {
         console.log(key, p);
@@ -81,7 +93,10 @@ class BoardScene extends Phaser.Scene {
 
     this.testTurnButton.setInteractive();
     this.testTurnButton.on("pointerdown", () => {
-      this.startPlayerTurn();
+      if (this.yourTurn) {
+        this.yourTurn = false;
+        this.startPlayerTurn();
+      }
     });
 
     this.APlusText = this.add.text(
@@ -118,7 +133,8 @@ class BoardScene extends Phaser.Scene {
       }
     });
 
-    this.socket.on("new_loc", (data) => {
+    this.socket.on("next_turn", (data) => {
+      console.log(data);
       if (data.movingPlayer != this.username) {
         console.log("DATA LOC", data.loc);
         this.players[data.movingPlayer].moveLoc(
@@ -139,12 +155,14 @@ class BoardScene extends Phaser.Scene {
           },
         });
       }
+      this.yourTurn = this.username === data.nextPlayer;
+      console.log(data.nextPlayer);
     });
 
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
-      this.socket.off("new_loc");
+      this.socket.off("next_turn");
     });
 
     // Emit an event to notify the React component that the scene is ready
