@@ -8,7 +8,12 @@ import {
   exportSessionToJson,
   getPublicLobbies,
 } from "./getData.mjs";
-import { exportJsonToMongo, updateRoom, resetDB, removeEntryFromDB } from "./sendData.mjs";
+import {
+  exportJsonToMongo,
+  updateRoom,
+  resetDB,
+  removeEntryFromDB,
+} from "./sendData.mjs";
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
@@ -102,7 +107,7 @@ app.post("/send/:collection", async (req, res) => {
     /* Store parameters */
     const collection = req.params.collection;
     const jsonData = JSON.stringify(req.body, null, 2);
-    
+
     /* Write to json and request export */
     if (["Collection", "Accounts"].includes(collection)) {
       // Check valid collection name
@@ -110,7 +115,9 @@ app.post("/send/:collection", async (req, res) => {
       await exportJsonToMongo(collection); // Export data to specified collection
       res.sendFile(export_to_mongo); // Send valid response
     } else {
-      throw new Error(`Please specify a valid Collection name. ${collection} is invalid.`);
+      throw new Error(
+        `Please specify a valid Collection name. ${collection} is invalid.`
+      );
     }
   } catch (err) {
     console.error("Sending Data Failed: ", err);
@@ -127,17 +134,20 @@ app.post("/remove/:collection", async (req, res) => {
 
     /* INCLUDE SESSIONS?? */
 
-    if(["Collection", "Accounts"].includes(collection)) { // Check valid collection name
+    if (["Collection", "Accounts"].includes(collection)) {
+      // Check valid collection name
       console.log("Hooray!");
       fs.writeFileSync(export_to_mongo, jsonData, "utf-8");
       await removeEntryFromDB(collection);
       res.sendFile(export_to_mongo);
     } else {
-      throw new Error(`Please specify a valid collection name. ${collection} is invalid.`);
+      throw new Error(
+        `Please specify a valid collection name. ${collection} is invalid.`
+      );
     }
   } catch (err) {
     console.error("Error removing entry from Database: ", err);
-    res.status(400).json({ error: err.message })
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -174,10 +184,10 @@ const roomQueue = {};
 function generateRoomCode(numberOfRooms) {
   // Helper function to convert a number to a letter (A = 0, B = 1, ..., Z = 25)
   const numToLetter = (num) => String.fromCharCode(65 + (num % 26)); // 65 is the ASCII code for 'A'
-  
+
   // First letter based on (numberOfRooms / 26) % 26
   const firstLetter = numToLetter(Math.floor(numberOfRooms / 26));
-  
+
   // Middle 4 letters: random letters
   const middleLetters = Array.from({ length: 4 }, () =>
     numToLetter(Math.floor(Math.random() * 26))
@@ -238,10 +248,10 @@ app.get("/getSession", async (req, res) => {
   const roomCode = req.query.roomCode;
   console.log("In getSession\nRC: ", roomCode);
   try {
-    await exportSessionToJson(roomCode);  // Writes sesion to _sessionPath
+    await exportSessionToJson(roomCode); // Writes sesion to _sessionPath
     const fileData = fs.readFileSync(_sessionPath, "utf-8");
     const session = JSON.parse(fileData);
-    res.status(200).json(session);  // On successful read, returns session to client
+    res.status(200).json(session); // On successful read, returns session to client
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -271,43 +281,44 @@ app.get("/public_lobbies", async (req, res) => {
 /* Socket Manager */
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-  
+
   socket.on("join_lobby", ({ accessCode, username }) => {
-    
     console.log(`In Join_Lobby\nUser: ${username}\nAccess: ${accessCode}`);
-    
+
     if (!sessions[accessCode]) {
       socket.emit("lobby_not_found", { message: "Lobby doesn't exist" });
       return;
     }
-    
+
     /* Attempting to rejoin lobby if disconnected */
     if (sessions[accessCode].findUsername(username)) {
-      
       console.log(`${username} is reconnecting to ${accessCode}\nYAHOOOOO!`);
-      
-      socket.join(accessCode);  // reconnect socket to room
-      io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());
-      
-      if(sessions[accessCode].gameStarted) {
+
+      socket.join(accessCode); // reconnect socket to room
+      io.to(accessCode).emit(
+        "lobby_users",
+        sessions[accessCode].getUsernames()
+      );
+
+      if (sessions[accessCode].gameStarted) {
         socket.emit("game_start");
       } else {
-        socket.emit("lobby_good", { message: "Reconnected to Lobby."});
+        socket.emit("lobby_good", { message: "Reconnected to Lobby." });
       }
       return;
     }
-    
+
     if (sessions[accessCode].full()) {
       socket.emit("lobby_full", { message: "Lobby is full" });
       return;
     }
-    
-    socket.join(accessCode);  // add user to socket room
+
+    socket.join(accessCode); // add user to socket room
     sessions[accessCode].addUser(username);
-    updateSession(sessions[accessCode]);  // update all users in the session
+    updateSession(sessions[accessCode]); // update all users in the session
     socket.emit("lobby_good", { message: "Lobby is good to join!" });
-    io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());  // broadcast full list of names
-    
+    io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames()); // broadcast full list of names
+
     //Check if it's now full
     if (sessions[accessCode].full() && !sessions[accessCode].countingDown()) {
       sessions[accessCode].startCountdown();
@@ -334,10 +345,13 @@ io.on("connection", (socket) => {
       const username = sessions[accessCode].findUsername(socket.id);
       if (username) {
         sessions[accessCode].deleteUser(username);
-        io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());
+        io.to(accessCode).emit(
+          "lobby_users",
+          sessions[accessCode].getUsernames()
+        );
       }
       if (sessions[accessCode].empty()) {
-        delete sessions[accessCode];  // remove the global session
+        delete sessions[accessCode]; // remove the global session
       }
     }
     console.log("Left", socket.id);
@@ -367,11 +381,12 @@ io.on("connection", (socket) => {
         await exportSessionToJson(roomCode);
         const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
         const session = JSON.parse(fileData);
-        if (session.usernames[session.currPlayer] !== username) {
+        const keys = Object.keys(session.players);
+        if (keys[session.currPlayer] !== username) {
           throw new Error("Player ending turn is not sequentially ordered");
         }
         session.players[username].loc = loc;
-        if (session.currPlayer === session.usernames.length - 1) {
+        if (session.currPlayer === keys.length - 1) {
           session.currPlayer = 0;
           session.currTurn++;
           //Do items for turn changing
@@ -384,7 +399,7 @@ io.on("connection", (socket) => {
         io.to(roomCode).emit("next_turn", {
           movingPlayer: username,
           loc: loc,
-          nextPlayer: session.usernames[session.currPlayer],
+          nextPlayer: keys[session.currPlayer],
         });
       });
     } catch (err) {}

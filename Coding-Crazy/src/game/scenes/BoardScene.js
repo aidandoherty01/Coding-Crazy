@@ -20,17 +20,12 @@ class BoardScene extends Phaser.Scene {
     console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
+    this.usernameList = Object.keys(this.game.config.stateObject.players);
     this.yourTurn =
       this.username ===
-      this.game.config.stateObject.usernames[
-        this.game.config.stateObject.currPlayer
-      ];
+      this.usernameList[this.game.config.stateObject.currPlayer];
     console.log(this.game.config.stateObject.currPlayer);
-    console.log(
-      this.game.config.stateObject.usernames[
-        this.game.config.stateObject.currPlayer
-      ]
-    );
+    console.log(this.usernameList[this.game.config.stateObject.currPlayer]);
     console.log(this.yourTurn);
     this.players = Object.entries(this.game.config.stateObject.players).reduce(
       (acc, [key, p]) => {
@@ -304,7 +299,12 @@ class BoardScene extends Phaser.Scene {
           );
           this.triggerEvents(playerIndex);
           if (this.socket && playerIndex == this.username) {
-            console.log("LOC", this.players[playerIndex].loc);
+            console.log(
+              "LOC",
+              this.players[playerIndex].loc,
+              this.username,
+              this.roomCode
+            );
             this.socket.emit("player_landing", {
               roomCode: this.roomCode,
               username: this.username,
