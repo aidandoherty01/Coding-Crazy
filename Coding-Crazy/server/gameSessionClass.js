@@ -69,19 +69,4 @@ export class gameSession {
     this.countdown = 10;
     this.countdownStarted = false;
   }
-
-  endPlayerTurn(name) {
-    if (this.usernames[this.currPlayer] !== name) {
-      throw new Error("Player ending turn is not sequentially ordered");
-    }
-    if (this.currPlayer === this.usernames.length) {
-      this.currPlayer = 0;
-      this.currTurn++;
-      return true;
-    } else {
-      this.currPlayer++;
-      return false;
-    }
-    //Boolean for whether the turn is over (i.e. should server start minigame)
-  }
 }
