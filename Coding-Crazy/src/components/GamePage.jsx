@@ -3,38 +3,98 @@ import { PhaserGame } from "../game/PhaserGame";
 import { useRef, useState, useEffect } from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
-import { gameSession } from "../../server/gameSessionClass";
+
+/* Grabs session from backend, updates with current information */
+const grabSession = async (roomCode, socket, username) => {
+    if(!roomCode){
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }
+    const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    }); // Grabs entire session from DB
+    console.log(response);
+    if(!response.ok){
+        console.log(response);
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }else{
+        const jsonData = await response.json();
+        console.log(jsonData);
+        jsonData.socket = socket.current;   // Update socket with current socket (refreshes/reconnects)
+        jsonData.username = username;   // Update user with current username
+        return jsonData;
+    }
+};
 
 const GamePage = () => {
-    const socket = io("http://localhost:5000");
+
+    const socket = useRef(null);
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
-    const roomCode = location.state?.roomCode || 0;
-    const username = location.state?.name || "Guest";
-    socket.emit("join_room",{roomCode, username});
-    const stateObject = location.state?.stateObject || {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
-    stateObject["socket"] = socket;
-    stateObject["username"] = username;
-    console.log(stateObject);
-    const players = location.state?.stateObject.players || {"Guest": {id: "Guest", numAPlusses: 0}};
-    console.log(players);
-    const initialScores = Object.fromEntries(
-        Object.values(players).map(player => [player.id, player.numAPlusses])
-    );
-    const [scoreDict, updateScoreDict] = useState({...initialScores});
+    console.log("STRG", localStorage.getItem("roomCode"));
+    const roomCode = localStorage.getItem("roomCode");
+    const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
+    const [stateObject, setStateObject] = useState({});
+    const [players, setPlayers] = useState({});
+    const [scoreDict, updateScoreDict] = useState({});
+
     useEffect(() => {
-        socket.on("APlus_movement", (data) => {
+        if (!socket.current) {
+            socket.current = io("http://localhost:5000");
+        }
+    
+        const fetchSessionData = async () => {
+            const sessionData = await grabSession(roomCode, socket, username);
+            setStateObject(sessionData);
+
+            if (sessionData.players) {
+                const initialScores = {};
+                for (const username in sessionData.players) {
+                    initialScores[username] = sessionData.players[username].numAPlusses || 0;
+                }
+                updateScoreDict(initialScores);
+            }
+    
+            if (!socket.current.connected) {
+                socket.current.connect();
+            }
+    
+            socket.current.emit("join_room", { roomCode });
+        };
+    
+        fetchSessionData();
+    
+        return () => {
+            if (socket.current) {
+                socket.current.disconnect();
+                socket.current = null;
+                console.log("Socket disconnected");
+            }
+        };
+    }, []); 
+
+    useEffect(() => {
+        const handleAPlus = (data) => {
             updateScoreDict((prevScores) => ({
                 ...prevScores,
-                [data.collector]: (prevScores[data.collector] || 0) + 1 // Update score
+                [data.collector]: (prevScores[data.collector] || 0) + 1
             }));
-        });
-
+        };
+    
+        if (socket.current) {
+            socket.current.on("APlus_movement", handleAPlus);
+        }
+    
         return () => {
-            socket.off("APlus_movement");
+            if (socket.current) {
+                socket.current.off("APlus_movement", handleAPlus);
+            }
         };
     }, []);
+    
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", color: "white", display: "flex", flexDirection: "column" }}>
@@ -45,7 +105,9 @@ const GamePage = () => {
                     <Paper sx={{ bgcolor: "#1e293b", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {/* Embedded Phaser Game */}
                         <Box sx={{ width: "100%", height: "100%" }}>
-                            <PhaserGame ref={gameRef} SO={stateObject} />
+                        {Object.keys(stateObject).length > 0 && (
+                                <PhaserGame ref={gameRef} SO={stateObject} />
+                            )}
                         </Box>
                     </Paper>
                 </Grid>

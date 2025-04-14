@@ -1,6 +1,6 @@
 export class Player {
   constructor(id, loc = 0, x = 0, y = 0, numAPlusses = 0) {
-    this.id = id;
+    this.id = id; // username
     this.loc = loc;
     this.x = x;
     this.y = y;

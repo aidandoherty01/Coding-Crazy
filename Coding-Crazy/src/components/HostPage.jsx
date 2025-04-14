@@ -1,4 +1,4 @@
-import { Box, Button, Typography, Grid, FormControl, InputLabel, Select, MenuItem, Card, CardContent, Container, TextField } from "@mui/material";
+import { Box, Button, Checkbox, Typography, Grid, FormControl, FormControlLabel, InputLabel, Select, MenuItem, Card, CardContent, Container, TextField } from "@mui/material";
 import React, { useEffect, useState, useRef} from "react";
 import {useParams, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
@@ -8,16 +8,22 @@ function HostPage() {
 
     const [numPlayers, setNumPlayers] = useState(2);
     const [difficulty, setDifficulty] = useState(5);
+    const [isPublic, setPublic] = useState(false);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        checkReconnect();
+    })
+
     const createLobby = async () => {
+        console.log("In create lobby.");
         const response = await fetch("http://localhost:5000/create_lobby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ numPlayers, difficulty }),
+            body: JSON.stringify({ numPlayers, difficulty, isPublic }),
         });
         console.log(response);
-        if(!response.ok){
+        if(!response.ok) {
             console.log(response);
             return;
         }
@@ -25,6 +31,25 @@ function HostPage() {
         const data = await response.json();
         navigate(`/lobby/${data}`, {state: data});
     };
+
+    const checkReconnect = async () => {
+        const roomCode = localStorage.getItem("roomCode");
+        const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+        if (!response.ok) {
+            console.log("Removing stale roomCode.");
+            localStorage.removeItem("roomCode");
+        } else {
+            console.log(`Attempting Reconnect to ${roomCode}`);
+            navigate(`/lobby/${roomCode}`, {
+                state: { isReconnect: true }
+            });
+        }
+    }
 
     return (
         <Box>
@@ -43,7 +68,7 @@ function HostPage() {
                         },
                       }}
                     >
-                    {[2, 3, 4, 5, 6].map((num) => (
+                    {[1, 2, 3, 4, 5, 6].map((num) => (
                         <MenuItem key={num} value={num} sx={{color: "text.secondary"}}>
                         {num}
                         </MenuItem>
@@ -72,6 +97,23 @@ function HostPage() {
                     ))}
                     </Select>
                 </FormControl>
+
+                <FormControlLabel
+                    control={
+                    <Checkbox
+                        checked={isPublic}
+                        onChange={(e) => setPublic(e.target.checked)}
+                        sx={{
+                        color: "background.paper",
+                        "&.Mui-checked": {
+                            color: "primary.main",
+                        },
+                        }}
+                    />
+                    }
+                    label="Make Lobby Public"
+                    sx={{ mb: 2 }}
+                />
 
                 <Button variant="contained" color="primary" onClick={createLobby}>
                     Start
