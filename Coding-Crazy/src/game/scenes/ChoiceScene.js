@@ -39,35 +39,31 @@ class ChoiceScene extends Phaser.Scene{
 
                 arrow = this.add.sprite(x, y - 48, "direction_arrow",);
                 arrow.setFrame(30);
-                arrow.setData('adjNode', adjNode);
                 break;
 
             case 1: //DOWN
 
                 arrow = this.add.sprite(x, y + 48, "direction_arrow",);
                 arrow.setFrame(15);
-                arrow.setData('adjNode', adjNode);
                 break;
 
             case 2: //LEFT
 
                 arrow = this.add.sprite(x - 48, y, "direction_arrow",);
                 arrow.setFrame(0);
-                arrow.setData('adjNode', adjNode);
                 break; 
 
             case 3: //RIGHT
 
                 arrow = this.add.sprite(x + 48, y, "direction_arrow",);
                 arrow.setFrame(35);
-                arrow.setData('adjNode', adjNode);
                 break;
 
             default:
                 console.log("DIRECTION NOT FOUND");
                 break;
         }
-
+        arrow.setData('adjNode', adjNode);
         this.setArrowInteraction(arrow, group);
         group.add(arrow);
     }

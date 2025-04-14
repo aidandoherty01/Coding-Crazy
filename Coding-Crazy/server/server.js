@@ -12,6 +12,7 @@ import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
 import http from "http";
 import fs from "fs";
+import { addPlayer, getAllPlayerData, getPlayerData, updateLoc } from "./updatePlayerCollection.js";
 
 const export_to_mongo = path.join(
   import.meta.dirname,
@@ -93,6 +94,58 @@ app.get("/subjects", async (req, res) => {
     console.error("Fetching Subjects Failed: ", error);
   }
 });
+
+app.post('/add-player', async (req, res) => {
+
+    try {
+            const {id, loc, x, y, numAPlusses} = req.body;
+            const player = await addPlayer('Player', 'Collection', id, loc, x, y, numAPlusses);
+            res.json(player);
+    } 
+    catch (error) {
+        console.log("Error adding player (server).", error);
+    }
+});
+
+app.patch('/update-player-info', async (req, res) => {
+    try {
+        const {id, loc, x, y} = req.body;
+        const player = await updatePlayer('Player', 'Collection', id, loc, x, y, numAPlusses);
+        res.status(200).json({ success: true, player });
+    }
+    catch (error){
+        console.log("Error updating player information (server)", error);
+    }
+});
+
+app.get('/get-player-data/:id', async (req, res) => {
+
+    console.log("REQUEST PARAM: " + req.params.id);
+    try {
+        const id  = req.params.id;
+        console.log("PLAYER ID: " + id);
+        const playerData = await getPlayerData('Player', 'Collection', id);
+        res.json(playerData);
+        
+        if (!id) {
+            console.log("PLAYER NOT FOUND.");
+        }
+    } 
+    catch {
+        console.log("Error getting player data (server)");
+    }
+})
+
+app.get('/get-all-players', async (req, res) => {
+
+    try {
+        const players = await getAllPlayerData('Player', 'Collection');
+        res.json(players);
+    }
+    catch {
+        console.log("Error from get-all-players");
+    }
+})
 
 /* Send Json to Mongo */
 app.post("/send/:collection?", async (req, res) => {
@@ -203,6 +256,16 @@ io.on("connection", (socket) => {
     const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
     console.log(socketsInRoom); // Set of socket IDs
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
+  });
+
+  socket.on("send_movement_data", (movementData) => {
+    
+    const {roomCode, id, loc, x, y } = movementData;
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
+    console.log("RETRIEVED FOLLOWING DATA FROM PLAYER SOCKET: ");
+    console.log(movementData);
+    io.to(roomCode).emit("movement_data", {movingPlayer: id, movingLoc: loc, movingX: x, movingY: y});
+ 
   });
 
   socket.on("Aplus_moved", ({ roomCode, username, loc }) => {

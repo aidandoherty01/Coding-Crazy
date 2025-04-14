@@ -5,7 +5,8 @@ import {
   EVENT_TYPE,
   make_original_digraph,
 } from "../../data/board_graph";
-import { Player } from "../../classes/playerClass";
+import { Player} from "../../classes/playerClass";
+import { addPlayerToDB, getPlayerData, updatePlayerInfo } from "../../managers/GameStateManager";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
@@ -21,12 +22,12 @@ class BoardScene extends Phaser.Scene {
     this.username = this.game.config.stateObject.username;
     this.players = Object.entries(this.game.config.stateObject.players).reduce(
       (acc, [key, p]) => {
-        console.log(key, p);
         acc[key] = new Player(p.id, p.loc, p.x, p.y, p.numAPlusses);
         return acc;
       },
       {}
     );
+
     this.roomCode = String(this.game.config.stateObject.roomCode);
     console.log("socket: ", this.socket);
     console.log(this.players);
@@ -51,22 +52,54 @@ class BoardScene extends Phaser.Scene {
       .setScale(0.25);
     this.playerSprites = {};
     this.playerTitles = {};
+
+
     for (const pyer in this.players) {
-      console.log("PYER: ", pyer);
-      const xPix =
-        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
-      const yPix =
-        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
-      this.playerSprites[pyer] = this.add
-        .sprite(xPix, yPix, "player", 6)
-        .setScale(0.6);
-      this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
-        fontSize: "16px Arial",
-        fill: "rgba(255, 255, 255, 0.75)",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
-      });
-      this.playerTitles[pyer].setOrigin(0.5, 1);
+        
+        addPlayerToDB(this.players[pyer])
+            .then(() => getPlayerData(pyer))
+            .then((playerData) => {
+                // Create sprites at starting point when new game starts since player values default to 0
+                if(playerData.x == 0 && playerData.y == 0) {
+                    const xPix =
+                        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
+                    const yPix =
+                        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
+                        console.log("xPix: ", xPix);
+                        console.log("yPix: ", yPix);
+                    this.playerSprites[pyer] = this.add
+                        .sprite(xPix, yPix, "player", 6)
+                        .setScale(0.6);
+                    this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
+                        fontSize: "16px Arial",
+                        fill: "rgba(255, 255, 255, 0.75)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+                    });
+                    this.playerTitles[pyer].setOrigin(0.5, 1);
+                }
+                // Set player values to values stored in DB and create sprites based on those values
+                // when player refreshes/disconnects
+                else {
+                    
+                    this.players[pyer].setLoc(playerData.loc);
+                    this.players[pyer].setCoordinateValues(playerData.x, playerData.y);
+                    this.players[pyer].setnumAPlusses(playerData.numAPlusses);
+
+                    this.playerSprites[pyer] = this.add
+                        .sprite(playerData.x, playerData.y, "player", 6)
+                        .setScale(0.6);
+                        
+                    this.playerTitles[pyer] = this.add.text(playerData.x, playerData.y - 20, pyer, {
+                        fontSize: "16px Arial",
+                        fill: "rgba(255, 255, 255, 0.75)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+                    });
+                    
+                    this.playerTitles[pyer].setOrigin(0.5, 1);
+                }
+            })
     }
     console.log(this.players);
     console.log(this.username);
@@ -101,6 +134,18 @@ class BoardScene extends Phaser.Scene {
       }
     });
 
+    // Not  required but commented it out just in case
+    // this.socket.on("movement_data", (data) => {
+    //         console.log("MOVEMENT DATA FROM SOCKET: ", data);
+    //         if(data.movingPlayer != this.username) {
+    //             console.log("MOVING PLAYER ID: ", data.movingPlayer);
+    //             console.log("MOVING PLAYER LOC: ", data.movingLoc);
+    //             console.log("MOVING PLAYER X: ", data.movingX);
+    //             console.log("MOVING PLAYER X: ", data.movingY);
+    //         }
+
+    // });
+
     this.socket.on("APlus_movement", (data) => {
       console.log(data);
       if (data.collector != this.username) {
@@ -120,6 +165,7 @@ class BoardScene extends Phaser.Scene {
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
+      //this.socket.off("movement_data");
     });
 
     // Emit an event to notify the React component that the scene is ready
@@ -149,12 +195,12 @@ class BoardScene extends Phaser.Scene {
     );
   }
 
+
+
   moveSpace(spacesLeft, playerIndex) {
+    console.log("PLAYER INDEX: ", playerIndex);
     console.log("Moving one space", playerIndex, this.players[playerIndex]);
-    if (
-      this.original_board.getNextMoves(this.players[playerIndex].loc).length ==
-      1
-    ) {
+    if (this.original_board.getNextMoves(this.players[playerIndex].loc).length == 1) {
       //console.log(this.original_board.getNextMoves(this.playerNode));
       const pathToPoint = this.original_board
         .getNextMoves(this.players[playerIndex].loc)[0]
@@ -177,6 +223,7 @@ class BoardScene extends Phaser.Scene {
       }
 
       this.walkThePath(pathToPoint, 0, spacesLeft, playerIndex);
+
     } else {
       const generatedData = {
         player: this.players[playerIndex],
@@ -190,9 +237,11 @@ class BoardScene extends Phaser.Scene {
         },
         this
       );
+      
       this.scene.pause();
       this.scene.launch("ChoiceScene", generatedData);
     }
+    
     return;
   }
 
@@ -247,6 +296,27 @@ class BoardScene extends Phaser.Scene {
         );
       },
       onComplete: () => {
+        if(this.username == this.players[playerIndex].id) {
+            // Not  required but commented it out just in case
+            // this.socket.emit("send_movement_data", {
+
+            //     roomCode: this.roomCode,
+            //     id: this.players[playerIndex].id,
+            //     loc: this.players[playerIndex].loc,
+            //     x: this.playerSprites[playerIndex].x,
+            //     y: this.playerSprites[playerIndex].y,
+                
+            //  });
+
+             updatePlayerInfo(
+                this.players[playerIndex].id,
+                this.players[playerIndex].loc,
+                this.playerSprites[playerIndex].x,
+                this.playerSprites[playerIndex].y,
+                this.players[playerIndex].numAPlusses
+            );
+        }
+
         if (index < path.length - 1) {
           this.walkThePath(path, index + 1, spacesLeft, playerIndex);
         } else if (spacesLeft > 1) {
@@ -254,7 +324,6 @@ class BoardScene extends Phaser.Scene {
           this.moveSpace(spacesLeft - 1, playerIndex);
         } else {
           this.triggerEvents(playerIndex);
-          return;
         }
       },
     });
