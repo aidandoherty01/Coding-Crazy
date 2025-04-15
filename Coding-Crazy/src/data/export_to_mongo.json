@@ -1,6 +1,1 @@
-[
-  {
-    "username": "temp2",
-    "password": "temp2"
-  }
-]
+[{"roomCode":"AOSMFB","players":{},"maxPlayers":2,"difficulty":5,"isPublic":true,"countdownStarted":false,"countdown":10,"gameStarted":false,"APlusLoc":30}]
