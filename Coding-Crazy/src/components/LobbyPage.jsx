@@ -16,6 +16,7 @@ function LobbyPage() {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [collection, setCollection] = useState([]);
     const [canJoin, setCanJoin] = useState(false);
+    
     const navigate = useNavigate();
 
     const isReconnect = localStorage.getItem("isReconnect") === "true";

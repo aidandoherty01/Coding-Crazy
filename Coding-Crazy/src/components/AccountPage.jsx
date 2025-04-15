@@ -51,7 +51,6 @@ function AccountPage() {
 
             setSuccessMessage("Account Successfully Deleted.");
             setIsLoggedIn(false);
-            console.log("Hello???");
 
         } catch(error) {
             console.error("Account deletion failed: ", error);

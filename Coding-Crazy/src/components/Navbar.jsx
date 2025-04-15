@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
-    const [isReconnect, setIsReconnect] = useState(localStorage.getItem("isReconnect") === "true");
+    // const [isReconnect, setIsReconnect] = useState(localStorage.getItem("isReconnect") === "true");
     const [reconnectMessage, setReconnectMessage] = useState("");
 
     useEffect(() => {
