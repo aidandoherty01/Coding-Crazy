@@ -17,7 +17,7 @@ function HostPage() {
 
     const createLobby = async () => {
         console.log("In create lobby.");
-        const response = await fetch("http://localhost:5000/create_lobby", {
+        const response = await fetch("https://coding-crazy.onrender.com/create_lobby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ numPlayers, difficulty, isPublic }),
@@ -34,7 +34,7 @@ function HostPage() {
 
     const checkReconnect = async () => {
         const roomCode = localStorage.getItem("roomCode");
-        const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+        const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"

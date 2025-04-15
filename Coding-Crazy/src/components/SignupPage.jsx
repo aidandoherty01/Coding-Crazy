@@ -23,7 +23,7 @@ function SignupPage() {
                 password : password
             }]; // create json array for user data
 
-            const response = await fetch("http://localhost:5000/send/Accounts", {
+            const response = await fetch("https://coding-crazy.onrender.com/send/Accounts", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

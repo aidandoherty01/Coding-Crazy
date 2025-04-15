@@ -6,7 +6,7 @@ function SelectionMenu({onSelect}) {
 
     useEffect(() => {
         /*Potentially make change to allow custom url for scalability or sum*/
-        fetch("http://localhost:5000/subjects")    // Fetch the data
+        fetch("https://coding-crazy.onrender.com/subjects")    // Fetch the data
         .then((res) => res.json())  // Jsonify the data
         .then((data) => setSubjects(data))  // Store the subjects
         .catch((error) => console.error("Error fetching subjects: ", error));

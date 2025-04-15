@@ -9,7 +9,7 @@ const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
         return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
     }
-    const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+    const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -43,7 +43,7 @@ const GamePage = () => {
 
     useEffect(() => {
         if (!socket.current) {
-            socket.current = io("http://localhost:5000");
+            socket.current = io("https://coding-crazy.onrender.com");
         }
     
         const fetchSessionData = async () => {

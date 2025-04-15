@@ -12,7 +12,7 @@ function AccountPage() {
 
     const fetchCollection = async (subject) => {
         if(subject === "") { throw new Error("TEMP ERROR"); }
-        fetch(`http://localhost:5000/collection/${subject}`)
+        fetch(`https://coding-crazy.onrender.com/collection/${subject}`)
         .then((res) => res.json())
         .then((data) => setCollection(data))
         .then(() => console.log(collection))
@@ -31,7 +31,7 @@ function AccountPage() {
             };
 
             /* Attempting Delete */
-            const response = await fetch("http://localhost:5000/remove/Accounts", {
+            const response = await fetch("https://coding-crazy.onrender.com/remove/Accounts", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

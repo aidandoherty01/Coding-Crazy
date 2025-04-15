@@ -4,7 +4,7 @@ import {useParams, useNavigate, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import SelectionMenu from "../components/SelectionMenu";
 import DynamicTable from "../components/DynamicTable";
-const socket = io("http://localhost:5000");
+const socket = io("https://coding-crazy.onrender.com");
 
 function LobbyPage() {
     const { accessCode } = useParams();
@@ -117,7 +117,7 @@ function LobbyPage() {
 
     const fetchCollection = async (subject) => {
         if(subject === "") { throw new Error("TEMP ERROR"); }
-        fetch(`http://localhost:5000/collection/${subject}`)
+        fetch(`https://coding-crazy.onrender.com/collection/${subject}`)
         .then((res) => res.json())
         .then((data) => setCollection(data))
         .then(setCanJoin(true)) // User can now join the lobby
