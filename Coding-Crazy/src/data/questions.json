@@ -1,42 +1,42 @@
 [
   {
-    "question": "Who was the first President of the United States?",
+    "question": "Which continent is the largest by land area?",
     "options": [
-      "Thomas Jefferson",
-      "John Adams",
-      "Abraham Lincoln",
-      "George Washington"
+      "North America",
+      "Africa",
+      "Europe",
+      "Asia"
     ],
-    "answer": "George Washington"
+    "answer": "Asia"
   },
   {
-    "question": "Which year did World War II end?",
+    "question": "What is the capital of France?",
     "options": [
-      "1943",
-      "1944",
-      "1945",
-      "1946"
+      "Berlin",
+      "Madrid",
+      "Rome",
+      "Paris"
     ],
-    "answer": "1945"
+    "answer": "Paris"
   },
   {
-    "question": "Which ancient civilization built the pyramids?",
+    "question": "Which ocean is the largest?",
     "options": [
-      "Greek",
-      "Roman",
-      "Egyptian",
-      "Mayan"
+      "Atlantic Ocean",
+      "Indian Ocean",
+      "Arctic Ocean",
+      "Pacific Ocean"
     ],
-    "answer": "Egyptian"
+    "answer": "Pacific Ocean"
   },
   {
-    "question": "Who wrote the Declaration of Independence?",
+    "question": "Which country has the most population?",
     "options": [
-      "George Washington",
-      "Benjamin Franklin",
-      "John Adams",
-      "Thomas Jefferson"
+      "USA",
+      "India",
+      "China",
+      "Russia"
     ],
-    "answer": "Thomas Jefferson"
+    "answer": "China"
   }
 ]

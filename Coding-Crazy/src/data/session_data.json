@@ -1,16 +1,9 @@
 {
-  "_id": "67fd82455a271711f04634e2",
-  "roomCode": "AWITRA",
+  "_id": "67fedf09c8508a59a1068211",
+  "roomCode": "AYZXYD",
   "players": {
-    "M3": {
-      "id": "M3",
-      "loc": 0,
-      "x": 0,
-      "y": 0,
-      "numAPlusses": 0
-    },
-    "guest_1640": {
-      "id": "guest_1640",
+    "guest_2093": {
+      "id": "guest_2093",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -20,8 +13,8 @@
   "maxPlayers": 2,
   "difficulty": 5,
   "isPublic": true,
-  "countdownStarted": true,
-  "countdown": 0,
-  "gameStarted": true,
-  "APlusLoc": 12
+  "countdownStarted": false,
+  "countdown": 10,
+  "gameStarted": false,
+  "APlusLoc": 38
 }

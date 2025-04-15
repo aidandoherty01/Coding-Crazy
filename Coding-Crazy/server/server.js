@@ -290,7 +290,7 @@ io.on("connection", (socket) => {
       io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());
       
       if(sessions[accessCode].gameStarted) {
-        socket.emit("game_start");
+        socket.emit("start_game");
       } else {
         socket.emit("lobby_good", { message: "Reconnected to Lobby."});
       }

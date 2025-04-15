@@ -157,7 +157,7 @@ export async function removeEntryFromDB(
       console.log("collection");
       await collection.deleteMany({
         question : { $in : data.question }
-      })
+      });
     }
     /* Accounts */
     else if (collectionName == _accountName) {

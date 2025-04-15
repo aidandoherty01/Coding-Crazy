@@ -44,9 +44,11 @@ function HostPage() {
             console.log("Removing stale roomCode.");
             localStorage.removeItem("roomCode");
             localStorage.setItem("isReconnect", "false");
+            window.dispatchEvent(new Event("reconnect"));
         } else {
             console.log(`Attempting Reconnect to ${roomCode}`);
             localStorage.setItem("isReconnect", "true");
+            window.dispatchEvent(new Event("reconnect"));
             navigate(`/lobby/${roomCode}`); // avoid creating a new lobby
         }
     }
@@ -115,7 +117,7 @@ function HostPage() {
                     sx={{ mb: 2 }}
                 />
 
-                <Button variant="contained" color="primary" onClick={createLobby}>
+                <Button variant="contained" color="primary" onClick={createLobby} disabled={localStorage.getItem("isReconnect") === "true"}>
                     Start
                 </Button>
             </Box>

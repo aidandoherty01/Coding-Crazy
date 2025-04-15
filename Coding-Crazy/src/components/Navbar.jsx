@@ -6,16 +6,33 @@ import { useEffect, useState } from "react";
 function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+    const [isReconnect, setIsReconnect] = useState(localStorage.getItem("isReconnect") === "true");
+    const [reconnectMessage, setReconnectMessage] = useState("");
 
     useEffect(() => {
         const checkLoginStatus = () => {
+            console.log("Login event received.");
             setIsLoggedIn(localStorage.getItem("username") != null);
         };
+
+        const checkReconnectStatus = () => {
+            console.log("Reconnect event received.");
+            
+            const flag = localStorage.getItem("isReconnect") === "true";
+            setIsReconnect(flag);
+            if (flag) { setReconnectMessage("Reconnect"); }
+            else { setReconnectMessage(""); }
+
+            console.log(`isReconnect: ${flag}`)
+            console.log(`Reconnect Message: ${reconnectMessage}`);
+        }
     
-        window.addEventListener("storage", checkLoginStatus);   // If storage changes, check if account was effected
+        window.addEventListener("storage", checkLoginStatus);   // Update Navbar if user is currently logged into an account
+        window.addEventListener("reconnect", checkReconnectStatus); // Update Navbar if user is currently in game
     
         return () => {
             window.removeEventListener("storage", checkLoginStatus);
+            window.removeEventListener("reconnect", checkReconnectStatus);
         };
     }, []);
 
@@ -59,7 +76,7 @@ function Navbar() {
                         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2 }}>
                             <Button color="inherit" component={Link} to="/">🏠 Home</Button>
                             <Button color="inherit" component={Link} to="/game">🎮 Play Game</Button>
-                            <Button color="inherit" component={Link} to="/setupGame">Setup Game</Button>
+                            <Button color="inherit" component={Link} to="/setupGame">{reconnectMessage || "Setup Game"}</Button>
                             <Button color="inherit" component={Link} to="/account" disabled={!isLoggedIn}>Account</Button>
                             <Button color="inherit" component={Link} to="/findLobby">Find Public Game</Button>
                         </Box>
