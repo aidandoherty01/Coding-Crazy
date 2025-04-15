@@ -1,7 +1,13 @@
 import { Player } from "../src/classes/playerClass.js";
 
 export class gameSession {
-  constructor(accessCode, maxPlayers = 6, difficulty = 5, isPublic = true) {
+  constructor(
+    accessCode,
+    maxPlayers = 6,
+    difficulty = 5,
+    isPublic = true,
+    numTurns = 10
+  ) {
     this.roomCode = accessCode;
     // this.usernames = [];  // Array of usernames (strings)
     this.players = {};  // Player objects (from playerClass.js)
@@ -12,6 +18,9 @@ export class gameSession {
     this.countdown = 10;
     this.gameStarted = false;
     this.APlusLoc = Math.floor(Math.random() * 41) + 1; //In the future we'll make this based on the board selected
+    this.currTurn = 0;
+    this.currPlayer = 0;
+    this.numTurns = numTurns;
   }
 
   addUser(username) {
