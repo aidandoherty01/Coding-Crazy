@@ -235,10 +235,16 @@ async function updateSession(room) {
 
 /* Called after confirming settings in HostPage.jsx */
 app.post("/create_lobby", async (req, res) => {
-  const { numPlayers, difficulty, isPublic } = req.body;
+  const { numPlayers, difficulty, isPublic, numTurns } = req.body;
   console.log(Object.keys(sessions).length);
   const acCode = generateRoomCode(Object.keys(sessions).length);
-  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty, isPublic);
+  sessions[acCode] = new gameSession(
+    acCode,
+    numPlayers,
+    difficulty,
+    isPublic,
+    numTurns
+  );
   sendRoomToDB(sessions[acCode]);
   res.status(200).json(acCode);
 });

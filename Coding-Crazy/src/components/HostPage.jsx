@@ -9,6 +9,7 @@ function HostPage() {
     const [numPlayers, setNumPlayers] = useState(2);
     const [difficulty, setDifficulty] = useState(5);
     const [isPublic, setPublic] = useState(false);
+    const [numTurns, setNumTurns] = useState(10);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,7 +21,7 @@ function HostPage() {
         const response = await fetch("https://coding-crazy.onrender.com/create_lobby", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ numPlayers, difficulty, isPublic }),
+            body: JSON.stringify({ numPlayers, difficulty, isPublic, numTurns }),
         });
         console.log(response);
         if(!response.ok) {
@@ -69,6 +70,28 @@ function HostPage() {
                       }}
                     >
                     {[1, 2, 3, 4, 5, 6].map((num) => (
+                        <MenuItem key={num} value={num} sx={{color: "text.secondary"}}>
+                        {num}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl fullWidth sx={{ mb: 2, bgcolor: "background.paper" }}>
+                    <InputLabel>Number of Turns</InputLabel>
+                    <Select
+                    value={numTurns}
+                    onChange={(e) => setNumTurns(e.target.value)}
+                    label="Number of Turns"
+                    sx={{
+                        bgcolor: "background.paper",
+                        color: "text.secondary",
+                        "& .MuiSelect-icon": {
+                          color: "text.secondary",
+                        },
+                      }}
+                    >
+                    {[5, 10, 15, 20, 25].map((num) => (
                         <MenuItem key={num} value={num} sx={{color: "text.secondary"}}>
                         {num}
                         </MenuItem>
