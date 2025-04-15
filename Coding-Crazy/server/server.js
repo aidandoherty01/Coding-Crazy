@@ -389,18 +389,35 @@ io.on("connection", (socket) => {
         if (session.currPlayer === keys.length - 1) {
           session.currPlayer = 0;
           session.currTurn++;
+          delete session._id;
+          updateSession(session);
           //Do items for turn changing
+          if (currTurn === session.numTurns) {
+            //end game conditions
+            io.to(roomCode).emit("game_complete", {
+              movingPlayer: username,
+              loc: loc,
+              nextPlayer: keys[session.currPlayer],
+            });
+          } else {
+            //end turn conditions
+            io.to(roomCode).emit("full_turn", {
+              movingPlayer: username,
+              loc: loc,
+              nextPlayer: keys[session.currPlayer],
+            });
+          }
         } else {
           session.currPlayer++;
           //Do what happens when turn doesn't change
+          delete session._id;
+          updateSession(session);
+          io.to(roomCode).emit("next_turn", {
+            movingPlayer: username,
+            loc: loc,
+            nextPlayer: keys[session.currPlayer],
+          });
         }
-        delete session._id;
-        updateSession(session);
-        io.to(roomCode).emit("next_turn", {
-          movingPlayer: username,
-          loc: loc,
-          nextPlayer: keys[session.currPlayer],
-        });
       });
     } catch (err) {}
   });
