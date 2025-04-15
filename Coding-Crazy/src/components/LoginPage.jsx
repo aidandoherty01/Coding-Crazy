@@ -1,12 +1,22 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        checkRedirect();
+    });
+
+    const checkRedirect = async () => {
+        if(localStorage.getItem("username")) { navigate("/account"); }
+    }
 
     const loginAccount = async () => {
         try {
@@ -41,6 +51,7 @@ function LoginPage() {
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has been modified
             
             setIsLoggedIn(true);    // Block log in page for user who is already logged in
+            checkRedirect();    // Redirect to account page
 
         } catch (error) {
             console.error("Error logging into account:", error);
@@ -52,7 +63,7 @@ function LoginPage() {
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
             { isLoggedIn ? (
                 <Box textAlign="center" py={5}>
-                    <h1>You are signed in.</h1>
+                    <h1>You are signed in. Please wait to be rerouted.</h1>
                     <Button component={Link} to="/">Return to Home Page</Button>
                 </Box>
             ) : (

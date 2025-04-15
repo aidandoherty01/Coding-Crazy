@@ -292,16 +292,16 @@ io.on("connection", (socket) => {
 
     /* Attempting to rejoin lobby if disconnected */
     if (sessions[accessCode].findUsername(username)) {
-      console.log(`${username} is reconnecting to ${accessCode}\nYAHOOOOO!`);
-
-      socket.join(accessCode); // reconnect socket to room
+      console.log(`${username} is reconnecting to ${accessCode}`);
+      
+      socket.join(accessCode);  // reconnect socket to room
       io.to(accessCode).emit(
         "lobby_users",
         sessions[accessCode].getUsernames()
       );
-
-      if (sessions[accessCode].gameStarted) {
-        socket.emit("game_start");
+      
+      if(sessions[accessCode].gameStarted) {
+        socket.emit("start_game");
       } else {
         socket.emit("lobby_good", { message: "Reconnected to Lobby." });
       }

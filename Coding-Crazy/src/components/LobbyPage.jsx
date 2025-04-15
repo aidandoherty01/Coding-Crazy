@@ -16,11 +16,11 @@ function LobbyPage() {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [collection, setCollection] = useState([]);
     const [canJoin, setCanJoin] = useState(false);
+    
     const navigate = useNavigate();
-    
-    const location = useLocation();
-    const isReconnect = location.state?.isReconnect === true;
-    
+
+    const isReconnect = localStorage.getItem("isReconnect") === "true";
+  
     const usernameRef = useRef("");
 
     useEffect(() => {
@@ -34,6 +34,7 @@ function LobbyPage() {
     useEffect(() => {
         // Listen for updates when users join or leave
         socket.on("lobby_users", (updatedUsers) => {
+            console.log(`lobby users: ${updatedUsers}`);
             setUsers(updatedUsers);
         });
 
@@ -53,6 +54,7 @@ function LobbyPage() {
         });
 
         socket.on("start_game", () => {
+            console.log("Navigating to game page.");
             navigate(`/game`, {state: {"name": usernameRef.current}});
         });
 

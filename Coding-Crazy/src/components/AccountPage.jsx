@@ -22,10 +22,13 @@ function AccountPage() {
     const deleteAccount = async () => {
         try {
             console.log("In deleteAccount()");
-
-            /* Formatting Data */
+            
+            /* Saftey Checks */
+            if(localStorage.getItem("roomCode")) { throw new Error("Account is associated with a game. Please finish game session before attempting account delete."); }
             const username = localStorage.getItem("username");
             if(username == null) { throw new Error("User is not logged in."); }
+
+            /* Formatting Data */
             const userData = {
                 username : [ username ]
             };
@@ -51,7 +54,6 @@ function AccountPage() {
 
             setSuccessMessage("Account Successfully Deleted.");
             setIsLoggedIn(false);
-            console.log("Hello???");
 
         } catch(error) {
             console.error("Account deletion failed: ", error);
