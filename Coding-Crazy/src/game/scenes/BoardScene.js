@@ -129,35 +129,27 @@ class BoardScene extends Phaser.Scene {
     });
 
     this.socket.on("next_turn", (data) => {
+      this.cleanUpAndTokenPass(data);
+    });
+
+    this.socket.on("full_turn", (data) => {
+      this.cleanUpAndTokenPass(data);
+      //Spot to start up minigame
+      //Note: Turn token is already passed in clean-up function,
+      //So when inigame ends, just work with what's already set for next turn
+    });
+
+    this.socket.on("game_complete", (data) => {
       console.log(data);
-      if (data.movingPlayer != this.username) {
-        console.log("DATA LOC", data.loc);
-        this.players[data.movingPlayer].moveLoc(
-          this.original_board.getVertex(data.loc)
-        );
-        this.tweens.add({
-          targets: this.playerSprites[data.movingPlayer],
-          x: this.players[data.movingPlayer].x,
-          y: this.players[data.movingPlayer].y,
-          duration: 20,
-          ease: "Linear",
-          onUpdate: () => {
-            // Keep the text above the sprite
-            this.playerTitles[data.movingPlayer].setPosition(
-              this.playerSprites[data.movingPlayer].x,
-              this.playerSprites[data.movingPlayer].y - 24
-            );
-          },
-        });
-      }
-      this.yourTurn = this.username === data.nextPlayer;
-      console.log(data.nextPlayer);
+      //Do end game actions
     });
 
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
       this.socket.off("next_turn");
+      this.socket.off("full_turn");
+      this.socket.off("game_complete");
     });
 
     // Emit an event to notify the React component that the scene is ready
@@ -365,6 +357,32 @@ class BoardScene extends Phaser.Scene {
       default:
         break;
     }
+  }
+
+  cleanUpAndTokenPass(data) {
+    console.log(data);
+    if (data.movingPlayer != this.username) {
+      console.log("DATA LOC", data.loc);
+      this.players[data.movingPlayer].moveLoc(
+        this.original_board.getVertex(data.loc)
+      );
+      this.tweens.add({
+        targets: this.playerSprites[data.movingPlayer],
+        x: this.players[data.movingPlayer].x,
+        y: this.players[data.movingPlayer].y,
+        duration: 20,
+        ease: "Linear",
+        onUpdate: () => {
+          // Keep the text above the sprite
+          this.playerTitles[data.movingPlayer].setPosition(
+            this.playerSprites[data.movingPlayer].x,
+            this.playerSprites[data.movingPlayer].y - 24
+          );
+        },
+      });
+    }
+    this.yourTurn = this.username === data.nextPlayer;
+    console.log(data.nextPlayer);
   }
 }
 
