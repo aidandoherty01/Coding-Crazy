@@ -392,7 +392,7 @@ io.on("connection", (socket) => {
           delete session._id;
           updateSession(session);
           //Do items for turn changing
-          if (currTurn === session.numTurns) {
+          if (session.currTurn === session.numTurns) {
             //end game conditions
             io.to(roomCode).emit("game_complete", {
               movingPlayer: username,
