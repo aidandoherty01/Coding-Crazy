@@ -60,7 +60,7 @@ const server = http.createServer(app); // Wraps express and socket.io into http
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
