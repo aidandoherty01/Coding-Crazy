@@ -1,25 +1,5 @@
 [
   {
-    "question": "Which year did World War II end?",
-    "options": [
-      "1943",
-      "1944",
-      "1945",
-      "1946"
-    ],
-    "answer": "1945"
-  },
-  {
-    "question": "Who wrote the Declaration of Independence?",
-    "options": [
-      "George Washington",
-      "Benjamin Franklin",
-      "John Adams",
-      "Thomas Jefferson"
-    ],
-    "answer": "Thomas Jefferson"
-  },
-  {
     "question": "Who was the first President of the United States?",
     "options": [
       "Thomas Jefferson",
@@ -30,6 +10,16 @@
     "answer": "George Washington"
   },
   {
+    "question": "Which year did World War II end?",
+    "options": [
+      "1943",
+      "1944",
+      "1945",
+      "1946"
+    ],
+    "answer": "1945"
+  },
+  {
     "question": "Which ancient civilization built the pyramids?",
     "options": [
       "Greek",
@@ -38,5 +28,15 @@
       "Mayan"
     ],
     "answer": "Egyptian"
+  },
+  {
+    "question": "Who wrote the Declaration of Independence?",
+    "options": [
+      "George Washington",
+      "Benjamin Franklin",
+      "John Adams",
+      "Thomas Jefferson"
+    ],
+    "answer": "Thomas Jefferson"
   }
 ]

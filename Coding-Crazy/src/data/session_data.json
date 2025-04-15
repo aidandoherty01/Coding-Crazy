@@ -1,16 +1,16 @@
 {
-  "_id": "67f98851b973ce3fc125fbf3",
-  "roomCode": "AARDWA",
+  "_id": "67fd82455a271711f04634e2",
+  "roomCode": "AWITRA",
   "players": {
-    "guest_4411": {
-      "id": "guest_4411",
+    "M3": {
+      "id": "M3",
       "loc": 0,
       "x": 0,
       "y": 0,
       "numAPlusses": 0
     },
-    "guest_3284": {
-      "id": "guest_3284",
+    "guest_1640": {
+      "id": "guest_1640",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -23,5 +23,5 @@
   "countdownStarted": true,
   "countdown": 0,
   "gameStarted": true,
-  "APlusLoc": 7
+  "APlusLoc": 12
 }

@@ -43,11 +43,11 @@ function HostPage() {
         if (!response.ok) {
             console.log("Removing stale roomCode.");
             localStorage.removeItem("roomCode");
+            localStorage.setItem("isReconnect", "false");
         } else {
             console.log(`Attempting Reconnect to ${roomCode}`);
-            navigate(`/lobby/${roomCode}`, {
-                state: { isReconnect: true }
-            });
+            localStorage.setItem("isReconnect", "true");
+            navigate(`/lobby/${roomCode}`); // avoid creating a new lobby
         }
     }
 

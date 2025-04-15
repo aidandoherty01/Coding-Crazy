@@ -284,7 +284,7 @@ io.on("connection", (socket) => {
     /* Attempting to rejoin lobby if disconnected */
     if (sessions[accessCode].findUsername(username)) {
       
-      console.log(`${username} is reconnecting to ${accessCode}\nYAHOOOOO!`);
+      console.log(`${username} is reconnecting to ${accessCode}`);
       
       socket.join(accessCode);  // reconnect socket to room
       io.to(accessCode).emit("lobby_users", sessions[accessCode].getUsernames());
