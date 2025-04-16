@@ -82,16 +82,6 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log(this.username);
 
-    this.APlusText = this.add.text(
-      700,
-      100,
-      `Number of A+s: ${this.players[this.username].numAPlusses}`,
-      {
-        fontSize: "20px",
-        fill: "#000000",
-      }
-    );
-
     this.TurnText = this.add.text(
       615,
       50,
@@ -144,6 +134,7 @@ class BoardScene extends Phaser.Scene {
     this.socket.on("game_complete", (data) => {
       console.log(data);
       //Do end game actions
+      this.endMessage();
       localStorage.setItem("isReconnect", "false");
       localStorage.removeItem("roomCode");
       window.dispatchEvent(new Event("reconnect"));
@@ -334,9 +325,6 @@ class BoardScene extends Phaser.Scene {
       case EVENT_TYPE.A_plus: {
         console.log("You got a star!");
         this.players[playerIndex].numAPlusses += 1;
-        this.APlusText.setText(
-          `Number of A+s: ${this.players[playerIndex].numAPlusses}`
-        );
         let newALoc;
         do {
           newALoc = this.original_board.randomVertex();
@@ -399,6 +387,30 @@ class BoardScene extends Phaser.Scene {
         this.scene.stop("MessageScene");
         this.startPlayerTurn();
       });
+    }
+  }
+
+  endMessage() {
+    if (this.players.length === 1) {
+      this.scene.launch("MessageScene", { message: "Well Done!" });
+      return;
+    }
+    const sortedPlayers = Object.values(this.players).sort(
+      (a, b) => b.numAPlusses - a.numAPlusses
+    );
+    if (
+      sortedPlayers[0].id === this.username &&
+      sortedPlayers[0].numAPlusses !== sortedPlayers[1].numAPlusses
+    ) {
+      //Solo win
+      this.scene.launch("MessageScene", { message: "You won!" });
+    } else if (
+      this.players[this.username].numAPlusses === sortedPlayers[0].numAPlusses
+    ) {
+      //Tie game
+      this.scene.launch("MessageScene", { message: "You tied for first!" });
+    } else {
+      this.scene.launch("MessageScene", { message: "Better luck next time!" });
     }
   }
 }
