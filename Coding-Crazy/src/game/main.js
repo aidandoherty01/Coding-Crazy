@@ -8,23 +8,33 @@ import SpinnerScene from "./scenes/SpinnerScene";
 import MinigameScene from "./scenes/MinigameScene";
 
 // Game Configuration
-const config = {
-    type: Phaser.AUTO,
-    width: 1024,
-    height: 1024,
-    backgroundColor: "#FFFFFF", // Background color of the game while loading
-    parent: "game-container",
-    pixelArt: true,
-    scene: [BootScene, MainGameScene, QuestionScene, BoardScene, 
-        ChoiceScene, SpinnerScene, MinigameScene],
-    scale: {
-        autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
-    }
+const baseConfig = {
+  type: Phaser.AUTO,
+  width: 1024,
+  height: 1024,
+  backgroundColor: "#FFFFFF", // Background color of the game while loading
+  pixelArt: true,
+  scene: [
+    BootScene,
+    MainGameScene,
+    QuestionScene,
+    BoardScene,
+    ChoiceScene,
+    SpinnerScene,
+    MinigameScene
+  ],
+  scale: {
+    autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
+  },
 };
 
 // Function to start the game
-const StartGame = (parent) => {
-    return new Phaser.Game({ ...config, parent });
+
+const StartGame = (parentElement, SO) => {
+  const game = new Phaser.Game({ ...baseConfig, parent: parentElement });
+  game.config.stateObject = SO;
+
+  return game;
 };
 
 export default StartGame;

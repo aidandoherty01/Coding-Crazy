@@ -1,9 +1,100 @@
 import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, TextField, Button, Divider, LinearProgress } from "@mui/material";
 import { PhaserGame } from "../game/PhaserGame"; 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import {useLocation, useNavigate} from "react-router-dom";
+import { io } from "socket.io-client";
+
+/* Grabs session from backend, updates with current information */
+const grabSession = async (roomCode, socket, username) => {
+    if(!roomCode){
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }
+    const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    }); // Grabs entire session from DB
+    console.log(response);
+    if(!response.ok){
+        console.log(response);
+        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+    }else{
+        const jsonData = await response.json();
+        console.log(jsonData);
+        jsonData.socket = socket.current;   // Update socket with current socket (refreshes/reconnects)
+        jsonData.username = username;   // Update user with current username
+        return jsonData;
+    }
+};
 
 const GamePage = () => {
+
+    const socket = useRef(null);
     const gameRef = useRef({ game: null, scene: null });
+    const location = useLocation();
+    console.log(location.state);
+    console.log("STRG", localStorage.getItem("roomCode"));
+    const roomCode = localStorage.getItem("roomCode");
+    const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
+    const [stateObject, setStateObject] = useState({});
+    const [players, setPlayers] = useState({});
+    const [scoreDict, updateScoreDict] = useState({});
+
+    useEffect(() => {
+        if (!socket.current) {
+            socket.current = io("http://localhost:5000");
+        }
+    
+        const fetchSessionData = async () => {
+            const sessionData = await grabSession(roomCode, socket, username);
+            setStateObject(sessionData);
+
+            if (sessionData.players) {
+                const initialScores = {};
+                for (const username in sessionData.players) {
+                    initialScores[username] = sessionData.players[username].numAPlusses || 0;
+                }
+                updateScoreDict(initialScores);
+            }
+    
+            if (!socket.current.connected) {
+                socket.current.connect();
+            }
+    
+            socket.current.emit("join_room", { roomCode });
+        };
+    
+        fetchSessionData();
+    
+        return () => {
+            if (socket.current) {
+                socket.current.disconnect();
+                socket.current = null;
+                console.log("Socket disconnected");
+            }
+        };
+    }, []); 
+
+    useEffect(() => {
+        const handleAPlus = (data) => {
+            updateScoreDict((prevScores) => ({
+                ...prevScores,
+                [data.collector]: (prevScores[data.collector] || 0) + 1
+            }));
+        };
+    
+        if (socket.current) {
+            socket.current.on("APlus_movement", handleAPlus);
+        }
+    
+        return () => {
+            if (socket.current) {
+                socket.current.off("APlus_movement", handleAPlus);
+            }
+        };
+    }, []);
+    
 
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", color: "white", display: "flex", flexDirection: "column" }}>
@@ -14,7 +105,9 @@ const GamePage = () => {
                     <Paper sx={{ bgcolor: "#1e293b", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                         {/* Embedded Phaser Game */}
                         <Box sx={{ width: "100%", height: "100%" }}>
-                            <PhaserGame ref={gameRef} />
+                        {Object.keys(stateObject).length > 0 && (
+                                <PhaserGame ref={gameRef} SO={stateObject} />
+                            )}
                         </Box>
                     </Paper>
                 </Grid>
@@ -24,9 +117,9 @@ const GamePage = () => {
                     {/* Scoreboard */}
                     <Paper sx={{ bgcolor: "#1e293b", padding: 2, mb: 2 }}>
                         <Typography variant="h6">Score</Typography>
-                        {["Player 1", "Player 2", "Player 3"].map((player, index) => (
+                        {Object.entries(scoreDict).map(([player,score], index) => (
                             <Typography key={index} sx={{ mt: 1 }}>
-                                {player}: <span style={{ color: "#22c55e" }}>{Math.floor(Math.random() * 50)} Points</span>
+                                {player}: <span style={{ color: "#22c55e" }}>{score} Points</span>
                             </Typography>
                         ))}
                     </Paper>

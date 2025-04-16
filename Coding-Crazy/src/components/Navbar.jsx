@@ -1,10 +1,40 @@
-import { AppBar, Toolbar, IconButton, Typography, Button, Drawer, List, ListItem, ListItemText, Box } from "@mui/material";
+import { AppBar, Toolbar, IconButton, Typography, Button, Drawer, List, ListItem, ListItemText, Box, useStepContext } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+    // const [isReconnect, setIsReconnect] = useState(localStorage.getItem("isReconnect") === "true");
+    const [reconnectMessage, setReconnectMessage] = useState("");
+
+    useEffect(() => {
+        const checkLoginStatus = () => {
+            console.log("Login event received.");
+            setIsLoggedIn(localStorage.getItem("username") != null);
+        };
+
+        const checkReconnectStatus = () => {
+            console.log("Reconnect event received.");
+            
+            const flag = localStorage.getItem("isReconnect") === "true";
+            setIsReconnect(flag);
+            if (flag) { setReconnectMessage("Reconnect"); }
+            else { setReconnectMessage(""); }
+
+            console.log(`isReconnect: ${flag}`)
+            console.log(`Reconnect Message: ${reconnectMessage}`);
+        }
+    
+        window.addEventListener("storage", checkLoginStatus);   // Update Navbar if user is currently logged into an account
+        window.addEventListener("reconnect", checkReconnectStatus); // Update Navbar if user is currently in game
+    
+        return () => {
+            window.removeEventListener("storage", checkLoginStatus);
+            window.removeEventListener("reconnect", checkReconnectStatus);
+        };
+    }, []);
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
@@ -12,6 +42,12 @@ function Navbar() {
         }
         setDrawerOpen(open);
     };
+
+    const signOut = () => {
+        localStorage.clear();
+        setIsLoggedIn(false);
+        console.log(`Signed out: ${localStorage.getItem("username")}`);
+    }
 
     return (
         <>
@@ -40,12 +76,23 @@ function Navbar() {
                         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2 }}>
                             <Button color="inherit" component={Link} to="/">🏠 Home</Button>
                             <Button color="inherit" component={Link} to="/game">🎮 Play Game</Button>
-                            <Button color="inherit" component={Link} to="/study">Study Sets</Button>
+                            <Button color="inherit" component={Link} to="/setupGame">{reconnectMessage || "Setup Game"}</Button>
+                            <Button color="inherit" component={Link} to="/account" disabled={!isLoggedIn}>Account</Button>
+                            <Button color="inherit" component={Link} to="/findLobby">Find Public Game</Button>
                         </Box>
                         {/* Log In & Sign Up Buttons (Desktop) */}
-                        <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
-                            <Button color="inherit" variant="outlined" component={Link} to="/login">Log In</Button>
-                            <Button color="success" variant="contained" component={Link} to="/signup">Sign Up</Button>
+                        <Box>
+                            { !isLoggedIn ? (
+                                <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
+                                    <Button color="inherit" variant="outlined" component={Link} to="/login">Log In</Button>
+                                    <Button color="success" variant="contained" component={Link} to="/signup">Sign Up</Button>
+                                </Box>
+                            ) : (
+                                <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
+                                    <Typography>Logged in as: {localStorage.getItem("username")}</Typography>
+                                    <Button color="inherit" variant="outlined" onClick={() => signOut()} component={Link} to="/">Sign Out</Button>
+                                </Box>
+                            )}
                         </Box>
                     </Box>
                 </Toolbar>

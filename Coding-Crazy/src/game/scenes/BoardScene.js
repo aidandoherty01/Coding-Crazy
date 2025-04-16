@@ -1,46 +1,84 @@
-import Phaser from "phaser";;
+import Phaser from "phaser";
 import { EventBus } from "../../game/EventBus";
-import { Direction, EVENT_TYPE, make_original_digraph } from "../../data/board_graph";
-
+import {
+  Direction,
+  EVENT_TYPE,
+  make_original_digraph,
+} from "../../data/board_graph";
+import { Player } from "../../classes/playerClass";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
     super({ key: "BoardScene" });
   }
 
-
   preload() {
     this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
   }
 
-
   create() {
+    console.log(this.game.config.stateObject);
+    this.socket = this.game.config.stateObject.socket;
+    this.username = this.game.config.stateObject.username;
+    this.usernameList = Object.keys(this.game.config.stateObject.players);
+    this.yourTurn =
+      this.username ===
+      this.usernameList[this.game.config.stateObject.currPlayer];
+    console.log(this.game.config.stateObject.currPlayer);
+    console.log(this.usernameList[this.game.config.stateObject.currPlayer]);
+    console.log(this.yourTurn);
+    this.players = Object.entries(this.game.config.stateObject.players).reduce(
+      (acc, [key, p]) => {
+        console.log(key, p);
+        acc[key] = new Player(p.id, p.loc, p.x, p.y, p.numAPlusses);
+        return acc;
+      },
+      {}
+    );
+    this.roomCode = String(this.game.config.stateObject.roomCode);
+    console.log("socket: ", this.socket);
+    console.log(this.players);
     console.log("🎮 BoardScene is now active!");
-    
+
     this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
-    do {
-      this.ANode = this.original_board.randomVertex();
-    } while(this.ANode === 0);
+    if (this.game.config.stateObject.APlusLoc) {
+      this.ANode = this.game.config.stateObject.APlusLoc;
+    } else {
+      this.ANode = Math.floor(Math.random() * 41) + 1;
+    }
+    console.log(this.game.config.stateObject.APlusLoc);
     this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
-    this.APlus = this.add.image((this.original_board.getVertex(this.ANode).x*32)-16, (this.original_board.getVertex(this.ANode).y*32)-16,"A+").setScale(0.25);
-    this.playerNode = 0;
-
-    this.player1 = this.add.sprite((this.original_board.getVertex(this.playerNode).x*32)-16, (this.original_board.getVertex(this.playerNode).y*32)-16,"player",6).setScale(0.6);
-
-    this.testTurnButton = this.add.text(500, 50, 'Start Turn', { 
-      font: '20px Arial', 
-      fill: '#ffffff', 
-      backgroundColor: '#ff0000',
-      padding: { x: 10, y: 5 }
-    });
-
-    this.testTurnButton.setInteractive();
-    this.testTurnButton.on('pointerdown', () => {
-        this.startPlayerTurn();
-    });
-
+    this.APlus = this.add
+      .image(
+        this.original_board.getVertex(this.ANode).x * 32 - 16,
+        this.original_board.getVertex(this.ANode).y * 32 - 16,
+        "A+"
+      )
+      .setScale(0.25);
+    this.playerSprites = {};
+    this.playerTitles = {};
+    for (const pyer in this.players) {
+      console.log("PYER: ", pyer);
+      const xPix =
+        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
+      const yPix =
+        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
+      this.playerSprites[pyer] = this.add
+        .sprite(xPix, yPix, "player", 6)
+        .setScale(0.6);
+      this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
+        fontSize: "16px Arial",
+        fill: "rgba(255, 255, 255, 0.75)",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+      });
+      this.playerTitles[pyer].setOrigin(0.5, 1);
+    }
+    console.log(this.players);
+    console.log(this.username);
+    
     this.testMinigame = this.add.text(300, 50, 'Minigame', { 
       font: '20px Arial', 
       fill: '#ffffff', 
@@ -53,14 +91,78 @@ class BoardScene extends Phaser.Scene {
         this.startMinigame();
     });
 
-    //EventBus.on("minigameCompleted", this.handleMinigameResult, this);
+    this.testTurnButton = this.add.text(500, 50, "Start Turn", {
+      font: "20px Arial",
+      fill: "#ffffff",
+      backgroundColor: "#ff0000",
+      padding: { x: 10, y: 5 },
+    });
 
-    this.numAPlusses = 0 //This will soon be data held in player class
+    this.testTurnButton.setInteractive();
+    this.testTurnButton.on("pointerdown", () => {
+      if (this.yourTurn) {
+        this.yourTurn = false;
+        this.startPlayerTurn();
+      }
+    });
 
-      this.APlusText = this.add.text(700, 100, `Number of A+s: ${this.numAPlusses}`, {
+    this.APlusText = this.add.text(
+      700,
+      100,
+      `Number of A+s: ${this.players[this.username].numAPlusses}`,
+      {
         fontSize: "20px",
-        fill: "#000000"
-      });
+        fill: "#000000",
+      }
+    );
+
+    this.socket.on("movement", (data) => {
+      console.log(data);
+      console.log(this.username);
+      if (data.movingPlayer != this.username) {
+        this.walkThePath(data.path, 0, 1, data.movingPlayer);
+      }
+    });
+
+    this.socket.on("APlus_movement", (data) => {
+      console.log(data);
+      if (data.collector != this.username) {
+        this.original_board
+          .getVertex(this.ANode)
+          .removeEvent(EVENT_TYPE.A_plus);
+        this.ANode = data.loc;
+        this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
+        this.APlus.setPosition(
+          this.original_board.getVertex(this.ANode).x * 32 - 16,
+          this.original_board.getVertex(this.ANode).y * 32 - 16
+        );
+        this.players[data.collector].numAPlusses += 1;
+      }
+    });
+
+    this.socket.on("next_turn", (data) => {
+      this.cleanUpAndTokenPass(data);
+    });
+
+    this.socket.on("full_turn", (data) => {
+      this.cleanUpAndTokenPass(data);
+      //Spot to start up minigame
+      //Note: Turn token is already passed in clean-up function,
+      //So when inigame ends, just work with what's already set for next turn
+    });
+
+    this.socket.on("game_complete", (data) => {
+      console.log(data);
+      //Do end game actions
+    });
+
+    this.events.on("shutdown", () => {
+      this.socket.off("movement");
+      this.socket.off("APlus_movement");
+      this.socket.off("next_turn");
+      this.socket.off("full_turn");
+      this.socket.off("game_complete");
+    });
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
@@ -82,119 +184,217 @@ class BoardScene extends Phaser.Scene {
 
     // Get the SpinnerScene and listen for spin results
     const spinScene = this.scene.get("SpinnerScene");
-    spinScene.events.once("spinResult", this.moveSpace, this);
+    spinScene.events.once(
+      "spinResult",
+      (spinResult) => this.moveSpace(spinResult, this.username),
+      this
+    );
   }
 
-  moveSpace(spacesLeft){
-    if (this.original_board.getNextMoves(this.playerNode).length == 1) {
+  moveSpace(spacesLeft, playerIndex) {
+    console.log("Moving one space", playerIndex, this.players[playerIndex]);
+    if (
+      this.original_board.getNextMoves(this.players[playerIndex].loc).length ==
+      1
+    ) {
       //console.log(this.original_board.getNextMoves(this.playerNode));
-      const pathToPoint = this.original_board.getNextMoves(this.playerNode)[0].getPath();
-      this.playerNode = this.original_board.getNextMoves(this.playerNode)[0].getTo();
-      // console.log(this.playerNode);
-      this.walkThePath(pathToPoint, 0, spacesLeft);
+      const pathToPoint = this.original_board
+        .getNextMoves(this.players[playerIndex].loc)[0]
+        .getPath();
+      this.players[playerIndex].moveLoc(
+        this.original_board.getVertex(
+          this.original_board
+            .getNextMoves(this.players[playerIndex].loc)[0]
+            .getTo()
+        )
+      );
+      console.log(this.socket);
+      if (this.socket) {
+        console.log(this.roomCode, this.username, pathToPoint);
+        this.socket.emit("move_player", {
+          roomCode: this.roomCode,
+          username: this.username,
+          path: pathToPoint,
+        });
+      }
+
+      this.walkThePath(pathToPoint, 0, spacesLeft, playerIndex);
     } else {
-      const generatedData = {player: this.player1, board: this.original_board, currNode: this.playerNode}; 
-      this.events.once('choiceMade', (choice) => {
-        this.handleChoice(choice, spacesLeft);
-    }, this);
+      const generatedData = {
+        player: this.players[playerIndex],
+        board: this.original_board,
+        currNode: this.players[playerIndex].loc,
+      };
+      this.events.once(
+        "choiceMade",
+        (choice) => {
+          this.handleChoice(choice, spacesLeft, playerIndex);
+        },
+        this
+      );
       this.scene.pause();
-      this.scene.launch('ChoiceScene', generatedData);
-  }
+      this.scene.launch("ChoiceScene", generatedData);
+    }
     return;
   }
 
-
-  handleChoice(choice, spacesLeft){
-    this.playerNode = choice.getTo();
+  handleChoice(choice, spacesLeft, playerIndex) {
+    this.players[playerIndex].moveLoc(
+      this.original_board.getVertex(choice.getTo())
+    );
     this.scene.resume();
-    this.walkThePath(choice.path, 0, spacesLeft);
+    console.log(choice);
+    if (this.socket) {
+      this.socket.emit("move_player", {
+        roomCode: this.roomCode,
+        username: this.username,
+        path: choice.path,
+      });
+    }
+    this.walkThePath(choice.path, 0, spacesLeft, playerIndex);
   }
 
-  walkThePath(path, index, spacesLeft) {
-    // console.log(this.player1.x, this.player1.y);
+  walkThePath(path, index, spacesLeft, playerIndex) {
+    console.log(path, index, spacesLeft, playerIndex);
     const pathDir = path[index];
     let x_val, y_val;
-    if (pathDir == Direction.UP){
-        x_val = 0;
-        y_val = -32;
-        this.player1.play("walk_north");
-    }
-    else if (pathDir == Direction.DOWN){
-        x_val = 0;
-        y_val = 32;
-        this.player1.play("walk_south");
-    }
-    else if (pathDir == Direction.RIGHT){
-        x_val = 32;
-        y_val = 0;
-        this.player1.play("walk_east");
-    }else{
-        x_val = -32;
-        y_val = 0;
-        this.player1.play("walk_west");
+    if (pathDir == Direction.UP) {
+      x_val = 0;
+      y_val = -32;
+      this.playerSprites[playerIndex].play("walk_north");
+    } else if (pathDir == Direction.DOWN) {
+      x_val = 0;
+      y_val = 32;
+      this.playerSprites[playerIndex].play("walk_south");
+    } else if (pathDir == Direction.RIGHT) {
+      x_val = 32;
+      y_val = 0;
+      this.playerSprites[playerIndex].play("walk_east");
+    } else {
+      x_val = -32;
+      y_val = 0;
+      this.playerSprites[playerIndex].play("walk_west");
     }
     this.tweens.add({
-        targets: this.player1,
-        x: this.player1.x + x_val,
-        y: this.player1.y + y_val,
-        duration: 250,
-        ease: 'Linear',
-        onComplete: () => {
-           // console.log("We should be at (", (this.original_board.getVertex(this.playerNode).x * 32) - 16, ", ",(this.original_board.getVertex(this.playerNode).y * 32) - 16,"), and we're at (",this.player1.x,",",this.player1.y,")")
-            if(index < path.length - 1){
-                this.walkThePath(path,index+1, spacesLeft);
-            }else if(spacesLeft > 1){
-              this.triggerEvents(this.player1); //Eventually will be so it's based on the player
-              this.moveSpace(spacesLeft-1);
-            }else{
-              this.triggerEvents(this.player1);
-              this.player1.play("walk_south");
-              return;
-            }
+      targets: this.playerSprites[playerIndex],
+      x: this.playerSprites[playerIndex].x + x_val,
+      y: this.playerSprites[playerIndex].y + y_val,
+      duration: 250,
+      ease: "Linear",
+      onUpdate: () => {
+        // Keep the text above the sprite
+        this.playerTitles[playerIndex].setPosition(
+          this.playerSprites[playerIndex].x,
+          this.playerSprites[playerIndex].y - 24
+        );
+      },
+      onComplete: () => {
+        if (index < path.length - 1) {
+          this.walkThePath(path, index + 1, spacesLeft, playerIndex);
+        } else if (spacesLeft > 1) {
+          this.triggerEvents(playerIndex); //Eventually will be so it's based on the player
+          this.moveSpace(spacesLeft - 1, playerIndex);
+        } else {
+          console.log(
+            "PI ",
+            playerIndex,
+            " loc ",
+            this.players[playerIndex].loc
+          );
+          this.triggerEvents(playerIndex);
+          if (this.socket && playerIndex == this.username) {
+            console.log(
+              "LOC",
+              this.players[playerIndex].loc,
+              this.username,
+              this.roomCode
+            );
+            this.socket.emit("player_landing", {
+              roomCode: this.roomCode,
+              username: this.username,
+              loc: this.players[playerIndex].loc,
+            });
+          }
+          return;
         }
-      });
+      },
+    });
   }
 
-
-  triggerEvents(player){
-    const events = this.original_board.getVertex(this.playerNode).getEvents();
-    // console.log(this.playerNode);
-    // console.log(events);
-    for(let i = 0; i < events.length; i++){
-      this.handleEvent(events.at(i),player);
+  triggerEvents(playerIndex) {
+    const events = this.original_board
+      .getVertex(this.players[playerIndex].loc)
+      .getEvents();
+    console.log(this.players[playerIndex].loc);
+    console.log(events);
+    for (let i = 0; i < events.length; i++) {
+      this.handleEvent(events.at(i), playerIndex);
     }
   }
 
-
-  handleEvent(ev){
+  handleEvent(ev, playerIndex) {
     console.log("EVENT:", ev);
-    switch (ev){
+    switch (ev) {
       case EVENT_TYPE.Nothing:
         break;
-      case EVENT_TYPE.A_plus:
-        { console.log("You got a star!");
-        this.numAPlusses += 1;
-        this.APlusText.setText(`Number of A+s: ${this.numAPlusses}`);
+      case EVENT_TYPE.A_plus: {
+        console.log("You got a star!");
+        this.players[playerIndex].numAPlusses += 1;
+        this.APlusText.setText(
+          `Number of A+s: ${this.players[playerIndex].numAPlusses}`
+        );
         let newALoc;
-        do{
+        do {
           newALoc = this.original_board.randomVertex();
-        }while(newALoc === this.ANode);
-        this.original_board.getVertex(this.ANode).removeEvent(EVENT_TYPE.A_plus);
+        } while (newALoc === this.ANode);
+        this.original_board
+          .getVertex(this.ANode)
+          .removeEvent(EVENT_TYPE.A_plus);
         this.ANode = newALoc;
+        if (this.socket) {
+          console.log(this.roomCode, this.username, newALoc);
+          this.socket.emit("Aplus_moved", {
+            roomCode: this.roomCode,
+            username: this.username,
+            loc: newALoc,
+          });
+        }
         this.original_board.getVertex(this.ANode).addEvent(EVENT_TYPE.A_plus);
-        this.APlus.setPosition((this.original_board.getVertex(this.ANode).x*32)-16, (this.original_board.getVertex(this.ANode).y*32)-16);
-        break; }
+        this.APlus.setPosition(
+          this.original_board.getVertex(this.ANode).x * 32 - 16,
+          this.original_board.getVertex(this.ANode).y * 32 - 16
+        );
+        break;
+      }
       default:
         break;
     }
   }
 
-
-  startMinigame() {
-      console.log("🚀 Launching Minigame...");
-      
-      // Stop the board scene and switch to the minigame
-      this.scene.start("MinigameScene", { returnScene: "BoardScene", player: this.player1 });
+  cleanUpAndTokenPass(data) {
+    console.log(data);
+    if (data.movingPlayer != this.username) {
+      console.log("DATA LOC", data.loc);
+      this.players[data.movingPlayer].moveLoc(
+        this.original_board.getVertex(data.loc)
+      );
+      this.tweens.add({
+        targets: this.playerSprites[data.movingPlayer],
+        x: this.players[data.movingPlayer].x,
+        y: this.players[data.movingPlayer].y,
+        duration: 20,
+        ease: "Linear",
+        onUpdate: () => {
+          // Keep the text above the sprite
+          this.playerTitles[data.movingPlayer].setPosition(
+            this.playerSprites[data.movingPlayer].x,
+            this.playerSprites[data.movingPlayer].y - 24
+          );
+        },
+      });
+    }
+    this.yourTurn = this.username === data.nextPlayer;
+    console.log(data.nextPlayer);
   }
 }
 

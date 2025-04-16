@@ -1,4 +1,5 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
+import { Link } from "react-router-dom";
 
 function HomePage() {
     return (
@@ -12,8 +13,8 @@ function HomePage() {
                 </Typography>
                 <Box mt={3}>
                     <Button variant="contained" color="secondary" sx={{ mx: 1 }}>Start as Guest</Button>
-                    <Button variant="contained" color="success" sx={{ mx: 1 }}>Sign Up</Button>
-                    <Button variant="contained" color="primary" sx={{ mx: 1 }}>Log In</Button>
+                    <Button variant="contained" color="success" sx={{ mx: 1 }} component={Link} to="/signup">Sign Up</Button>
+                    <Button variant="contained" color="primary" sx={{ mx: 1 }} component={Link} to="/login">Log In</Button>
                 </Box>
             </Box>
 

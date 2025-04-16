@@ -2,7 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import HomePage from "./components/HomePage";
 import GamePage from "./components/GamePage";
-import StudyPage from "./components/StudyPage";
+import LobbyPage from "./components/LobbyPage";
+import HostPage from "./components/HostPage";
+import AccountPage from "./components/AccountPage";
+import FindLobbyPage from "./components/FindLobbyPage";
+import LoginPage  from "./components/LoginPage";
+import SignupPage from "./components/SignupPage";
 import StyleWrapper from "./components/StyleWrapper";
 
 function App() {
@@ -13,7 +18,12 @@ function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/game" element={<GamePage />} />
-                    <Route path="/study" element={<StudyPage />} />
+                    <Route path="/lobby/:accessCode" element={<LobbyPage />} />
+                    <Route path="/setupGame" element={<HostPage />} />
+                    <Route path="/account" element={<AccountPage />} />
+                    <Route path="/findLobby" element={<FindLobbyPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
                 </Routes>
             </Router>
         </StyleWrapper>

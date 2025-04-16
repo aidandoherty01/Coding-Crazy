@@ -1,22 +1,42 @@
 [
   {
-    "question": "What is the capital of France?",
-    "options": ["Berlin", "Madrid", "Paris", "Rome"],
-    "answer": "Paris"
+    "question": "What is 5 + 7?",
+    "options": [
+      "10",
+      "11",
+      "12",
+      "9"
+    ],
+    "answer": "12"
   },
   {
-    "question": "What is the capital of Germany?",
-    "options": ["Berlin", "Madrid", "Paris", "Rome"],
-    "answer": "Berlin"
+    "question": "What is the square root of 64?",
+    "options": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "answer": "8"
   },
   {
-    "question": "What is the capital of Spain?",
-    "options": ["Berlin", "Madrid", "Paris", "Rome"],
-    "answer": "Madrid"
+    "question": "What is the value of π (pi) rounded to two decimal places?",
+    "options": [
+      "3.12",
+      "3.14",
+      "3.16",
+      "3.18"
+    ],
+    "answer": "3.14"
   },
   {
-    "question": "What is the capital of Italy?",
-    "options": ["Berlin", "Madrid", "Paris", "Rome"],
-    "answer": "Rome"
+    "question": "If a triangle has angles of 30° and 60°, what is the third angle?",
+    "options": [
+      "60°",
+      "90°",
+      "100°",
+      "120°"
+    ],
+    "answer": "90°"
   }
 ]

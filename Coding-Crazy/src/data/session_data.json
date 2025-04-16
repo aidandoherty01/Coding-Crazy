@@ -1,0 +1,20 @@
+{
+  "_id": "67fedf09c8508a59a1068211",
+  "roomCode": "AYZXYD",
+  "players": {
+    "guest_2093": {
+      "id": "guest_2093",
+      "loc": 0,
+      "x": 0,
+      "y": 0,
+      "numAPlusses": 0
+    }
+  },
+  "maxPlayers": 2,
+  "difficulty": 5,
+  "isPublic": true,
+  "countdownStarted": false,
+  "countdown": 10,
+  "gameStarted": false,
+  "APlusLoc": 38
+}
