@@ -1,6 +1,6 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function SignupPage() {
     /* IMPLEMENT EMAIL CHECKING TO PREVENT ACCOUNT CREATION SPAM */
@@ -8,7 +8,17 @@ function SignupPage() {
     const [password, setPassword] = useState("");
     const [signUpError, setSignUpError] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+    
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        checkRedirect();
+    });
 
+    const checkRedirect = async () => {
+        if(localStorage.getItem("username")) { navigate("/account"); }
+    }
+    
     const signupAccount = async () => {
         try {
             setSignUpError(""); // Reset Success Message
@@ -44,6 +54,7 @@ function SignupPage() {
             window.dispatchEvent(new Event("storage")); // Let event handler know that local storage has changed
             
             setIsLoggedIn(true);    // Block sign in page from user who is already signed in
+            checkRedirect();    // Redirect to account page
 
         } catch (error) {
             console.error("Error creating account:", error);
@@ -55,7 +66,7 @@ function SignupPage() {
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
             { isLoggedIn ? (
                 <Box textAlign="center" py={5}>
-                    <h1>You are signed in.</h1>
+                    <h1>You are signed in. Please wait to be rerouted.</h1>
                     <Button component={Link} to="/">Return to Home Page</Button>
                 </Box>
             ) : (

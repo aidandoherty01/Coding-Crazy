@@ -1,16 +1,9 @@
 {
-  "_id": "67f98851b973ce3fc125fbf3",
-  "roomCode": "AARDWA",
+  "_id": "67fedf09c8508a59a1068211",
+  "roomCode": "AYZXYD",
   "players": {
-    "guest_4411": {
-      "id": "guest_4411",
-      "loc": 0,
-      "x": 0,
-      "y": 0,
-      "numAPlusses": 0
-    },
-    "guest_3284": {
-      "id": "guest_3284",
+    "guest_2093": {
+      "id": "guest_2093",
       "loc": 0,
       "x": 0,
       "y": 0,
@@ -20,8 +13,8 @@
   "maxPlayers": 2,
   "difficulty": 5,
   "isPublic": true,
-  "countdownStarted": true,
-  "countdown": 0,
-  "gameStarted": true,
-  "APlusLoc": 7
+  "countdownStarted": false,
+  "countdown": 10,
+  "gameStarted": false,
+  "APlusLoc": 38
 }

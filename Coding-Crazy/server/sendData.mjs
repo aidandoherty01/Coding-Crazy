@@ -155,7 +155,9 @@ export async function removeEntryFromDB(
     /* Collection */
     if(collectionName == _collectionName) {
       console.log("collection");
-      // removing questions from study sets
+      await collection.deleteMany({
+        question : { $in : data.question }
+      });
     }
     /* Accounts */
     else if (collectionName == _accountName) {
@@ -167,8 +169,9 @@ export async function removeEntryFromDB(
     /* Sessions */
     else if (collectionName == _sessionName) {
       console.log("session");
-      // removing game lobbies
-      
+      await collection.deleteMany({
+        roomCode : { $in : data.roomCode }
+      });
     }
     
     else { throw new Error(`Invalid collection name: ${collectionName}`); }
