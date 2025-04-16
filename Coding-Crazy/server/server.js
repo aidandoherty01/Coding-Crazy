@@ -299,14 +299,14 @@ io.on("connection", (socket) => {
     /* Attempting to rejoin lobby if disconnected */
     if (sessions[accessCode].findUsername(username)) {
       console.log(`${username} is reconnecting to ${accessCode}`);
-      
-      socket.join(accessCode);  // reconnect socket to room
+
+      socket.join(accessCode); // reconnect socket to room
       io.to(accessCode).emit(
         "lobby_users",
         sessions[accessCode].getUsernames()
       );
-      
-      if(sessions[accessCode].gameStarted) {
+
+      if (sessions[accessCode].gameStarted) {
         socket.emit("start_game");
       } else {
         socket.emit("lobby_good", { message: "Reconnected to Lobby." });
@@ -346,7 +346,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("leave_lobby", (accessCode) => {
+  socket.on("leave_lobby", async (accessCode) => {
     if (sessions[accessCode]) {
       const username = sessions[accessCode].findUsername(socket.id);
       if (username) {
@@ -358,6 +358,9 @@ io.on("connection", (socket) => {
       }
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
+        const roomData = JSON.stringify([{ roomCode: accessCode }]);
+        await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+        await removeEntryFromDB("Sessions");
       }
     }
     console.log("Left", socket.id);
@@ -405,6 +408,10 @@ io.on("connection", (socket) => {
               loc: loc,
               nextPlayer: keys[session.currPlayer],
             });
+            const roomData = JSON.stringify([session]);
+            await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+            await removeEntryFromDB("Sessions");
+            delete sessions[roomCode];
           } else {
             //end turn conditions
             io.to(roomCode).emit("full_turn", {

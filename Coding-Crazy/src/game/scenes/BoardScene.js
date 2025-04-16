@@ -36,6 +36,9 @@ class BoardScene extends Phaser.Scene {
       {}
     );
     this.roomCode = String(this.game.config.stateObject.roomCode);
+    this.turnsLeft =
+      this.game.config.stateObject.numTurns -
+      this.game.config.stateObject.currTurn;
     console.log("socket: ", this.socket);
     console.log(this.players);
     console.log("🎮 BoardScene is now active!");
@@ -104,6 +107,16 @@ class BoardScene extends Phaser.Scene {
       }
     );
 
+    this.TurnText = this.add.text(
+      615,
+      50,
+      `# of Turns Left: ${this.turnsLeft}`,
+      {
+        fontSize: "24px",
+        fill: "#000000",
+      }
+    );
+
     this.socket.on("movement", (data) => {
       console.log(data);
       console.log(this.username);
@@ -136,12 +149,17 @@ class BoardScene extends Phaser.Scene {
       this.cleanUpAndTokenPass(data);
       //Spot to start up minigame
       //Note: Turn token is already passed in clean-up function,
-      //So when inigame ends, just work with what's already set for next turn
+      //So when minigame ends, just work with what's already set for next turn
+      this.turnsLeft--;
+      this.TurnText.setText(`# of Turns Left: ${this.turnsLeft}`);
     });
 
     this.socket.on("game_complete", (data) => {
       console.log(data);
       //Do end game actions
+      localStorage.setItem("isReconnect", "false");
+      localStorage.removeItem("roomCode");
+      window.dispatchEvent(new Event("reconnect"));
     });
 
     this.events.on("shutdown", () => {

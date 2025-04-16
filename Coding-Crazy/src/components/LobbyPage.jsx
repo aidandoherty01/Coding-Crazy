@@ -129,6 +129,12 @@ function LobbyPage() {
     const leaveLobby = () => {
         if (joined) {
             socket.emit("leave_lobby", accessCode);
+            if(users.length == 1){
+                //Last player leaving
+                localStorage.setItem("isReconnect", "false");
+                localStorage.removeItem("roomCode");
+                window.dispatchEvent(new Event("reconnect"));
+            }
             setJoined(false);
         }
     };
