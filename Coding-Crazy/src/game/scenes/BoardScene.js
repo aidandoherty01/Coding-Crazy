@@ -82,21 +82,6 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log(this.username);
 
-    this.testTurnButton = this.add.text(500, 50, "Start Turn", {
-      font: "20px Arial",
-      fill: "#ffffff",
-      backgroundColor: "#ff0000",
-      padding: { x: 10, y: 5 },
-    });
-
-    this.testTurnButton.setInteractive();
-    this.testTurnButton.on("pointerdown", () => {
-      if (this.yourTurn) {
-        this.yourTurn = false;
-        this.startPlayerTurn();
-      }
-    });
-
     this.APlusText = this.add.text(
       700,
       100,
@@ -143,6 +128,7 @@ class BoardScene extends Phaser.Scene {
 
     this.socket.on("next_turn", (data) => {
       this.cleanUpAndTokenPass(data);
+      this.startUpTurn();
     });
 
     this.socket.on("full_turn", (data) => {
@@ -152,6 +138,7 @@ class BoardScene extends Phaser.Scene {
       //So when minigame ends, just work with what's already set for next turn
       this.turnsLeft--;
       this.TurnText.setText(`# of Turns Left: ${this.turnsLeft}`);
+      this.startUpTurn();
     });
 
     this.socket.on("game_complete", (data) => {
@@ -172,6 +159,7 @@ class BoardScene extends Phaser.Scene {
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
+    this.startUpTurn();
   }
 
   startPlayerTurn() {
@@ -401,6 +389,17 @@ class BoardScene extends Phaser.Scene {
     }
     this.yourTurn = this.username === data.nextPlayer;
     console.log(data.nextPlayer);
+  }
+
+  startUpTurn() {
+    if (this.yourTurn) {
+      this.scene.launch("MessageScene", { message: "Your Turn Begins Now!" });
+
+      this.time.delayedCall(2500, () => {
+        this.scene.stop("MessageScene");
+        this.startPlayerTurn();
+      });
+    }
   }
 }
 
