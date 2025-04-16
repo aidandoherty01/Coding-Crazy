@@ -1,0 +1,92 @@
+[
+  {
+    "path": "assets/images/minigame/background",
+    "files": [
+      {
+        "type": "image",
+        "key": "blue_bg_layer1",
+        "url": "bg_layer1.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/images/minigame/environment",
+    "files": [
+      {
+        "type": "image",
+        "key": "grass_platform",
+        "url": "ground_grass.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/images/minigame/environment",
+    "files": [
+      {
+        "type": "image",
+        "key": "mushroom_red",
+        "url": "mushroom_red.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/images/minigame/environment",
+    "files": [
+      {
+        "type": "image",
+        "key": "pixel_wall",
+        "url": "pixel_wall.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/images/minigame/environment",
+    "files": [
+      {
+        "type": "image",
+        "key": "happy_cloud",
+        "url": "happy_cloud.png"
+      }
+    ]
+  },
+  {
+    "path": "assets/audio/soundEffects",
+    "files": [
+      {
+        "type": "audio",
+        "key": "correct",
+        "url": "correct.wav"
+      }
+    ]
+  },
+  {
+    "path": "assets/audio/soundEffects",
+    "files": [
+      {
+        "type": "audio",
+        "key": "incorrect",
+        "url": "incorrect.wav"
+      }
+    ]
+  },
+  {
+    "path": "assets/audio/soundEffects",
+    "files": [
+      {
+        "type": "audio",
+        "key": "jump",
+        "url": "jump.wav"
+      }
+    ]
+  },
+  {
+    "path": "assets/audio/soundEffects",
+    "files": [
+      {
+        "type": "audio",
+        "key": "bounce",
+        "url": "bounce.wav"
+      }
+    ]
+  }
+]

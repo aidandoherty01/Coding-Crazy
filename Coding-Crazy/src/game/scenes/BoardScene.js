@@ -78,6 +78,18 @@ class BoardScene extends Phaser.Scene {
     }
     console.log(this.players);
     console.log(this.username);
+    
+    this.testMinigame = this.add.text(300, 50, 'Minigame', { 
+      font: '20px Arial', 
+      fill: '#ffffff', 
+      backgroundColor: '#ff0000',
+      padding: { x: 10, y: 5 }
+    });
+
+    this.testMinigame.setInteractive();
+    this.testMinigame.on('pointerdown', () => {
+        this.startMinigame();
+    });
 
     this.testTurnButton = this.add.text(500, 50, "Start Turn", {
       font: "20px Arial",
