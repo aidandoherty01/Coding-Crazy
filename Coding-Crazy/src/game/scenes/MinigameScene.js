@@ -11,6 +11,7 @@ class MinigameScene extends Phaser.Scene {
     this.challengeActive = false;
     this.challengeBase = null;
     this.challengeQuestionY = null;
+    this.timeLimit = 120; // 2 minutes
   }
 
   preload() {
@@ -31,6 +32,7 @@ class MinigameScene extends Phaser.Scene {
   create() {
     console.log("🎮 Minigame Started!");
     this.setupWorld();
+    this.roundSettings();
     this.spawnPlatforms();
     this.initializeMainPlayer();
     this.setupColliders();
@@ -53,6 +55,10 @@ class MinigameScene extends Phaser.Scene {
 
     // Create groups
     this.platforms = this.physics.add.staticGroup();
+    this.movingPlatforms = this.physics.add.group({
+      allowGravity: false,
+      immovable: true,
+    });
     this.challengePlatforms = this.physics.add.staticGroup();
 
     // Create floor and walls
@@ -82,28 +88,71 @@ class MinigameScene extends Phaser.Scene {
     this.lastPlatformY = this.floor.y;
     this.spawnOffset = 1000;
     this.distanceText = this.add
-      .text(20, 20, "Height: 0", {
-        fontSize: "20px",
+      .text(20, 20, "Height: 0", {})
+      .setStyle({
+        fontSize: "24px",
         fill: "#ffffff",
+        fontStyle: "bold",
         backgroundColor: "transparent",
         padding: { x: 10, y: 5 },
       })
-      .setScrollFactor(0);
+      .setScrollFactor(0)
+      .setDepth(1);
+  }
+
+  roundSettings() {
+    this.remainingTime = this.timeLimit;
+    this.timerText = this.add
+      .text(this.scale.width - 20, 20, this.remainingTime, {
+        fontSize: "24px",
+        fill: "#ffffff",
+        fontStyle: "bold",
+        backgroundColor: "transparent",
+        padding: { x: 10, y: 5 },
+      })
+      .setOrigin(1, 0) // right‑aligned
+      .setScrollFactor(0) // stays on the HUD
+      .setDepth(1);
+
+    this.displayResultBanner(
+      `${this.timeLimit} seconds to climb go!`,
+      "#ffffff"
+    );
+
+    this.time.addEvent({
+      delay: 1000,
+      repeat: this.timeLimit - 1,
+      callback: () => {
+        this.remainingTime--;
+        this.timerText.setText(this.remainingTime);
+
+        if (this.remainingTime <= 0) {
+          this.endGame();
+        }
+      },
+    });
   }
 
   setupColliders() {
     this.physics.add.collider(this.players[0], this.floor);
 
     // Overlap for regular platforms
-    this.physics.add.overlap(
-      this.players[0],
-      this.platforms,
-      (player, platform) => {
-        if (this.isPlayerApproachingPlatform(player, platform)) {
-          this.physics.world.collide(player, platform);
-        }
-      }
-    );
+   this.physics.add.collider(
+     this.players[0],
+     this.platforms,
+     null, 
+     (player, plat) => this.isPlayerApproachingPlatform(player, plat),
+     this
+   );
+
+   // Overlap for moving platforms
+   this.physics.add.collider(
+     this.players[0],
+     this.movingPlatforms,
+     null,
+     (player, plat) => this.isPlayerApproachingPlatform(player, plat),
+     this
+   );
 
     // Overlap for challenge platforms
     this.physics.add.overlap(
@@ -202,7 +251,7 @@ class MinigameScene extends Phaser.Scene {
   createPlayer(x, y) {
     const player = this.physics.add
       .sprite(x, y, "player", 6)
-      .setScale(0.8)
+      .setScale(0.9)
       .setOffset(0, -10);
     player.setGravityY(1000).setData({
       canJump: true,
@@ -319,39 +368,67 @@ class MinigameScene extends Phaser.Scene {
     return platform;
   }
 
+  createMovingPlatform(x, y) {
+    const plat = this.movingPlatforms
+      .create(x, y, "grass_platform")
+      .setScale(0.6)
+      .refreshBody();
+    plat.setData("oneWay", true);
+
+    // pick a random horizontal travel distance and speed
+    const travel = Phaser.Math.Between(100, 200);
+    const duration = Phaser.Math.Between(2000, 4000);
+
+    // make it tween back and forth forever
+    this.tweens.add({
+      targets: plat,
+      x: x + travel,
+      ease: "Sine.easeInOut",
+      duration: duration,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    return plat;
+  }
+
   spawnPlatforms() {
     const cameraY = this.cameras.main.worldView.y;
     const targetSpawnY = cameraY - this.spawnOffset;
-    // Define spacing and gap constraints.
+    // Define spacing and gap constraints
     const spacingY = 150;
-    const minGapX = 200; // Minimum gap between platform x positions.
-    const maxGapX = 800; // Maximum gap between platform x positions.
+    const minGapX = 200; // Minimum gap between platform x positions
+    const maxGapX = 800; // Maximum gap between platform x positions
 
     while (this.lastPlatformY > targetSpawnY) {
       let x;
 
       if (this.lastPlatformX === undefined) {
-        // If this is the first platform, choose any x value within bounds.
+        // If this is the first platform, choose any x value within bounds
         x = Phaser.Math.Between(100, this.scale.width - 100);
       } else {
-        // Calculate allowed x-range based on the previous platform.
+        // Calculate allowed x-range based on the previous platform
         const minAllowedX = Math.max(100, this.lastPlatformX - maxGapX);
         const maxAllowedX = Math.min(
           this.scale.width - 100,
           this.lastPlatformX + maxGapX
         );
 
-        // Pick an x value from within the allowed range.
-        // We also check to ensure the new x is at least minGapX away from the last x.
+        // Pick an x value from within the allowed range
+        // We also check to ensure the new x is at least minGapX away from the last x
         do {
           x = Phaser.Math.Between(minAllowedX, maxAllowedX);
         } while (Math.abs(x - this.lastPlatformX) < minGapX);
       }
 
-      // Save the new platform's x coordinate and update the y coordinate.
+      // Save the new platform's x coordinate and update the y coordinate
       this.lastPlatformX = x;
       this.lastPlatformY -= spacingY;
-      this.createPlatform(x, this.lastPlatformY);
+      if (Phaser.Math.FloatBetween(0, 1) < 0.2) {
+        this.createMovingPlatform(x, this.lastPlatformY);
+      } else {
+        this.createPlatform(x, this.lastPlatformY);
+      }
     }
   }
 
@@ -501,7 +578,8 @@ class MinigameScene extends Phaser.Scene {
         padding: { x: 20, y: 10 },
       })
       .setOrigin(0.5)
-      .setScrollFactor(0); // Fixed to the screen
+      .setScrollFactor(0)
+      .setDepth(1);
 
     // Tween to fade out and destroy the banner after showing for a few seconds.
     this.tweens.add({
@@ -547,16 +625,7 @@ class MinigameScene extends Phaser.Scene {
 
         const pixelDistance = this.initialY - this.highestYReached;
         const heightInMeters = Math.round(pixelDistance / PIXELS_PER_METER);
-        this.distanceText
-          .setText(`Height: ${heightInMeters}m`)
-          .setDepth(1)
-          .setStyle({
-            fontSize: "24px",
-            fill: "#ffffff",
-            fontStyle: "bold",
-            backgroundColor: "transparent",
-            padding: { x: 10, y: 5 },
-          });
+        this.distanceText.setText(`Height: ${heightInMeters}m`);
       }
 
       // Update next challenge and platform spawning
@@ -602,6 +671,28 @@ class MinigameScene extends Phaser.Scene {
         console.log("💀 Game Over");
         this.scene.restart();
       }
+    });
+  }
+
+  endGame() {
+    // stop physics & tint your player grey
+    this.physics.pause();
+    this.players.forEach((p) => p.setTint(0x999999));
+
+    // compute a “score” however you like—in this example, height in meters
+    const scoreMeters = Math.round(
+      (this.initialY - this.highestYReached) / PIXELS_PER_METER
+    );
+
+    // show final banner
+    this.displayResultBanner(
+      `Time’s up!\nYour score: ${scoreMeters}m`,
+      "#ff0000"
+    );
+
+    // then go back to your return scene
+    this.time.delayedCall(5000, () => {
+      this.scene.start(this.returnScene);
     });
   }
 }
