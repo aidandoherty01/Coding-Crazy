@@ -19,7 +19,6 @@ function Navbar() {
             console.log("Reconnect event received.");
             
             const flag = localStorage.getItem("isReconnect") === "true";
-            setIsReconnect(flag);
             if (flag) { setReconnectMessage("Reconnect"); }
             else { setReconnectMessage(""); }
 

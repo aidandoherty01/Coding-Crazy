@@ -10,7 +10,10 @@ function LobbyPage() {
     const { accessCode } = useParams();
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
-    const [joined, setJoined] = useState(false);
+
+    const isReconnect = localStorage.getItem("isReconnect") === "true";
+    const [joined, setJoined] = useState(isReconnect);
+
     const [error, setError] = useState(null);
     const [counter, setCounter] = useState(10);
     const [selectedSubject, setSelectedSubject] = useState("");
@@ -18,9 +21,7 @@ function LobbyPage() {
     const [canJoin, setCanJoin] = useState(false);
     
     const navigate = useNavigate();
-
-    const isReconnect = localStorage.getItem("isReconnect") === "true";
-  
+    
     const usernameRef = useRef("");
 
     /* 
@@ -82,16 +83,16 @@ function LobbyPage() {
         };
     }, []);
 
-    const joinLobby = (roomCode, user) => {
+    const joinLobby = (user) => {
         try {
-            console.log(`Attempting to Join Lobby.\nUser: ${user}\nRoom Code: ${roomCode}`);
+            console.log(`Attempting to Join Lobby.\nUser: ${user}\nRoom Code: ${accessCode}`);
 
             socket.emit("join_lobby", {
-                "accessCode" : roomCode,
+                "accessCode" : accessCode,
                 "username" : user
             });
 
-            localStorage.setItem("roomCode", roomCode);
+            localStorage.setItem("roomCode", accessCode);
 
         } catch (error) {
             console.error("Joining Lobby Failed.", error);
@@ -100,6 +101,7 @@ function LobbyPage() {
 
     const initUser = async () => {
         try {
+            console.log(`In initUser. isReconnect: ${isReconnect}`);
             let user = "";
             /* Store Username */
             if(localStorage.getItem("username")) {  // If user account exists, store active username
@@ -120,7 +122,7 @@ function LobbyPage() {
             }
 
             /* Attempt Reconnect */
-            if(isReconnect) { joinLobby(accessCode, user); }    // Reconnect user to lobby if disconnected
+            if(isReconnect) { joinLobby(user); }    // Reconnect user to lobby if disconnected
 
         } catch (error) {
             console.error("Initializing user failed:", error);
@@ -138,11 +140,16 @@ function LobbyPage() {
 
     const leaveLobby = () => {
         if (joined) {
-            socket.emit("leave_lobby", accessCode);
+            console.log("Attempting to leave lobby.");
+            socket.emit("leave_lobby", {
+                "accessCode": accessCode,
+                "username": username
+            });
             localStorage.removeItem("roomCode");
             localStorage.setItem("isReconnect", "false");
             window.dispatchEvent(new Event("reconnect"));
             setJoined(false);
+            navigate(`/`);
         }
     };
 
@@ -151,12 +158,13 @@ function LobbyPage() {
         let isCleanup = false;
     
         const handleBeforeUnload = () => {
+            console.log("beforeunload event received");
             if (!isCleanup) {
                 leaveLobby();
                 isCleanup = true; // Mark as cleanup done
             }
         };
-    
+        
         // Add beforeunload listener to handle page close/refresh
         window.addEventListener("beforeunload", handleBeforeUnload);
     
@@ -182,7 +190,7 @@ function LobbyPage() {
                         fetchCollection(selectedSubject)
                     }}>Load Study Set</Button> {/* On button click, fetch the specified collection */}
 
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(accessCode, username); }}>
+                    <Button variant="contained" color="primary" sx={{ mt: 2 }} disabled={!canJoin} onClick={() => { joinLobby(username); }}>
                         Join Lobby
                     </Button>
 
@@ -195,11 +203,16 @@ function LobbyPage() {
                 <Box>
                     <Typography variant="h4">Lobby: {accessCode}</Typography>
                     <Typography variant="h6">Players:</Typography>
+                    
                     <ul>
                         {users.map((user, index) => (
                             <li key={index}>{user}</li>
                         ))}
                     </ul>
+                    {/* Potential Bug with leaving lobby during countdown? */}
+                    <Box>
+                        <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => { leaveLobby(); }}>Leave Lobby</Button>
+                    </Box>
 
                     <Box>
                         <Typography variant="h6">Countdown: {counter}</Typography>
