@@ -14,7 +14,7 @@ function FindLobbyPage() {
 
     const fetchLobbies = async (offset) => {
         try {
-          const res = await fetch(`http://localhost:5000/public_lobbies?offset=${offset}&limit=${limit}`);
+          const res = await fetch(`https://coding-crazy.onrender.com/public_lobbies?offset=${offset}&limit=${limit}`);
           const data = await res.json();
           setPublicLobbies(data);
         } catch (err) {
@@ -33,7 +33,7 @@ function FindLobbyPage() {
     const attemptJoin = async () => {
         if (privateCode.trim()) {
           try{
-            const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(privateCode.trim())}`, {
+            const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(privateCode.trim())}`, {
               method: "GET",
               headers: {
                   "Content-Type": "application/json"
