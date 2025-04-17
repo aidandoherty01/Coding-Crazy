@@ -384,6 +384,13 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 
+  socket.on("SpinnerResult", ({ spinRes, username, roomCode }) => {
+    io.to(roomCode).emit("spin_move", {
+      movingPlayer: username,
+      spinRes: spinRes,
+    });
+  });
+
   socket.on("player_landing", async ({ roomCode, username, loc }) => {
     try {
       queueRoomTask(roomCode, async () => {

@@ -6,6 +6,7 @@ import {
   make_original_digraph,
 } from "../../data/board_graph";
 import { Player } from "../../classes/playerClass";
+import UIStyles from "../../css/uiStyles";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
@@ -17,7 +18,6 @@ class BoardScene extends Phaser.Scene {
   }
 
   create() {
-    console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
     this.usernameList = Object.keys(this.game.config.stateObject.players);
@@ -82,16 +82,6 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log(this.username);
 
-    this.TurnText = this.add.text(
-      615,
-      50,
-      `# of Turns Left: ${this.turnsLeft}`,
-      {
-        fontSize: "24px",
-        fill: "#000000",
-      }
-    );
-
     this.socket.on("movement", (data) => {
       console.log(data);
       console.log(this.username);
@@ -117,18 +107,15 @@ class BoardScene extends Phaser.Scene {
     });
 
     this.socket.on("next_turn", (data) => {
+      console.log(data);
       this.cleanUpAndTokenPass(data);
       this.startUpTurn();
     });
 
     this.socket.on("full_turn", (data) => {
+      console.log(data);
       this.cleanUpAndTokenPass(data);
-      //Spot to start up minigame
-      //Note: Turn token is already passed in clean-up function,
-      //So when minigame ends, just work with what's already set for next turn
-      this.turnsLeft--;
-      this.TurnText.setText(`# of Turns Left: ${this.turnsLeft}`);
-      this.startUpTurn();
+      this.betweenTurnsToStart();
     });
 
     this.socket.on("game_complete", (data) => {
@@ -140,16 +127,34 @@ class BoardScene extends Phaser.Scene {
       window.dispatchEvent(new Event("reconnect"));
     });
 
+    this.socket.on("spin_move", (data) => {
+      console.log(data);
+      this.topMessage.setText(`${data.movingPlayer} spun a ${data.spinRes}!`);
+      this.topMessage.setPosition(
+        this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+        this.boxY + (this.boxHeight - this.topMessage.height) / 3
+      );
+    });
+
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
       this.socket.off("next_turn");
       this.socket.off("full_turn");
       this.socket.off("game_complete");
+      this.socket.off("spin_move");
     });
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
+    this.createMessageBar(
+      1024,
+      1024,
+      `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
+      `Turn ${this.game.config.stateObject.currTurn + 1} of ${
+        this.game.config.stateObject.numTurns
+      }`
+    );
     this.startUpTurn();
   }
 
@@ -171,7 +176,16 @@ class BoardScene extends Phaser.Scene {
     const spinScene = this.scene.get("SpinnerScene");
     spinScene.events.once(
       "spinResult",
-      (spinResult) => this.moveSpace(spinResult, this.username),
+      (spinResult) => {
+        if (this.socket) {
+          this.socket.emit("SpinnerResult", {
+            spinRes: spinResult,
+            username: this.username,
+            roomCode: this.roomCode,
+          });
+        }
+        this.moveSpace(spinResult, this.username);
+      },
       this
     );
   }
@@ -299,6 +313,17 @@ class BoardScene extends Phaser.Scene {
               username: this.username,
               loc: this.players[playerIndex].loc,
             });
+          } else if (this.usernameList.length === 1) {
+            //Guest
+            this.game.config.stateObject.currTurn++;
+            if (
+              this.game.config.stateObject.currTurn <
+              this.game.config.stateObject.numTurns
+            ) {
+              this.betweenTurnsToStart();
+            } else {
+              this.endMessage();
+            }
           }
           return;
         }
@@ -377,6 +402,11 @@ class BoardScene extends Phaser.Scene {
     }
     this.yourTurn = this.username === data.nextPlayer;
     console.log(data.nextPlayer);
+    this.topMessage.setText(`${data.nextPlayer}'s Turn`);
+    this.topMessage.setPosition(
+      this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+      this.boxY + (this.boxHeight - this.topMessage.height) / 3
+    );
   }
 
   startUpTurn() {
@@ -391,7 +421,7 @@ class BoardScene extends Phaser.Scene {
   }
 
   endMessage() {
-    if (this.players.length === 1) {
+    if (this.usernameList.length === 1) {
       this.scene.launch("MessageScene", { message: "Well Done!" });
       return;
     }
@@ -412,6 +442,97 @@ class BoardScene extends Phaser.Scene {
     } else {
       this.scene.launch("MessageScene", { message: "Better luck next time!" });
     }
+  }
+
+  betweenTurnsToStart() {
+    //Spot to start up minigame
+    //Note: Turn token is already passed in clean-up function,
+    //So when minigame ends, just work with what's already set for next turn
+
+    //Now all the stuff after the minigame
+    this.turnsLeft--;
+    this.bottomMessage.setText(
+      `Turn ${this.game.config.stateObject.numTurns - this.turnsLeft + 1} of ${
+        this.game.config.stateObject.numTurns
+      }`
+    );
+    this.bottomMessage.setPosition(
+      this.boxX + (this.boxWidth - this.bottomMessage.width) / 2,
+      this.boxY + (2 * (this.boxHeight - this.bottomMessage.height)) / 3
+    );
+    this.startUpTurn();
+  }
+
+  //Taken from questionScene
+  //Using for top messages
+  createMessageBar(width, height, topMessage, bottomMessage) {
+    this.boxWidth = width * 1;
+    this.boxHeight = height * 0.125;
+    this.boxX = (width - this.boxWidth) / 2;
+    this.boxY = 0;
+
+    // Background for question box
+    const background = this.add.graphics();
+    background.fillStyle(
+      UIStyles.background.color,
+      UIStyles.background.opacity
+    );
+    background.fillRoundedRect(
+      this.boxX,
+      this.boxY,
+      this.boxWidth,
+      this.boxHeight,
+      UIStyles.background.borderRadius
+    );
+    background.lineStyle(
+      UIStyles.background.borderThickness,
+      UIStyles.background.borderColor,
+      UIStyles.background.borderOpacity
+    );
+    background.strokeRoundedRect(
+      this.boxX,
+      this.boxY,
+      this.boxWidth,
+      this.boxHeight,
+      UIStyles.background.borderRadius
+    );
+    background.setDepth(1);
+
+    // text
+    this.topMessage = this.add.text(
+      this.boxX + this.boxWidth / 2,
+      this.boxY + this.boxHeight / 3,
+      topMessage,
+      {
+        ...UIStyles.questionText,
+        wordWrap: { width: this.boxWidth - 100 },
+        align: "center",
+      }
+    );
+
+    this.topMessage.setPosition(
+      this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+      this.boxY + (this.boxHeight - this.topMessage.height) / 3
+    );
+
+    this.bottomMessage = this.add.text(
+      this.boxX + this.boxWidth / 2,
+      this.boxY + (2 * this.boxHeight) / 3,
+      bottomMessage,
+      {
+        ...UIStyles.btmMsgText,
+        wordWrap: { width: this.boxWidth - 100 },
+        align: "center",
+      }
+    );
+
+    this.bottomMessage.setPosition(
+      this.boxX + (this.boxWidth - this.bottomMessage.width) / 2,
+      this.boxY + (2 * (this.boxHeight - this.bottomMessage.height)) / 3
+    );
+
+    this.topMessage.setDepth(2);
+    this.bottomMessage.setDepth(2);
   }
 }
 

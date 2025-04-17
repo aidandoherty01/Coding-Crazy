@@ -3,11 +3,16 @@ import { PhaserGame } from "../game/PhaserGame";
 import { useRef, useState, useEffect } from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
+import { gameSession } from "../../server/gameSessionClass";
 
 /* Grabs session from backend, updates with current information */
 const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
-        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+        const tempSess = new gameSession("AAAAAA", 1, 1, false, 10);
+        tempSess.gameStarted = true;
+        tempSess.addUser("Guest");
+        tempSess.username = "Guest";
+        return tempSess;
     }
     const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
         method: "GET",
@@ -18,7 +23,11 @@ const grabSession = async (roomCode, socket, username) => {
     console.log(response);
     if(!response.ok){
         console.log(response);
-        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+        const tempSess = new gameSession("AAAAAA", 1, 1, false, 10);
+        tempSess.gameStarted = true;
+        tempSess.addUser("Guest");
+        tempSess.username = "Guest";
+        return tempSess;
     }else{
         const jsonData = await response.json();
         console.log(jsonData);
@@ -29,7 +38,6 @@ const grabSession = async (roomCode, socket, username) => {
 };
 
 const GamePage = () => {
-
     const socket = useRef(null);
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
@@ -49,6 +57,7 @@ const GamePage = () => {
         const fetchSessionData = async () => {
             const sessionData = await grabSession(roomCode, socket, username);
             setStateObject(sessionData);
+            console.log("SO", stateObject);
 
             if (sessionData.players) {
                 const initialScores = {};
