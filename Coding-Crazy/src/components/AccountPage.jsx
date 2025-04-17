@@ -59,24 +59,15 @@ function AccountPage() {
             console.error("Account deletion failed: ", error);
         }
     }
-    /*
-    const storeCollection = async () => {    // Store the current collection in local storage as active study set
-        if(localStorage.getItem("username")) {  // If account exists
-            localStorage.setItem("subject", selectedSubject);
-            console.log(`Subject in local storage: ${localStorage.getItem("subject")}`);
-        } else {
-            console.log("Sign into an account to store subjects from this page!");
-        }
-    }
-    */
-    /*useEffect(() => {
-        fetchCollection(API);
-    }, []);*/
 
     return (
         <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
         { isLoggedIn ? (
             <Box>
+                {/* Account Information */}
+                <Box textAlign={"center"} py={5}>
+                    <Typography>Username: {localStorage.getItem("username")}</Typography>
+                </Box>
                 {/* Account Deletion */}
                 <Box textAlign={"center"} py={5}>
                     <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={deleteAccount}>Delete Account</Button>

@@ -23,6 +23,16 @@ function LobbyPage() {
   
     const usernameRef = useRef("");
 
+    /* 
+
+        IMPLEMENT ACTUALLY LEAVING A LOBBY.
+        Have a button to leave the lobby (if joined).
+        - set isReconnect to false.
+        - destroy the lobby if the last user.
+        - remove roomCode.
+
+    */
+
     useEffect(() => {
         initUser(); // Initialize username variable
     },[]);
