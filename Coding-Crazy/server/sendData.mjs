@@ -155,19 +155,19 @@ export async function removeEntryFromDB(
 
     /* Collection */
     if (collectionName == _collectionName) {
-      console.log("collection");
+      console.log("Collection");
       await collection.deleteMany({
         question: { $in: data.question },
       });
     } else if (collectionName == _accountName) {
       /* Accounts */
-      console.log("account");
+      console.log("Account");
       await collection.deleteMany({
         username: { $in: data.username }, // 'in' modifier checks if value matches in array of items (usernames)
       });
     } else if (collectionName == _sessionName) {
       /* Sessions */
-      console.log("session");
+      console.log("Session");
       await collection.deleteMany({
         roomCode: { $in: data.map((entry) => entry.roomCode) },
       });

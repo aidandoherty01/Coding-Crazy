@@ -359,7 +359,7 @@ io.on("connection", (socket) => {
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
         const roomData = JSON.stringify([{ roomCode: accessCode }]);
-        await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+        fs.writeFileSync(export_to_mongo, roomData, "utf-8");
         await removeEntryFromDB("Sessions");
       }
     }
