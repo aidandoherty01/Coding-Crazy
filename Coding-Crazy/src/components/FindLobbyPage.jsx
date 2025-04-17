@@ -6,6 +6,8 @@ import { io } from "socket.io-client";
 
 function FindLobbyPage() {
     const navigate = useNavigate();
+    const [selectedTab, setSelectedTab] = useState("public");
+    const [privateCode, setPrivateCode] = useState("");
     const [publicLobbies, setPublicLobbies] = useState([]);
     const [offset, setOffset] = useState(0);
     const limit = 10;
@@ -28,9 +30,42 @@ function FindLobbyPage() {
         navigate(`/lobby/${roomCode}`, {state: roomCode});
     }
 
+    const attemptJoin = async () => {
+        if (privateCode.trim()) {
+          try{
+            const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(privateCode.trim())}`, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+            }); // Grabs entire session from DB
+            if(response.ok){
+              joinLobby(privateCode.trim());
+            }
+          }catch(err){
+            console.log("Error: ", err);
+          }
+        }
+    }
+
     return (
         <Box>
-            {publicLobbies.length > 0 ? (
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
+            <Button
+              variant={selectedTab === "public" ? "contained" : "outlined"}
+              onClick={() => setSelectedTab("public")}
+            >
+              Public
+            </Button>
+            <Button
+              variant={selectedTab === "private" ? "contained" : "outlined"}
+              onClick={() => setSelectedTab("private")}
+            >
+              Private
+            </Button>
+          </Box>
+          {selectedTab === "public" ? (
+            publicLobbies.length > 0 ? (
             <List>
                 {publicLobbies.map((lobby) => (
                 <ListItem key={lobby.roomCode}>
@@ -58,7 +93,29 @@ function FindLobbyPage() {
             </List>
             ) : (
             <Typography variant="body1">Loading...</Typography>
-            )}
+            )
+          ) : (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <TextField
+                label="Enter Room Code"
+                value={privateCode}
+                onChange={(e) => setPrivateCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    joinLobby(privateCode.trim());
+                  }
+                }}
+                sx={{ width: 300 }}
+              />
+              <Button
+              variant="contained"
+              onClick={attemptJoin}>Join</Button>
+            </Box>
+          )}
+
+
+
+
             {
             //Footer
             }
