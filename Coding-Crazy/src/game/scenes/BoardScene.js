@@ -94,31 +94,6 @@ class BoardScene extends Phaser.Scene {
       this.startMinigame();
     });
 
-    this.testTurnButton = this.add.text(500, 50, "Start Turn", {
-      font: "20px Arial",
-      fill: "#ffffff",
-      backgroundColor: "#ff0000",
-      padding: { x: 10, y: 5 },
-    });
-
-    this.testTurnButton.setInteractive();
-    this.testTurnButton.on("pointerdown", () => {
-      if (this.yourTurn) {
-        this.yourTurn = false;
-        this.startPlayerTurn();
-      }
-    });
-
-    this.APlusText = this.add.text(
-      700,
-      100,
-      `Number of A+s: ${this.players[this.username].numAPlusses}`,
-      {
-        fontSize: "20px",
-        fill: "#000000",
-      }
-    );
-
     this.socket.on("movement", (data) => {
       console.log(data);
       console.log(this.username);
