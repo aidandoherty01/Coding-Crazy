@@ -11,7 +11,7 @@ function LobbyPage() {
     const [users, setUsers] = useState([]);
     const [username, setUsername] = useState("");
 
-    const isReconnect = localStorage.getItem("isReconnect") === "true";
+    const isReconnect = localStorage.getItem("isReconnect") === "true"; // ***** BUG: is false if navigating to lobby without going through host page *******
     const [joined, setJoined] = useState(isReconnect);
 
     const [error, setError] = useState(null);
@@ -62,6 +62,7 @@ function LobbyPage() {
         socket.on("lobby_good", (message) => {
             console.log(message);
             setJoined(true);
+            localStorage.setItem("isReconnect", "true");    // Allows user to reconnect if they disconnected after successfully connecting
         });
 
         socket.on("start_game", () => {
@@ -153,6 +154,7 @@ function LobbyPage() {
         }
     };
 
+    /*
     useEffect(() => {
         // Flag to check if leaveLobby was called
         let isCleanup = false;
@@ -176,6 +178,7 @@ function LobbyPage() {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
     }, [joined]);
+    */
 
     return (
         <Box>
