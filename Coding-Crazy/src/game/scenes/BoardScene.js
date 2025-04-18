@@ -6,6 +6,7 @@ import {
   make_original_digraph,
 } from "../../data/board_graph";
 import { Player } from "../../classes/playerClass";
+import UIStyles from "../../css/uiStyles";
 
 class BoardScene extends Phaser.Scene {
   constructor() {
@@ -17,7 +18,6 @@ class BoardScene extends Phaser.Scene {
   }
 
   create() {
-    console.log(this.game.config.stateObject);
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
     this.usernameList = Object.keys(this.game.config.stateObject.players);
@@ -36,6 +36,9 @@ class BoardScene extends Phaser.Scene {
       {}
     );
     this.roomCode = String(this.game.config.stateObject.roomCode);
+    this.turnsLeft =
+      this.game.config.stateObject.numTurns -
+      this.game.config.stateObject.currTurn;
     console.log("socket: ", this.socket);
     console.log(this.players);
     console.log("🎮 BoardScene is now active!");
@@ -78,43 +81,18 @@ class BoardScene extends Phaser.Scene {
     }
     console.log(this.players);
     console.log(this.username);
-    
-    this.testMinigame = this.add.text(300, 50, 'Minigame', { 
-      font: '20px Arial', 
-      fill: '#ffffff', 
-      backgroundColor: '#ff0000',
-      padding: { x: 10, y: 5 }
-    });
 
-    this.testMinigame.setInteractive();
-    this.testMinigame.on('pointerdown', () => {
-        this.startMinigame();
-    });
-
-    this.testTurnButton = this.add.text(500, 50, "Start Turn", {
+    this.testMinigame = this.add.text(300, 50, "Minigame", {
       font: "20px Arial",
       fill: "#ffffff",
       backgroundColor: "#ff0000",
       padding: { x: 10, y: 5 },
     });
 
-    this.testTurnButton.setInteractive();
-    this.testTurnButton.on("pointerdown", () => {
-      if (this.yourTurn) {
-        this.yourTurn = false;
-        this.startPlayerTurn();
-      }
+    this.testMinigame.setInteractive();
+    this.testMinigame.on("pointerdown", () => {
+      this.startMinigame();
     });
-
-    this.APlusText = this.add.text(
-      700,
-      100,
-      `Number of A+s: ${this.players[this.username].numAPlusses}`,
-      {
-        fontSize: "20px",
-        fill: "#000000",
-      }
-    );
 
     this.socket.on("movement", (data) => {
       console.log(data);
@@ -141,19 +119,33 @@ class BoardScene extends Phaser.Scene {
     });
 
     this.socket.on("next_turn", (data) => {
+      console.log(data);
       this.cleanUpAndTokenPass(data);
+      this.startUpTurn();
     });
 
     this.socket.on("full_turn", (data) => {
+      console.log(data);
       this.cleanUpAndTokenPass(data);
-      //Spot to start up minigame
-      //Note: Turn token is already passed in clean-up function,
-      //So when inigame ends, just work with what's already set for next turn
+      this.betweenTurnsToStart();
     });
 
     this.socket.on("game_complete", (data) => {
       console.log(data);
       //Do end game actions
+      this.endMessage();
+      localStorage.setItem("isReconnect", "false");
+      localStorage.removeItem("roomCode");
+      window.dispatchEvent(new Event("reconnect"));
+    });
+
+    this.socket.on("spin_move", (data) => {
+      console.log(data);
+      this.topMessage.setText(`${data.movingPlayer} spun a ${data.spinRes}!`);
+      this.topMessage.setPosition(
+        this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+        this.boxY + (this.boxHeight - this.topMessage.height) / 3
+      );
     });
 
     this.events.on("shutdown", () => {
@@ -162,10 +154,20 @@ class BoardScene extends Phaser.Scene {
       this.socket.off("next_turn");
       this.socket.off("full_turn");
       this.socket.off("game_complete");
+      this.socket.off("spin_move");
     });
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
+    this.createMessageBar(
+      1024,
+      1024,
+      `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
+      `Turn ${this.game.config.stateObject.currTurn + 1} of ${
+        this.game.config.stateObject.numTurns
+      }`
+    );
+    this.startUpTurn();
   }
 
   startPlayerTurn() {
@@ -186,7 +188,16 @@ class BoardScene extends Phaser.Scene {
     const spinScene = this.scene.get("SpinnerScene");
     spinScene.events.once(
       "spinResult",
-      (spinResult) => this.moveSpace(spinResult, this.username),
+      (spinResult) => {
+        if (this.socket) {
+          this.socket.emit("SpinnerResult", {
+            spinRes: spinResult,
+            username: this.username,
+            roomCode: this.roomCode,
+          });
+        }
+        this.moveSpace(spinResult, this.username);
+      },
       this
     );
   }
@@ -314,6 +325,17 @@ class BoardScene extends Phaser.Scene {
               username: this.username,
               loc: this.players[playerIndex].loc,
             });
+          } else if (this.usernameList.length === 1) {
+            //Guest
+            this.game.config.stateObject.currTurn++;
+            if (
+              this.game.config.stateObject.currTurn <
+              this.game.config.stateObject.numTurns
+            ) {
+              this.betweenTurnsToStart();
+            } else {
+              this.endMessage();
+            }
           }
           return;
         }
@@ -340,9 +362,6 @@ class BoardScene extends Phaser.Scene {
       case EVENT_TYPE.A_plus: {
         console.log("You got a star!");
         this.players[playerIndex].numAPlusses += 1;
-        this.APlusText.setText(
-          `Number of A+s: ${this.players[playerIndex].numAPlusses}`
-        );
         let newALoc;
         do {
           newALoc = this.original_board.randomVertex();
@@ -395,6 +414,137 @@ class BoardScene extends Phaser.Scene {
     }
     this.yourTurn = this.username === data.nextPlayer;
     console.log(data.nextPlayer);
+    this.topMessage.setText(`${data.nextPlayer}'s Turn`);
+    this.topMessage.setPosition(
+      this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+      this.boxY + (this.boxHeight - this.topMessage.height) / 3
+    );
+  }
+
+  startUpTurn() {
+    if (this.yourTurn) {
+      this.scene.launch("MessageScene", { message: "Your Turn Begins Now!" });
+
+      this.time.delayedCall(2500, () => {
+        this.scene.stop("MessageScene");
+        this.startPlayerTurn();
+      });
+    }
+  }
+
+  endMessage() {
+    if (this.usernameList.length === 1) {
+      this.scene.launch("MessageScene", { message: "Well Done!" });
+      return;
+    }
+    const sortedPlayers = Object.values(this.players).sort(
+      (a, b) => b.numAPlusses - a.numAPlusses
+    );
+    if (
+      sortedPlayers[0].id === this.username &&
+      sortedPlayers[0].numAPlusses !== sortedPlayers[1].numAPlusses
+    ) {
+      //Solo win
+      this.scene.launch("MessageScene", { message: "You won!" });
+    } else if (
+      this.players[this.username].numAPlusses === sortedPlayers[0].numAPlusses
+    ) {
+      //Tie game
+      this.scene.launch("MessageScene", { message: "You tied for first!" });
+    } else {
+      this.scene.launch("MessageScene", { message: "Better luck next time!" });
+    }
+  }
+
+  betweenTurnsToStart() {
+    //Spot to start up minigame
+    //Note: Turn token is already passed in clean-up function,
+    //So when minigame ends, just work with what's already set for next turn
+
+    //Now all the stuff after the minigame
+    this.turnsLeft--;
+    this.bottomMessage.setText(
+      `Turn ${this.game.config.stateObject.numTurns - this.turnsLeft + 1} of ${
+        this.game.config.stateObject.numTurns
+      }`
+    );
+    this.bottomMessage.setPosition(
+      this.boxX + (this.boxWidth - this.bottomMessage.width) / 2,
+      this.boxY + (2 * (this.boxHeight - this.bottomMessage.height)) / 3
+    );
+    this.startUpTurn();
+  }
+
+  //Taken from questionScene
+  //Using for top messages
+  createMessageBar(width, height, topMessage, bottomMessage) {
+    this.boxWidth = width * 1;
+    this.boxHeight = height * 0.125;
+    this.boxX = (width - this.boxWidth) / 2;
+    this.boxY = 0;
+
+    // Background for question box
+    const background = this.add.graphics();
+    background.fillStyle(
+      UIStyles.background.color,
+      UIStyles.background.opacity
+    );
+    background.fillRoundedRect(
+      this.boxX,
+      this.boxY,
+      this.boxWidth,
+      this.boxHeight,
+      UIStyles.background.borderRadius
+    );
+    background.lineStyle(
+      UIStyles.background.borderThickness,
+      UIStyles.background.borderColor,
+      UIStyles.background.borderOpacity
+    );
+    background.strokeRoundedRect(
+      this.boxX,
+      this.boxY,
+      this.boxWidth,
+      this.boxHeight,
+      UIStyles.background.borderRadius
+    );
+    background.setDepth(1);
+
+    // text
+    this.topMessage = this.add.text(
+      this.boxX + this.boxWidth / 2,
+      this.boxY + this.boxHeight / 3,
+      topMessage,
+      {
+        ...UIStyles.questionText,
+        wordWrap: { width: this.boxWidth - 100 },
+        align: "center",
+      }
+    );
+
+    this.topMessage.setPosition(
+      this.boxX + (this.boxWidth - this.topMessage.width) / 2,
+      this.boxY + (this.boxHeight - this.topMessage.height) / 3
+    );
+
+    this.bottomMessage = this.add.text(
+      this.boxX + this.boxWidth / 2,
+      this.boxY + (2 * this.boxHeight) / 3,
+      bottomMessage,
+      {
+        ...UIStyles.btmMsgText,
+        wordWrap: { width: this.boxWidth - 100 },
+        align: "center",
+      }
+    );
+
+    this.bottomMessage.setPosition(
+      this.boxX + (this.boxWidth - this.bottomMessage.width) / 2,
+      this.boxY + (2 * (this.boxHeight - this.bottomMessage.height)) / 3
+    );
+
+    this.topMessage.setDepth(2);
+    this.bottomMessage.setDepth(2);
   }
 }
 

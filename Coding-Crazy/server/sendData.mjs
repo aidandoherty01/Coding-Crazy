@@ -151,33 +151,31 @@ export async function removeEntryFromDB(
 
     const jsonData = fs.readFileSync(jsonFilePath); // read from json
     const data = JSON.parse(jsonData); // parse into objects
+    console.log("DIt dat data", data);
 
     /* Collection */
-    if(collectionName == _collectionName) {
+    if (collectionName == _collectionName) {
       console.log("collection");
       await collection.deleteMany({
-        question : { $in : data.question }
+        question: { $in: data.question },
       });
-    }
-    /* Accounts */
-    else if (collectionName == _accountName) {
+    } else if (collectionName == _accountName) {
+      /* Accounts */
       console.log("account");
       await collection.deleteMany({
-        username : { $in : data.username } // 'in' modifier checks if value matches in array of items (usernames)
+        username: { $in: data.username }, // 'in' modifier checks if value matches in array of items (usernames)
       });
-    }
-    /* Sessions */
-    else if (collectionName == _sessionName) {
+    } else if (collectionName == _sessionName) {
+      /* Sessions */
       console.log("session");
       await collection.deleteMany({
-        roomCode : { $in : data.roomCode }
+        roomCode: { $in: data.map((entry) => entry.roomCode) },
       });
+    } else {
+      throw new Error(`Invalid collection name: ${collectionName}`);
     }
-    
-    else { throw new Error(`Invalid collection name: ${collectionName}`); }
 
     console.log(`Removed entries from ${collectionName}.`);
-
   } catch (err) {
     console.error("Error removing entry from MongoDB:", err);
     throw new Error(`${err.message}`);
