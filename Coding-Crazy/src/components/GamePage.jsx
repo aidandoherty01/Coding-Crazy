@@ -8,10 +8,12 @@ import { gameSession } from "../../server/gameSessionClass";
 /* Grabs session from backend, updates with current information */
 const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
-        const tempSess = new gameSession("AAAAAA", 1, 1, false, 10);
+        const tempSess = new gameSession("AA", 1, 1, false, 10);
         tempSess.gameStarted = true;
-        tempSess.addUser("Guest");
-        tempSess.username = "Guest";
+        const un = localStorage.getItem("username") || localStorage.getItem("guest");
+        tempSess.addUser(un);
+        tempSess.username = un;
+        tempSess.socket = socket.current; 
         return tempSess;
     }
     const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
@@ -23,10 +25,12 @@ const grabSession = async (roomCode, socket, username) => {
     console.log(response);
     if(!response.ok){
         console.log(response);
-        const tempSess = new gameSession("AAAAAA", 1, 1, false, 10);
+        const tempSess = new gameSession("AA", 1, 1, false, 10);
         tempSess.gameStarted = true;
-        tempSess.addUser("Guest");
-        tempSess.username = "Guest";
+        const un = localStorage.getItem("username") || localStorage.getItem("guest");
+        tempSess.addUser(un);
+        tempSess.username = un;
+        tempSess.socket = socket.current;
         return tempSess;
     }else{
         const jsonData = await response.json();
@@ -43,7 +47,7 @@ const GamePage = () => {
     const location = useLocation();
     console.log(location.state);
     console.log("STRG", localStorage.getItem("roomCode"));
-    const roomCode = localStorage.getItem("roomCode");
+    const roomCode = localStorage.getItem("roomCode") || "AA";
     const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});
@@ -92,14 +96,22 @@ const GamePage = () => {
                 [data.collector]: (prevScores[data.collector] || 0) + 1
             }));
         };
+
+        const handleSingleAPlus = (data) => {
+            if(data.collector === username){
+                handleAPlus(data);
+            }
+        }
     
         if (socket.current) {
             socket.current.on("APlus_movement", handleAPlus);
+            socket.current.on("singleplayer_APlus", handleSingleAPlus);
         }
     
         return () => {
             if (socket.current) {
                 socket.current.off("APlus_movement", handleAPlus);
+                socket.current.off("singleplayer_APlus", handleSingleAPlus);
             }
         };
     }, []);
