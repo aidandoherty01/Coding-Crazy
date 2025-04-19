@@ -3,13 +3,20 @@ import { PhaserGame } from "../game/PhaserGame";
 import { useRef, useState, useEffect } from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import { io } from "socket.io-client";
+import { gameSession } from "../../server/gameSessionClass";
 
 /* Grabs session from backend, updates with current information */
 const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
-        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+        const tempSess = new gameSession("AA", 1, 1, false, 10);
+        tempSess.gameStarted = true;
+        const un = localStorage.getItem("username") || localStorage.getItem("guest");
+        tempSess.addUser(un);
+        tempSess.username = un;
+        tempSess.socket = socket.current; 
+        return tempSess;
     }
-    const response = await fetch(`http://localhost:5000/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
+    const response = await fetch(`https://coding-crazy.onrender.com/getSession?roomCode=${encodeURIComponent(roomCode)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -18,7 +25,13 @@ const grabSession = async (roomCode, socket, username) => {
     console.log(response);
     if(!response.ok){
         console.log(response);
-        return {players: {"Guest": {id: "Guest", numAPlusses: 0}}};
+        const tempSess = new gameSession("AA", 1, 1, false, 10);
+        tempSess.gameStarted = true;
+        const un = localStorage.getItem("username") || localStorage.getItem("guest");
+        tempSess.addUser(un);
+        tempSess.username = un;
+        tempSess.socket = socket.current;
+        return tempSess;
     }else{
         const jsonData = await response.json();
         console.log(jsonData);
@@ -29,13 +42,12 @@ const grabSession = async (roomCode, socket, username) => {
 };
 
 const GamePage = () => {
-
     const socket = useRef(null);
     const gameRef = useRef({ game: null, scene: null });
     const location = useLocation();
     console.log(location.state);
     console.log("STRG", localStorage.getItem("roomCode"));
-    const roomCode = localStorage.getItem("roomCode");
+    const roomCode = localStorage.getItem("roomCode") || "AA";
     const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});
@@ -43,12 +55,13 @@ const GamePage = () => {
 
     useEffect(() => {
         if (!socket.current) {
-            socket.current = io("http://localhost:5000");
+            socket.current = io("https://coding-crazy.onrender.com");
         }
     
         const fetchSessionData = async () => {
             const sessionData = await grabSession(roomCode, socket, username);
             setStateObject(sessionData);
+            console.log("SO", stateObject);
 
             if (sessionData.players) {
                 const initialScores = {};
@@ -83,14 +96,22 @@ const GamePage = () => {
                 [data.collector]: (prevScores[data.collector] || 0) + 1
             }));
         };
+
+        const handleSingleAPlus = (data) => {
+            if(data.collector === username){
+                handleAPlus(data);
+            }
+        }
     
         if (socket.current) {
             socket.current.on("APlus_movement", handleAPlus);
+            socket.current.on("singleplayer_APlus", handleSingleAPlus);
         }
     
         return () => {
             if (socket.current) {
                 socket.current.off("APlus_movement", handleAPlus);
+                socket.current.off("singleplayer_APlus", handleSingleAPlus);
             }
         };
     }, []);

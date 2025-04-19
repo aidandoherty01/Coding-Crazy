@@ -60,7 +60,7 @@ const server = http.createServer(app); // Wraps express and socket.io into http
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -235,10 +235,16 @@ async function updateSession(room) {
 
 /* Called after confirming settings in HostPage.jsx */
 app.post("/create_lobby", async (req, res) => {
-  const { numPlayers, difficulty, isPublic } = req.body;
+  const { numPlayers, difficulty, isPublic, numTurns } = req.body;
   console.log(Object.keys(sessions).length);
   const acCode = generateRoomCode(Object.keys(sessions).length);
-  sessions[acCode] = new gameSession(acCode, numPlayers, difficulty, isPublic);
+  sessions[acCode] = new gameSession(
+    acCode,
+    numPlayers,
+    difficulty,
+    isPublic,
+    numTurns
+  );
   sendRoomToDB(sessions[acCode]);
   res.status(200).json(acCode);
 });
@@ -293,14 +299,14 @@ io.on("connection", (socket) => {
     /* Attempting to rejoin lobby if disconnected */
     if (sessions[accessCode].findUsername(username)) {
       console.log(`${username} is reconnecting to ${accessCode}`);
-      
-      socket.join(accessCode);  // reconnect socket to room
+
+      socket.join(accessCode); // reconnect socket to room
       io.to(accessCode).emit(
         "lobby_users",
         sessions[accessCode].getUsernames()
       );
-      
-      if(sessions[accessCode].gameStarted) {
+
+      if (sessions[accessCode].gameStarted) {
         socket.emit("start_game");
       } else {
         socket.emit("lobby_good", { message: "Reconnected to Lobby." });
@@ -340,7 +346,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("leave_lobby", (accessCode) => {
+  socket.on("leave_lobby", async (accessCode) => {
     if (sessions[accessCode]) {
       const username = sessions[accessCode].findUsername(socket.id);
       if (username) {
@@ -352,6 +358,9 @@ io.on("connection", (socket) => {
       }
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
+        const roomData = JSON.stringify([{ roomCode: accessCode }]);
+        await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+        await removeEntryFromDB("Sessions");
       }
     }
     console.log("Left", socket.id);
@@ -368,6 +377,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("move_player", ({ roomCode, username, path }) => {
+    if (roomCode == "AA") {
+      return;
+    }
     console.log("a movement!", path);
     console.log(roomCode);
     const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
@@ -375,8 +387,24 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("movement", { movingPlayer: username, path: path });
   });
 
+  socket.on("SpinnerResult", ({ spinRes, username, roomCode }) => {
+    if (roomCode == "AA") {
+      return;
+    }
+    io.to(roomCode).emit("spin_move", {
+      movingPlayer: username,
+      spinRes: spinRes,
+    });
+  });
+
   socket.on("player_landing", async ({ roomCode, username, loc }) => {
     try {
+      if (roomCode === "AA") {
+        io.to(roomCode).emit("singleplayer_move", {
+          movingPlayer: username,
+        });
+        return;
+      }
       queueRoomTask(roomCode, async () => {
         await exportSessionToJson(roomCode);
         const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
@@ -399,6 +427,10 @@ io.on("connection", (socket) => {
               loc: loc,
               nextPlayer: keys[session.currPlayer],
             });
+            const roomData = JSON.stringify([session]);
+            await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+            await removeEntryFromDB("Sessions");
+            delete sessions[roomCode];
           } else {
             //end turn conditions
             io.to(roomCode).emit("full_turn", {
@@ -423,6 +455,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("Aplus_moved", async ({ roomCode, username, loc }) => {
+    if (roomCode == "AA") {
+      io.to(roomCode).emit("singleplayer_APlus", { collector: username });
+      return;
+    }
     queueRoomTask(roomCode, async () => {
       await exportSessionToJson(roomCode);
       const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
