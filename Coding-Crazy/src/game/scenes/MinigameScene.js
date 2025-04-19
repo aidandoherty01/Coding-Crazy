@@ -60,6 +60,7 @@ class MinigameScene extends Phaser.Scene {
       immovable: true,
     });
     this.challengePlatforms = this.physics.add.staticGroup();
+    this.challengeStructures = this.add.group();
 
     // Create floor and walls
     this.floor = this.physics.add
@@ -436,7 +437,7 @@ class MinigameScene extends Phaser.Scene {
     const challengeSpacing = 150;
     const baseY = this.lastPlatformY - challengeSpacing;
     const centerX = this.scale.width / 2;
-    console.log("Challenge structure baseY:", baseY);
+
     // Create challenge base
     this.challengeBase = this.challengePlatforms
       .create(centerX, baseY, "grass_platform")
@@ -444,6 +445,8 @@ class MinigameScene extends Phaser.Scene {
       .setDepth(1)
       .refreshBody();
     this.challengeBase.setData("challengeBase", true);
+    this.challengeStructures.add(this.challengeBase);
+
     // Create trampoline
     const trampoline = this.physics.add
       .staticImage(centerX, baseY - 20, "mushroom_red")
@@ -461,6 +464,8 @@ class MinigameScene extends Phaser.Scene {
         ease: "Quad.easeInOut",
       });
     });
+    this.challengeStructures.add(trampoline);
+
     // Create answer platforms
     const answerY = baseY - 400;
     const totalPlatforms = 4;
@@ -476,14 +481,16 @@ class MinigameScene extends Phaser.Scene {
         .refreshBody();
       answerPlatform.setData("isAnswer", true);
       answerPlatform.setData("option", option);
-      this.add
+      const optionText = this.add
         .text(x, answerY - 50, option, {
           fontSize: "24px",
           fill: "#fff",
           fontStyle: "bold",
         })
         .setOrigin(0.5);
+        this.challengeStructures.add(optionText);
     }
+
     this.challengeQuestionY = answerY - 200;
     this.challengeQuestionText = this.add
       .text(centerX, baseY - 200, this.currentQuestion.question, {
@@ -495,7 +502,7 @@ class MinigameScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setScrollFactor(1);
-
+      this.challengeStructures.add(this.challengeQuestionText);
     this.challengeActive = true;
     this.lastPlatformY = baseY - 800;
     this.platformSpawningEnabled = true;
@@ -527,32 +534,23 @@ class MinigameScene extends Phaser.Scene {
         this.displayResultBanner("Incorrect", "#ff0000");
         this.sound.play("incorrect");
         platform.destroy();
-        // Spawn the happy cloud under where the platform was.
-        // For example, position it a little below the destroyed platform.
+
         const cloudY = platform.y + platform.displayHeight / 2;
         const cloud = this.add
           .sprite(platform.x, cloudY, "happy_cloud")
           .setOrigin(0.5)
           .setScale(0.8);
 
-        // Optionally add physics if you want it to interact further.
-        // this.physics.add.existing(cloud);
-        // cloud.body.setAllowGravity(false);
-
-        // Disable the player's gravity so they can be carried upward.
+        // Disable the player's gravity so they can be carried upward
         player.body.allowGravity = false;
-        // Optionally, you may also zero out any vertical velocity.
         player.setVelocityY(0);
 
-        // Tween both cloud and player upward.
         this.tweens.add({
           targets: [cloud, player],
           y: `-=${650}`,
           duration: 5000,
           ease: "Linear",
           onComplete: () => {
-            // Clean up: destroy the cloud, re-enable player's gravity,
-            // and allow the player to resume normal movement.
             cloud.destroy();
             player.body.allowGravity = true;
           },
@@ -569,7 +567,7 @@ class MinigameScene extends Phaser.Scene {
   }
 
   displayResultBanner(message, color) {
-    // Create a text object at the center of the camera.
+    // Create a text object at the center of the camera
     const banner = this.add
       .text(this.cameras.main.centerX, this.cameras.main.centerY, message, {
         fontSize: "48px",
@@ -581,13 +579,13 @@ class MinigameScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(1);
 
-    // Tween to fade out and destroy the banner after showing for a few seconds.
+    // Tween to fade out and destroy the banner after showing for a few seconds
     this.tweens.add({
       targets: banner,
       alpha: 0,
       ease: "Linear",
       delay: 3000, // Keep the banner visible for 2 seconds
-      duration: 100, // Fade out over 0.5 seconds
+      duration: 100,
       onComplete: () => {
         banner.destroy();
       },
@@ -612,7 +610,7 @@ class MinigameScene extends Phaser.Scene {
         (player.body.blocked.left || player.body.blocked.right) &&
         !player.getData("hasWallJumped")
       ) {
-        // In contact with a wall *and* hasn't wall jumped yet: allow wall jump.
+        // In contact with a wall *and* hasn't wall jumped yet: allow wall jump
         player.setData("canJump", true);
       } else {
         // Otherwise, disable jump.
@@ -665,11 +663,12 @@ class MinigameScene extends Phaser.Scene {
         }
       }
       // Clean up off screen platforms
+      this.cleanupGroup(this.movingPlatforms);
       this.cleanupGroup(this.platforms);
       this.cleanupGroup(this.challengePlatforms);
+      this.cleanupGroup(this.challengeStructures);
       if (player.y > cameraY + this.scale.height + 100) {
-        console.log("💀 Game Over");
-        this.scene.restart();
+        this.endGame();
       }
     });
   }
@@ -686,13 +685,14 @@ class MinigameScene extends Phaser.Scene {
 
     // show final banner
     this.displayResultBanner(
-      `Time’s up!\nYour score: ${scoreMeters}m`,
+      `Game Over!\nScore: ${scoreMeters}m`,
       "#ff0000"
     );
 
     // then go back to your return scene
     this.time.delayedCall(5000, () => {
-      this.scene.start(this.returnScene);
+      this.scene.stop();
+      this.scene.resume(this.returnScene);
     });
   }
 }

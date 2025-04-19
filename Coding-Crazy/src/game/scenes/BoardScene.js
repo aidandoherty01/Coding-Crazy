@@ -78,17 +78,17 @@ class BoardScene extends Phaser.Scene {
     }
     console.log(this.players);
     console.log(this.username);
-    
-    this.testMinigame = this.add.text(300, 50, 'Minigame', { 
-      font: '20px Arial', 
-      fill: '#ffffff', 
-      backgroundColor: '#ff0000',
-      padding: { x: 10, y: 5 }
+
+    this.testMinigame = this.add.text(300, 50, "Minigame", {
+      font: "20px Arial",
+      fill: "#ffffff",
+      backgroundColor: "#ff0000",
+      padding: { x: 10, y: 5 },
     });
 
     this.testMinigame.setInteractive();
-    this.testMinigame.on('pointerdown', () => {
-        this.startMinigame();
+    this.testMinigame.on("pointerdown", () => {
+      this.startMinigame();
     });
 
     this.testTurnButton = this.add.text(500, 50, "Start Turn", {
@@ -166,6 +166,16 @@ class BoardScene extends Phaser.Scene {
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
+  }
+
+  startMinigame() {
+    console.log("🚀 Launching Minigame...");
+
+    this.scene.launch("MinigameScene", {
+      returnScene: "BoardScene",
+    });
+    
+    this.scene.pause("BoardScene");
   }
 
   startPlayerTurn() {
