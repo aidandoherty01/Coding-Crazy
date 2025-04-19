@@ -377,6 +377,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("move_player", ({ roomCode, username, path }) => {
+    if (roomCode == "AA") {
+      return;
+    }
     console.log("a movement!", path);
     console.log(roomCode);
     const socketsInRoom = io.sockets.adapter.rooms.get(roomCode);
@@ -385,6 +388,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("SpinnerResult", ({ spinRes, username, roomCode }) => {
+    if (roomCode == "AA") {
+      return;
+    }
     io.to(roomCode).emit("spin_move", {
       movingPlayer: username,
       spinRes: spinRes,
@@ -393,6 +399,12 @@ io.on("connection", (socket) => {
 
   socket.on("player_landing", async ({ roomCode, username, loc }) => {
     try {
+      if (roomCode === "AA") {
+        io.to(roomCode).emit("singleplayer_move", {
+          movingPlayer: username,
+        });
+        return;
+      }
       queueRoomTask(roomCode, async () => {
         await exportSessionToJson(roomCode);
         const fileData = await fs.promises.readFile(_sessionPath, "utf-8");
@@ -443,6 +455,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("Aplus_moved", async ({ roomCode, username, loc }) => {
+    if (roomCode == "AA") {
+      io.to(roomCode).emit("singleplayer_APlus", { collector: username });
+      return;
+    }
     queueRoomTask(roomCode, async () => {
       await exportSessionToJson(roomCode);
       const fileData = await fs.promises.readFile(_sessionPath, "utf-8");

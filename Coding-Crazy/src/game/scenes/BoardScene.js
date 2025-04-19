@@ -148,6 +148,17 @@ class BoardScene extends Phaser.Scene {
       );
     });
 
+    this.socket.on("singleplayer_move", (data) => {
+      console.log("sp move", data);
+      if (data.movingPlayer === this.username) {
+        if (this.turnsLeft === 1) {
+          this.endMessage();
+        } else {
+          this.betweenTurnsToStart();
+        }
+      }
+    });
+
     this.events.on("shutdown", () => {
       this.socket.off("movement");
       this.socket.off("APlus_movement");
@@ -155,6 +166,7 @@ class BoardScene extends Phaser.Scene {
       this.socket.off("full_turn");
       this.socket.off("game_complete");
       this.socket.off("spin_move");
+      this.socket.iff("singleplayer_move");
     });
 
     // Emit an event to notify the React component that the scene is ready
