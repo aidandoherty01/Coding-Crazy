@@ -82,18 +82,6 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log(this.username);
 
-    this.testMinigame = this.add.text(300, 50, "Minigame", {
-      font: "20px Arial",
-      fill: "#ffffff",
-      backgroundColor: "#ff0000",
-      padding: { x: 10, y: 5 },
-    });
-
-    this.testMinigame.setInteractive();
-    this.testMinigame.on("pointerdown", () => {
-      this.startMinigame();
-    });
-
     this.socket.on("movement", (data) => {
       console.log(data);
       console.log(this.username);
@@ -444,6 +432,12 @@ class BoardScene extends Phaser.Scene {
     }
   }
 
+  startMinigame() {
+    console.log("Minigame launching…");
+    this.scene.pause("BoardScene");
+    this.scene.launch("MinigameScene", { returnScene: "BoardScene" });
+  }
+
   endMessage() {
     if (this.usernameList.length === 1) {
       this.scene.launch("MessageScene", { message: "Well Done!" });
@@ -469,12 +463,15 @@ class BoardScene extends Phaser.Scene {
   }
 
   betweenTurnsToStart() {
-    //Spot to start up minigame
+    this.events.once("resume", this.handleBetweenTurns, this);
+    this.startMinigame();
     //Note: Turn token is already passed in clean-up function,
     //So when minigame ends, just work with what's already set for next turn
+  }
 
-    //Now all the stuff after the minigame
+  handleBetweenTurns() {
     this.turnsLeft--;
+
     this.bottomMessage.setText(
       `Turn ${this.game.config.stateObject.numTurns - this.turnsLeft + 1} of ${
         this.game.config.stateObject.numTurns
@@ -484,6 +481,7 @@ class BoardScene extends Phaser.Scene {
       this.boxX + (this.boxWidth - this.bottomMessage.width) / 2,
       this.boxY + (2 * (this.boxHeight - this.bottomMessage.height)) / 3
     );
+
     this.startUpTurn();
   }
 
