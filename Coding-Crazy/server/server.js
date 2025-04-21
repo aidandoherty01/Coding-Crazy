@@ -346,20 +346,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("leave_lobby", async (accessCode) => {
+  socket.on("leave_lobby", async ({accessCode, username}) => {
     if (sessions[accessCode]) {
-      const username = sessions[accessCode].findUsername(socket.id);
-      if (username) {
+      // const username = sessions[accessCode].findUsername(socket.id);
+      // if (username) {
         sessions[accessCode].deleteUser(username);
         io.to(accessCode).emit(
           "lobby_users",
           sessions[accessCode].getUsernames()
         );
-      }
+      // }
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
         const roomData = JSON.stringify([{ roomCode: accessCode }]);
-        await fs.writeFileSync(export_to_mongo, roomData, "utf-8");
+        fs.writeFileSync(export_to_mongo, roomData, "utf-8");
         await removeEntryFromDB("Sessions");
       }
     }

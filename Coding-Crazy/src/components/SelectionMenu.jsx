@@ -1,33 +1,62 @@
 import React, { useEffect, useState } from "react";
+import { FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material";
 
-function SelectionMenu({onSelect}) {
-    
-    const [subjects, setSubjects] = useState([]);  // State to store unique subjects
+function SelectionMenu({ onSelect }) {
+    const [subjects, setSubjects] = useState([]);
+    const [selected, setSelected] = useState("");
 
+    /* Retrieve study set from database */
     useEffect(() => {
-        /*Potentially make change to allow custom url for scalability or sum*/
-        fetch("https://coding-crazy.onrender.com/subjects")    // Fetch the data
-        .then((res) => res.json())  // Jsonify the data
-        .then((data) => setSubjects(data))  // Store the subjects
-        .catch((error) => console.error("Error fetching subjects: ", error));
-    }, []); // empty dependencies field to ensure only executes once on component mount
+        fetch("https://coding-crazy.onrender.com/subjects")
+            .then((res) => res.json())
+            .then((data) => setSubjects(data))
+            .catch((error) => console.error("Error fetching subjects: ", error));
+    }, []);
 
+    /* Update selected value from dropdown menu */
     const handleChange = (event) => {
-        if (onSelect) { // If event was an onSelect
-            onSelect(event.target.value);    // when selection menu option is changed, update selected value
-            console.log("Selected value: ", event.target.value);
+        const value = event.target.value;
+        setSelected(value);
+        if (onSelect) {
+            onSelect(value);
         }
     };
 
     return (
-        <select onChange={handleChange}>
-            <option value="">Select A Subject</option>
-            {
-                subjects.map((e) => (   // for each item in subjects, create an option
-                    <option key={e} value={e}>{e}</option>
-                ))
-            }
-        </select>
+        <Box sx={{ minWidth: 240, mx: "auto" }}>
+            <FormControl fullWidth variant="filled">
+                <InputLabel sx={{ color: "#cbd5e1" }}>Select a Subject</InputLabel>
+                <Select
+                    value={selected}
+                    onChange={handleChange}
+                    sx={{
+                        bgcolor: "#334155",
+                        color: "white",
+                        "& .MuiSelect-icon": { color: "white" }, // dropdown arrow
+                        "& .MuiSelect-filled.Mui-focused": {
+                            bgcolor: "#334155"
+                        }
+                    }}
+                    MenuProps={{
+                        PaperProps: {
+                            sx: {
+                                bgcolor: "#1e293b",
+                                color: "white"
+                            }
+                        }
+                    }}
+                >
+                    <MenuItem value="">
+                        <em style={{ color: "#cbd5e1" }}>None</em>
+                    </MenuItem>
+                    {subjects.map((subject) => (
+                        <MenuItem key={subject} value={subject} sx={{ color: "#cbd5e1" }}>
+                            {subject}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+        </Box>
     );
 }
 

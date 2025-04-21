@@ -1,42 +1,42 @@
 [
   {
-    "question": "What is 5 + 7?",
+    "question": "Which language is primarily used for web development?",
     "options": [
-      "10",
-      "11",
-      "12",
-      "9"
+      "Python",
+      "C++",
+      "JavaScript",
+      "Ruby"
     ],
-    "answer": "12"
+    "answer": "JavaScript"
   },
   {
-    "question": "What is the square root of 64?",
+    "question": "What does HTML stand for?",
     "options": [
-      "6",
-      "7",
-      "8",
-      "9"
+      "HyperText Markup Language",
+      "High-Level Machine Learning",
+      "Hyper Transfer Machine Logic",
+      "HyperText Markdown Language"
     ],
-    "answer": "8"
+    "answer": "HyperText Markup Language"
   },
   {
-    "question": "What is the value of π (pi) rounded to two decimal places?",
+    "question": "Which data structure uses FIFO (First In, First Out)?",
     "options": [
-      "3.12",
-      "3.14",
-      "3.16",
-      "3.18"
+      "Stack",
+      "Queue",
+      "Linked List",
+      "Tree"
     ],
-    "answer": "3.14"
+    "answer": "Queue"
   },
   {
-    "question": "If a triangle has angles of 30° and 60°, what is the third angle?",
+    "question": "What is the main function of an operating system?",
     "options": [
-      "60°",
-      "90°",
-      "100°",
-      "120°"
+      "Managing hardware resources",
+      "Compiling code",
+      "Running web browsers",
+      "Writing software"
     ],
-    "answer": "90°"
+    "answer": "Managing hardware resources"
   }
 ]

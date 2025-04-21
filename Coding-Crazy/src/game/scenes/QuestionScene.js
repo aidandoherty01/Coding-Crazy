@@ -11,6 +11,12 @@ class QuestionScene extends Phaser.Scene {
     this.quizManager = null;
   }
 
+  /*
+
+      Format boxes to wrap text for long wordy options.
+
+  */
+
   // Initialize the scene ON EVERY RESTART
   init(data) {
     const storedQuestions = this.registry.get("questions");

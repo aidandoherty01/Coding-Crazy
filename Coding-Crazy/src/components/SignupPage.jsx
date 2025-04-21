@@ -1,9 +1,8 @@
-import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
+import { Box, Button, Typography, Grid, TextField, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function SignupPage() {
-    /* IMPLEMENT EMAIL CHECKING TO PREVENT ACCOUNT CREATION SPAM */
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [signUpError, setSignUpError] = useState("");
@@ -16,7 +15,7 @@ function SignupPage() {
     });
 
     const checkRedirect = async () => {
-        if(localStorage.getItem("username")) { navigate("/account"); }
+        if(localStorage.getItem("username")) { navigate("/account"); }  // only navigate if the user is logged in
     }
     
     const signupAccount = async () => {
@@ -58,47 +57,58 @@ function SignupPage() {
 
         } catch (error) {
             console.error("Error creating account:", error);
-            setSignUpError(`Account Creation Failed.\n${error}`);
+            setSignUpError(`Account Creation Failed.\nUsername has already been taken.`);
         }
     };
 
     return (
-        <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
-            { isLoggedIn ? (
-                <Box textAlign="center" py={5}>
-                    <h1>You are signed in. Please wait to be rerouted.</h1>
-                    <Button component={Link} to="/">Return to Home Page</Button>
-                </Box>
-            ) : (
-                <Box>
-                    {/* Input Section */}
-                    <Box textAlign="center" py={5}>
-                        {/* Potential pitfall with re-redner on each keystroke: https://react.dev/reference/react-dom/components/input#usage*/}
-                        <div>
-                            <label>
-                                Username: <input value={username} placeholder="Input Username Here" onChange={event => setUsername(event.target.value)} />
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                Password: <input value ={password} placeholder="Input Password Here" onChange={event => setPassword(event.target.value)} />
-                            </label>
-                        </div>
+        <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <Container maxWidth="sm" sx={{ py: 8 }}>
+                {isLoggedIn ? (
+                    <Box textAlign="center">
+                        <Typography variant="h4">You are signed in. Redirecting...</Typography>
+                        <Button variant="outlined" color="secondary" component={Link} to="/" sx={{ mt: 3 }}>Return to Home</Button>
                     </Box>
+                ) : (
+                    <Card sx={{ bgcolor: "#1e293b", borderRadius: 3, color: "white", p: 4 }}>
+                        <CardContent>
+                            <Typography variant="h4" align="center" gutterBottom>Sign Up</Typography>
+                            <Box mt={3}>
+                                <TextField
+                                    fullWidth
+                                    label="Username"
+                                    variant="filled"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    InputProps={{ sx: { bgcolor: "#334155", color: "white" }, inputProps: { maxLength: 25 } }}
+                                    InputLabelProps={{ sx: { color: "#cbd5e1" } }}
+                                    sx={{ mb: 3 }}
+                                />
 
-                    {/* Confirmation Section */}
-                    <Box textAlign="center" py={5}>
-                        <h3>Your Username: {username}</h3>
-                        <h3>Your Password: {password}</h3>
-                        <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={
-                            () => signupAccount()}>Submit Signup Info</Button>
-                        <h2>{signUpError || ""}</h2> {/* Display success message */}
-                    </Box>
-                </Box>
-            )}
+                                <TextField
+                                    fullWidth
+                                    type="password"
+                                    label="Password"
+                                    variant="filled"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    InputProps={{ sx: { bgcolor: "#334155", color: "white" }, inputProps: { maxLength: 25 } }}
+                                    InputLabelProps={{ sx: { color: "#cbd5e1" } }}
+                                />
+                            </Box>
+                            {signUpError && (
+                                <Typography variant="body2" color="error" mt={2}>{signUpError}</Typography>
+                            )}
+                            <Box textAlign="center" mt={4}>
+                                <Button variant="contained" color="primary" onClick={signupAccount}>Submit</Button>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                )}
+            </Container>
 
             {/* Footer */}
-            <Box sx={{ bgcolor: "#1e293b", mt: 5, py: 3, textAlign: "center" }}>
+            <Box sx={{ bgcolor: "#1e293b", py: 3, textAlign: "center" }}>
                 <Grid container justifyContent="center" spacing={4}>
                     {[
                         { title: "About", links: ["Our Story", "Team", "Careers"] },
