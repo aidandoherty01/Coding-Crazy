@@ -15,7 +15,7 @@ const _defaultExportPath = path.join(
   "src",
   "data",
   "export_to_mongo.json"
-); // file being read from
+);
 const _defaultUpdatePath = path.join(
   import.meta.dirname,
   "..",
