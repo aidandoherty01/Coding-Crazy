@@ -6,6 +6,12 @@ import {
   make_original_digraph,
 } from "../../data/board_graph";
 import { Player } from "../../classes/playerClass";
+import { 
+    callAddPlayer, 
+    callGetPlayerData, 
+    callRemovePlayer, 
+    callUpdatePlayerInfo 
+} from "../../managers/GameStateManager";
 import UIStyles from "../../css/uiStyles";
 
 class BoardScene extends Phaser.Scene {
@@ -43,7 +49,7 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log("🎮 BoardScene is now active!");
 
-    this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
+    this.add.image(0, 0, "modified_board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
     if (this.game.config.stateObject.APlusLoc) {
@@ -57,27 +63,67 @@ class BoardScene extends Phaser.Scene {
       .image(
         this.original_board.getVertex(this.ANode).x * 32 - 16,
         this.original_board.getVertex(this.ANode).y * 32 - 16,
-        "A+"
+        "report_card"
       )
-      .setScale(0.25);
+      .setScale(0.12);
     this.playerSprites = {};
     this.playerTitles = {};
+    const characterSprites = ["player", "blue_player", "grey_player", "black_player",  "dull_player", "red_player"];
+    let playerCount = 0;
+
     for (const pyer in this.players) {
-      console.log("PYER: ", pyer);
-      const xPix =
-        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
-      const yPix =
-        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
-      this.playerSprites[pyer] = this.add
-        .sprite(xPix, yPix, "player", 6)
-        .setScale(0.6);
-      this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
-        fontSize: "16px Arial",
-        fill: "rgba(255, 255, 255, 0.75)",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
-      });
-      this.playerTitles[pyer].setOrigin(0.5, 1);
+        
+        const spriteAssignment = characterSprites[playerCount];
+
+        //Add players to collection when board is initialized
+        callAddPlayer(this.players[pyer])
+            .then(() => callGetPlayerData(pyer))
+            .then((playerData) => {
+                // Create sprites at starting point when new game starts since player values default to 0
+                if(playerData.x == 0 && playerData.y == 0) {
+                    const xPix =
+                        this.original_board.getVertex(this.players[pyer].loc).x * 32 - 16;
+                    const yPix =
+                        this.original_board.getVertex(this.players[pyer].loc).y * 32 - 16;
+                        console.log("xPix: ", xPix);
+                        console.log("yPix: ", yPix);
+                    this.playerSprites[pyer] = this.add
+                        //.sprite(xPix, yPix, "player", 6)
+                        .sprite(xPix, yPix, spriteAssignment, 6)
+                        .setScale(0.6);
+                    this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
+                        fontSize: "16px Arial",
+                        fill: "rgba(255, 255, 255, 0.75)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+                    });
+                    this.playerTitles[pyer].setOrigin(0.5, 1);
+                }
+                // Set player values to values stored in DB and create sprites based on those values
+                // when player refreshes/disconnects
+                else {
+                    
+                    this.players[pyer].setLoc(playerData.loc);
+                    this.players[pyer].setCoordinateValues(playerData.x, playerData.y);
+                    this.players[pyer].setnumAPlusses(playerData.numAPlusses);
+
+                    this.playerSprites[pyer] = this.add
+                        //.sprite(playerData.x, playerData.y, "player", 6)
+                        .sprite(playerData.x, playerData.y, spriteAssignment, 6)
+                        //.sprite(xPix, yPix, "player", 6)
+                        .setScale(0.6);
+                        
+                    this.playerTitles[pyer] = this.add.text(playerData.x, playerData.y - 20, pyer, {
+                        fontSize: "16px Arial",
+                        fill: "rgba(255, 255, 255, 0.75)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+                    });
+                    
+                    this.playerTitles[pyer].setOrigin(0.5, 1);
+                }
+            })
+        playerCount++;
     }
     console.log(this.players);
     console.log(this.username);
@@ -130,10 +176,12 @@ class BoardScene extends Phaser.Scene {
       this.betweenTurnsToStart();
     });
 
+
     this.socket.on("game_complete", (data) => {
       console.log(data);
       //Do end game actions
       this.endMessage();
+      callRemovePlayer(this.username);
       localStorage.setItem("isReconnect", "false");
       localStorage.removeItem("roomCode");
       window.dispatchEvent(new Event("reconnect"));
@@ -272,19 +320,19 @@ class BoardScene extends Phaser.Scene {
     if (pathDir == Direction.UP) {
       x_val = 0;
       y_val = -32;
-      this.playerSprites[playerIndex].play("walk_north");
+      this.playerSprites[playerIndex].play(this.playerSprites[playerIndex].texture.key + "_walk_north");
     } else if (pathDir == Direction.DOWN) {
       x_val = 0;
       y_val = 32;
-      this.playerSprites[playerIndex].play("walk_south");
+      this.playerSprites[playerIndex].play(this.playerSprites[playerIndex].texture.key + "_walk_south");
     } else if (pathDir == Direction.RIGHT) {
       x_val = 32;
       y_val = 0;
-      this.playerSprites[playerIndex].play("walk_east");
+      this.playerSprites[playerIndex].play(this.playerSprites[playerIndex].texture.key + "_walk_east");
     } else {
       x_val = -32;
       y_val = 0;
-      this.playerSprites[playerIndex].play("walk_west");
+      this.playerSprites[playerIndex].play(this.playerSprites[playerIndex].texture.key + "_walk_west");
     }
     this.tweens.add({
       targets: this.playerSprites[playerIndex],
@@ -300,6 +348,17 @@ class BoardScene extends Phaser.Scene {
         );
       },
       onComplete: () => {
+
+        //Checks and updates current user/player info and not for other players.
+        if(this.username == this.players[playerIndex].id) {
+            callUpdatePlayerInfo(
+                this.players[playerIndex].id,
+                this.players[playerIndex].loc,
+                this.playerSprites[playerIndex].x,
+                this.playerSprites[playerIndex].y,
+                this.players[playerIndex].numAPlusses
+            );
+        }
         if (index < path.length - 1) {
           this.walkThePath(path, index + 1, spacesLeft, playerIndex);
         } else if (spacesLeft > 1) {
