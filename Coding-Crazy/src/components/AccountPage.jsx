@@ -9,7 +9,6 @@ function AccountPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
     const [successMessage, setSuccessMessage] = useState("");
     const [updatedUsername, setUpdatedUsername] = useState("");
-    const [currentPassword, setCurrentPassword] = useState("");
     const [updatedPassword, setUpdatedPassword] = useState("");
     const [loginError, setLoginError] = useState("");
 
@@ -20,32 +19,42 @@ function AccountPage() {
             if (localStorage.getItem("roomCode")) {
                 throw new Error("Account is associated with a game. Finish the session first.");
             }
-
             if (!isLoggedIn) {
                 throw new Error("User is not logged in.");
             }
-
-            if (!updatedUsername && (!currentPassword || !updatedPassword)) {
-                throw new Error("Please provide a new username or both password fields.");
+            if (!updatedUsername && !updatedPassword) { // XOR
+                throw new Error("Please provide a new username or password.");
             }
 
+            /* Select Target */
+            let target = "";
+            let value = "";
+            if (updatedUsername) {
+                target = "username";
+                value = updatedUsername;
+            }
+            else {
+                target = "password";
+                value = updatedPassword;
+            }
+
+            /* Attempt Update */
             const username = localStorage.getItem("username");
             const response = await fetch("https://coding-crazy.onrender.com/update/Accounts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username,
-                updatedUsername,
-                currentPassword,
-                updatedPassword,
-            }),
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "target" : target,
+                    "key" : username,
+                    "value" : value,
+                }),
             });
 
             if (!response.ok) {
-            throw new Error(`${response.status} - ${response.statusText}`);
+                throw new Error(`${response.status} - ${response.statusText}`);
             }
 
-            // const data = await response.json();
+            const data = await response.json();
 
             if (data.username) {
                 localStorage.setItem("username", data.username);
@@ -63,14 +72,15 @@ function AccountPage() {
 
     const deleteAccount = async () => {
         try {
+            /* Saftey Checks */
             if (localStorage.getItem("roomCode")) {
                 throw new Error("Account is associated with a game. Finish the session first.");
             }
-
             if (!isLoggedIn) {
                 throw new Error("User is not logged in.");
             }
 
+            /* Attempt Delete */
             const username = localStorage.getItem("username");
             const response = await fetch("https://coding-crazy.onrender.com/remove/Accounts", {
                 method: "POST",
@@ -82,11 +92,12 @@ function AccountPage() {
                 throw new Error(`${response.status} - ${response.statusText}`);
             }
 
-            localStorage.clear();
+            localStorage.clear();   // Remove stored credentials
             window.dispatchEvent(new Event("storage"));
 
             setSuccessMessage("Account successfully deleted.");
             setIsLoggedIn(false);
+
         } catch (error) {
             console.error("Account deletion failed:", error);
         }
@@ -121,19 +132,6 @@ return (
 
                         <TextField
                             fullWidth
-                            type="password"
-                            label="Current Password"
-                            variant="filled"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            InputProps={{ sx: { bgcolor: "#334155", color: "white" }, inputProps: { maxLength: 25 } }}
-                            InputLabelProps={{ sx: { color: "#cbd5e1" } }}
-                            sx={{ mb: 3 }}
-                        />
-
-                        <TextField
-                            fullWidth
-                            type="password"
                             label="New Password"
                             variant="filled"
                             value={updatedPassword}

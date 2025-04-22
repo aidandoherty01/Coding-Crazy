@@ -130,9 +130,8 @@ app.post("/update/:collection", async (req, res) => {
   try {
     /* Store Parameters */
     const collection = req.params.collection;
-    const key = req.body.key;
-    const value = req.body.value;
-    console.log(`Key: ${key}, Value: ${value}`);
+    const {target, key, value} = req.body;
+    console.log(`Target: ${target}, Key: ${key}, Value: ${value}`);
     return;
 
     /* Access Specified Collection */
