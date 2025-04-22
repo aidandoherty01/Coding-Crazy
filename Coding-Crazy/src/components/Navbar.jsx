@@ -16,18 +16,17 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 function Navbar() {
-  const theme = useTheme();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("username") != null
-  );
-  const [reconnectMessage, setReconnectMessage] = useState("");
+    const theme = useTheme();
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+    const [reconnectMessage, setReconnectMessage] = useState("");
 
   /* Event handlers for logging in or reconnecting */
   useEffect(() => {
     const checkLoginStatus = () => {
-      console.log("Login event received.");
-      setIsLoggedIn(localStorage.getItem("username") != null);
+        console.log("Login event received.");
+        setIsLoggedIn(localStorage.getItem("username") != null);
+        setUsername(localStorage.getItem("username"));
     };
 
     const checkReconnectStatus = () => {
@@ -173,7 +172,7 @@ function Navbar() {
             ) : (
               <>
                 <Typography sx={{ color: "#fff", alignSelf: "center" }}>
-                  Hi, {localStorage.getItem("username")}
+                  Hi, {username}
                 </Typography>
                 <Button
                   onClick={signOut}
