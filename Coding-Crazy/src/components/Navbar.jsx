@@ -172,7 +172,7 @@ function Navbar() {
             ) : (
               <>
                 <Typography sx={{ color: "#fff", alignSelf: "center" }}>
-                  Hi, {username}
+                  {localStorage.getItem("username") ? `Hi, ${localStorage.getItem("username")}`: "Hi!"}
                 </Typography>
                 <Button
                   onClick={signOut}
