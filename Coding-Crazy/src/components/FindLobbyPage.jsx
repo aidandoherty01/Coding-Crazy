@@ -186,7 +186,7 @@ function FindLobbyPage() {
               ))}
             </List>
           ) : (
-            <Typography align="center">Loading...</Typography>
+            <Typography align="center" variant = "h4">No Lobbies Found</Typography>
           )
         ) : (
           <Box
