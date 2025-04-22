@@ -17,6 +17,13 @@ import {
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
+import { 
+    addPlayerToDB, 
+    getAllPlayerData, 
+    getPlayerData, 
+    updatePlayerInfo, 
+    removePlayerFromDB 
+} from "./updatePlayerCollection.js";
 import http from "http";
 import fs, { access, accessSync } from "fs";
 
@@ -283,6 +290,83 @@ app.get("/public_lobbies", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+//Add player stats into database
+app.post('/add-player', async (req, res) => {
+
+    try {
+            const {id, loc, x, y, numAPlusses} = req.body;
+            const player = await addPlayerToDB('Player', 'Collection', id, loc, x, y, numAPlusses);
+            res.json(player);
+    } 
+    catch (error) {
+        console.log("Error adding player (server).", error);
+    }
+});
+
+
+//Update a players information in the collection
+app.patch('/update-player-info', async (req, res) => {
+    try {
+        const {id, loc, x, y, numAPlusses} = req.body;
+        const player = await updatePlayerInfo('Player', 'Collection', id, loc, x, y, numAPlusses);
+        res.status(200).json({ success: true, player });
+    }
+    catch (error){
+        console.log("Error updating player information (server)", error);
+    }
+});
+
+//Removes player from the collection (specifically for game completions)
+app.delete('/remove-player/:id', async (req, res) => {
+    const id  = req.params.id;
+    console.log("Player ID to be removed: " + id);
+
+    try {
+        
+        const playerRemoval = await removePlayerFromDB('Player', 'Collection', id);
+        
+        if (!playerRemoval || playerRemoval.deletedCount === 0) {
+            console.log("Player not found or already removed.");
+            return res.status(404).json({ message: "Player not found." });
+        }
+        console.log("Sucessfully removed player");
+        res.status(200).json(playerRemoval);
+    } 
+    catch (err) {
+        console.error("Error removing player data (server)", err);
+        res.status(500).json({ message: "Server error while removing player." });
+    }
+});
+
+//Retrives a players information from the collection based off their ID
+app.get('/get-player-data/:id', async (req, res) => {
+
+    try {
+        const id  = req.params.id;
+        const playerData = await getPlayerData('Player', 'Collection', id);
+        res.json(playerData);
+        
+        if (!id) {
+            console.log("PLAYER NOT FOUND.");
+        }
+    } 
+    catch {
+        console.log("Error getting player data (server)");
+    }
+})
+
+//Retrieves all players information from the collection
+app.get('/get-all-players', async (req, res) => {
+
+    try {
+        const players = await getAllPlayerData('Player', 'Collection');
+        res.json(players);
+    }
+    catch {
+        console.log("Error from get-all-players");
+    }
+})
 
 /* Socket Manager */
 io.on("connection", (socket) => {
