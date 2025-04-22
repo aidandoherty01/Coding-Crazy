@@ -10,12 +10,13 @@ function AccountPage() {
     const [successMessage, setSuccessMessage] = useState("");
     const [updatedUsername, setUpdatedUsername] = useState("");
     const [updatedPassword, setUpdatedPassword] = useState("");
-    const [loginError, setLoginError] = useState("");
+    const [errorMessage, seterrorMessage] = useState("");
 
     const updateAccount = async () => {
         try {
             /* Saftey Checks */
-            setLoginError("");
+            seterrorMessage("");
+            setSuccessMessage("");
             if (localStorage.getItem("roomCode")) {
                 throw new Error("Account is associated with a game. Finish the session first.");
             }
@@ -40,6 +41,7 @@ function AccountPage() {
 
             /* Attempt Update */
             const username = localStorage.getItem("username");
+            console.log(`Target: ${target}, Key: ${username}, Value: ${value}`);
             const response = await fetch("https://coding-crazy.onrender.com/update/Accounts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -56,15 +58,18 @@ function AccountPage() {
 
             /* On Success */
             if (target == "username") { // Check if username was updated
+                console.log("Updating username in local storage.");
                 localStorage.setItem("username", value);
                 window.dispatchEvent(new Event("storage"));
+            } else {
+                console.log("whhhhhattata");
             }
 
-            setSuccessMessage("Account successfully updated.");
+            setSuccessMessage(response.message);
 
         } catch (error) {
             console.error("Error updating account:", error);
-            setLoginError(error.message);
+            seterrorMessage(error.message);
         }
     };
 
@@ -92,8 +97,6 @@ function AccountPage() {
 
             localStorage.clear();   // Remove stored credentials
             window.dispatchEvent(new Event("storage"));
-
-            setSuccessMessage("Account successfully deleted.");
             setIsLoggedIn(false);
 
         } catch (error) {
@@ -139,8 +142,12 @@ return (
                         />
                     </Box>
 
-                    { loginError && (
-                        <Typography variant="body2" color="error" mt={2}>{loginError}</Typography>
+                    { errorMessage && (
+                        <Typography variant="body2" color="error" mt={2}>{errorMessage}</Typography>
+                    )}
+
+                    { successMessage && (
+                        <Typography variant="body2" color="success" mt={2}>{successMessage}</Typography>
                     )}
 
                     <Box textAlign="center" mt={4}>
@@ -154,7 +161,7 @@ return (
                 </Card>
             ) : (
                 <Box textAlign="center">
-                    <Typography variant="h5" gutterBottom>{ successMessage || "You are not logged into an account."}</Typography>
+                    <Typography variant="h5" gutterBottom>{"You are not logged into an account."}</Typography>
                     <Button variant="outlined" color="secondary" component={Link} to="/">Return to Home</Button>
                 </Box>
             )}

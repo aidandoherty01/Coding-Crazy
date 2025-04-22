@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
+    const [username, setUsername] = useState(localStorage.getItem("username"));
     const [reconnectMessage, setReconnectMessage] = useState("");
 
     /* Event handlers for logging in or reconnecting */
@@ -13,6 +14,7 @@ function Navbar() {
         const checkLoginStatus = () => {
             console.log("Login event received.");
             setIsLoggedIn(localStorage.getItem("username") != null);
+            setUsername(localStorage.getItem("username"));
         };
 
         const checkReconnectStatus = () => {
@@ -92,7 +94,7 @@ function Navbar() {
                                 </Box>
                             ) : (
                                 <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
-                                    <Typography>Logged in as: {localStorage.getItem("username")}</Typography>
+                                    <Typography>Logged in as: {username}</Typography>
                                     <Button color="inherit" variant="outlined" onClick={() => signOut()} component={Link} to="/">Sign Out</Button>
                                 </Box>
                             )}

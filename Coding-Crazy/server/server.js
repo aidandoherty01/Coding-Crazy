@@ -141,6 +141,7 @@ app.post("/update/:collection", async (req, res) => {
         `Please specify a valid collection name. ${collection} is invalid.`
       );
     }
+    res.status(200).json({ message: "Account successfully updated." });
   } catch (err) {
     console.error("Error updating entry in Database: ", err);
     res.status(400).json({ error: err.message });
