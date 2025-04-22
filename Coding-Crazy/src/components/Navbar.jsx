@@ -26,7 +26,7 @@ function Navbar() {
     const checkLoginStatus = () => {
         console.log("Login event received.");
         setIsLoggedIn(localStorage.getItem("username") != null);
-        setUsername(localStorage.getItem("username"));
+        localStorage.getItem("username");
     };
 
     const checkReconnectStatus = () => {
