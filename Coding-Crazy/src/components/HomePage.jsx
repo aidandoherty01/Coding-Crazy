@@ -1,85 +1,176 @@
-import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
+import React from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Container,
+  useTheme,
+} from "@mui/material";
 import { Link } from "react-router-dom";
+import Footer from "./Footer";
 
-function HomePage() {
-    return (
-        <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
+const HomePage = () => {
+  const theme = useTheme();
 
-            {/* Hero Section */}
-            <Box textAlign="center" py={5}>
-                <Typography variant="h3" color="primary">Welcome to Study Studio</Typography>
-                <Typography variant="subtitle1">
-                    Strengthen your learning while experiencing the ultimate gaming adventure.
-                </Typography>
-                <Box mt={2}>
-                    <Button variant="contained" color="success" sx={{ mx: 1 }} component={Link} to="/signup">Sign Up</Button>
-                    <Button variant="contained" color="primary" sx={{ mx: 1 }} component={Link} to="/login">Log In</Button>
-                </Box>
-            </Box>
-
-            {/* Game Screenshot Section */}
-            <Container>
-                <Box display="flex" flexDirection="column" alignItems="center" mt={5}>
-                    <Box
-                        sx={{ width: "80%", height: 200, bgcolor: "#334155", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 2 }}
-                    >
-                        <Typography variant="h6">Screenshot 1</Typography>
-                    </Box>
-                    <Grid container spacing={2} justifyContent="center" mt={2}>
-                        {["Shot 2", "Shot 3", "Shot 4"].map((text, index) => (
-                            <Grid item key={index}>
-                                <Box
-                                    sx={{ width: 100, height: 80, bgcolor: "#475569", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 1 }}
-                                >
-                                    <Typography variant="body2">{text}</Typography>
-                                </Box>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Box>
-            </Container>
-
-            {/* Featured Content Section */}
-            <Box mt={5} px={3}>
-                <Grid container spacing={3} justifyContent="center">
-                    {[
-                        { title: "Latest Updates", desc: "Check out our newest features and improvements!" },
-                        { title: "Community", desc: "Join our growing community of gamers!" },
-                        { title: "Leaderboards", desc: "Compete with players worldwide!" }
-                    ].map((item, index) => (
-                        <Grid item key={index}>
-                            <Card sx={{ width: 250, bgcolor: "#1e293b", color: "white", borderRadius: 2 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>{item.title}</Typography>
-                                    <Typography variant="body2">{item.desc}</Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
-
-            {/* Footer */}
-            <Box sx={{ bgcolor: "#1e293b", mt: 5, py: 3, textAlign: "center" }}>
-                <Grid container justifyContent="center" spacing={4}>
-                    {[
-                        { title: "About", links: ["Our Story", "Team", "Careers"] },
-                        { title: "Support", links: ["FAQ", "Contact", "Help Center"] },
-                        { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Cookie Policy"] },
-                        { title: "Connect", links: ["Twitter", "Discord", "Reddit"] }
-                    ].map((section, index) => (
-                        <Grid item key={index}>
-                            <Typography variant="h6" color="warning.main">{section.title}</Typography>
-                            {section.links.map((link, i) => (
-                                <Typography key={i} variant="body2" sx={{ mt: 1 }}>{link}</Typography>
-                            ))}
-                        </Grid>
-                    ))}
-                </Grid>
-                <Typography variant="body2" sx={{ mt: 2 }}>© 2025 Study Studio. All rights reserved.</Typography>
-            </Box>
+  return (
+    <Box
+      sx={{
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        minHeight: "100vh",
+      }}
+    >
+      {/* Hero Section with gradient background */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+          color: "#fff",
+          py: { xs: 8, md: 12 },
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 900,
+            fontFamily: "Montserrat, sans-serif",
+            textTransform: "uppercase",
+          }}
+        >
+          Welcome to Study Studio
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 4, px: { xs: 2, md: 0 } }}>
+          Strengthen your learning by playing with friends!
+        </Typography>
+        <Box>
+          <Button
+            variant="contained"
+            size="large"
+            component={Link}
+            to="/signup"
+            sx={{ mr: 2, px: 4 }}
+          >
+            Sign Up
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            size="large"
+            component={Link}
+            to="/login"
+            sx={{ px: 4, borderColor: "rgba(255,255,255,0.7)" }}
+          >
+            Log In
+          </Button>
         </Box>
-    );
-}
+      </Box>
+
+      {/* Features Section */}
+      <Box
+        sx={{
+          py: 8,
+          // darker, shifting gradient
+          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.grey[900]} 100%)`,
+          backgroundSize: "400% 400%",
+          animation: "darkGradientShift 10s ease infinite",
+          position: "relative",
+          overflow: "hidden",
+          "@keyframes darkGradientShift": {
+            "0%": { backgroundPosition: "0% 50%" },
+            "50%": { backgroundPosition: "100% 50%" },
+            "100%": { backgroundPosition: "0% 50%" },
+          },
+        }}
+      >
+        <Container>
+          <Typography
+            variant="h4"
+            align="center"
+            gutterBottom
+            sx={{
+              WebkitTextFillColor: "white",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              mb: 4,
+            }}
+          >
+            Why Study Studio?
+          </Typography>
+
+          <Grid container spacing={4} justifyContent="center">
+            {[
+              {
+                icon: "🚀",
+                title: "Latest Updates",
+                desc: "Be the first to try new features.",
+              },
+              {
+                icon: "🤝",
+                title: "Community",
+                desc: "Connect and compete with peers.",
+              },
+              {
+                icon: "🏆",
+                title: "Leaderboards",
+                desc: "Climb the ranks globally.",
+              },
+            ].map((item, idx) => (
+              <Grid item xs={12} sm={6} md={4} key={idx}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    borderRadius: 2,
+                    p: 2,
+                    background: "rgba(0,0,0,0.2)", // slightly darker card
+                    backdropFilter: "blur(8px)",
+                    transform: "translateY(20px)",
+                    opacity: 0,
+                    animation: `cardIn 0.6s ease-out forwards ${idx * 0.2}s`,
+                    "@keyframes cardIn": {
+                      to: { transform: "translateY(0)", opacity: 1 },
+                    },
+                    transition: "transform 0.3s",
+                    "&:hover": { transform: "translateY(-10px)" },
+                  }}
+                >
+                  <CardContent sx={{ textAlign: "center" }}>
+                    <Typography
+                      variant="h3"
+                      component="div"
+                      sx={{
+                        animation: "bounce 1.5s ease infinite",
+                        "@keyframes bounce": {
+                          "0%,100%": { transform: "translateY(0)" },
+                          "50%": { transform: "translateY(-6px)" },
+                        },
+                      }}
+                    >
+                      {item.icon}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom color="common.white">
+                      {item.title}
+                    </Typography>
+                    <Typography variant="body2" color="grey.300">
+                      {item.desc}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Footer */}
+      <Footer />
+    </Box>
+  );
+};
 
 export default HomePage;

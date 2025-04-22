@@ -6,6 +6,7 @@ import BoardScene from "./scenes/BoardScene";
 import ChoiceScene from "./scenes/ChoiceScene";
 import SpinnerScene from "./scenes/SpinnerScene";
 import MessageScene from "./scenes/MessageScene";
+import MinigameScene from "./scenes/MinigameScene";
 
 // Game Configuration
 const baseConfig = {
@@ -22,6 +23,7 @@ const baseConfig = {
     ChoiceScene,
     SpinnerScene,
     MessageScene,
+    MinigameScene,
   ],
   scale: {
     autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,

@@ -12,4 +12,17 @@ export class Player {
     this.x = vertex.x * 32 - 16;
     this.y = vertex.y * 32 - 16;
   }
+
+  setLoc(newLoc) {
+    this.loc = newLoc;
+  }
+
+  setCoordinateValues(_x, _y)  {
+    this.x = _x;
+    this.y = _y;
+  }
+
+  setnumAPlusses(_numAPlusses) {
+    this.numAPlusses = _numAPlusses;
+  }
 }

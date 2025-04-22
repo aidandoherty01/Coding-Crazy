@@ -1,0 +1,16 @@
+{
+  "pack": {
+    "files": [
+      {
+        "type": "audio",
+        "key": "correct_question",
+        "url": "assets/audio/soundEffects/correct_question.wav"
+      },
+      {
+        "type": "audio",
+        "key": "incorrect_question",
+        "url": "assets/audio/soundEffects/incorrect_question.wav"
+      }
+    ]
+  }
+}

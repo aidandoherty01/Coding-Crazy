@@ -219,3 +219,34 @@ export async function getPublicLobbies(offset, limit, filePath = _pLobbyPath) {
     await client.close();
   }
 }
+
+export async function directQuestionData(_subject, filePath = _questionsPath) {
+  const client = new MongoClient(uri, { monitorCommands: true }); // Initialize MongoClient class (with debugging enabled)
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(_studySetCollection);
+
+    /* Check if the subject exists in the collection */
+    const exists = await collection.findOne({ subject: _subject });
+    if (!exists) {
+      throw new Error(`No questions found for subject: ${_subject}`);
+    }
+
+    /* Return questions with matching subject */
+    const data = await collection
+      .find({ subject: _subject }, { projection: { _id: 0, subject: 0 } }) // Match on specified subject, omitting id and subject in returned data
+      .toArray();
+    const jsonData = JSON.stringify(data, null, 2);
+
+    console.log(
+      `${_subject} questions from '${_studySetCollection}' being sent directly'`
+    );
+    return jsonData;
+  } catch (err) {
+    console.error("Error importing data: ", err);
+  } finally {
+    await client.close();
+  }
+}

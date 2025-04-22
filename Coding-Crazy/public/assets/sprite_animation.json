@@ -133,7 +133,7 @@
                 "repeat": 0
             },
             {
-                "key": "walk_north",
+                "key": "player_walk_north",
                 "type": "frame",
                 "frames": [
                     {
@@ -154,7 +154,7 @@
                 "repeat": 0
             },
             {
-                "key": "walk_east",
+                "key": "player_walk_east",
                 "type": "frame",
                 "frames": [
                     {
@@ -175,7 +175,7 @@
                 "repeat": 0
             },
             {
-                "key": "walk_south",
+                "key": "player_walk_south",
                 "type": "frame",
                 "frames": [
                     {
@@ -196,7 +196,7 @@
                 "repeat": 0
             },
             {
-                "key": "walk_west",
+                "key": "player_walk_west",
                 "type": "frame",
                 "frames": [
                     {
@@ -214,6 +214,431 @@
 
                 ],
                 "defaultTextureKey": "player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "blue_player_walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "blue_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "blue_player_walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "blue_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "blue_player_walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "blue_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "blue_player_walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "blue_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "red_player_walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "red_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "red_player_walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "red_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "red_player_walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "red_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "red_player_walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "red_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "grey_player_walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "grey_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "grey_player_walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "grey_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "grey_player_walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "grey_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "grey_player_walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "grey_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "black_player_walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "black_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "black_player_walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "black_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "black_player_walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "black_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "black_player_walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "black_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "dull_player_walk_north",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 0
+                    },
+                    {
+                        "frame": 1
+                    },
+                    {
+                        "frame": 2
+                    },
+                    {
+                        "frame": 1
+                    }
+                ],
+                "defaultTextureKey": "dull_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "dull_player_walk_east",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 3
+                    },
+                    {
+                        "frame": 4
+                    },
+                    {
+                        "frame": 5
+                    },
+                    {
+                        "frame": 4
+                    }
+                ],
+                "defaultTextureKey": "dull_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "dull_player_walk_south",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 6
+                    },
+                    {
+                        "frame": 7
+                    },
+                    {
+                        "frame": 8
+                    },
+                    {
+                        "frame": 7
+                    }
+                ],
+                "defaultTextureKey": "dull_player",
+                "frameRate": 6,
+                "repeat": 0
+            },
+            {
+                "key": "dull_player_walk_west",
+                "type": "frame",
+                "frames": [
+                    {
+                        "frame": 9
+                    },
+                    {
+                        "frame": 10
+                    },
+                    {
+                        "frame": 11
+                    },
+                    {
+                        "frame": 10
+                    }
+
+                ],
+                "defaultTextureKey": "dull_player",
                 "frameRate": 6,
                 "repeat": 0
             }
