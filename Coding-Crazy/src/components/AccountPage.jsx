@@ -61,8 +61,6 @@ function AccountPage() {
                 console.log("Updating username in local storage.");
                 localStorage.setItem("username", value);
                 window.dispatchEvent(new Event("storage"));
-            } else {
-                console.log("whhhhhattata");
             }
 
             setSuccessMessage(response.message);

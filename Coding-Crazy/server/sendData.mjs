@@ -151,10 +151,12 @@ export async function updateEntryInDB(
     const db = client.db(dbName);
     const collection = db.collection(collectionName);
 
-    await collection.updateOne(
-      { [target]: key },         // Filter
-      { $set: { [target]: value } } // Update
-    );
+    if(collectionName == _accountName) {
+      await collection.updateOne(
+        { "username": key },         // Filter
+        { $set: { [target]: value } } // Update
+      );
+    }
 
     console.log(`Updated entry in ${collectionName}.`);
   } catch (err) {
