@@ -137,6 +137,36 @@ export async function resetDB(
   }
 }
 
+/* Update specified item in DB */
+export async function updateEntryInDB(
+  collectionName,
+  target,
+  key,
+  value
+) {
+  const client = new MongoClient(uri, { monitorCommands: true });
+
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    if(collectionName == _accountName) {
+      await collection.updateOne(
+        { "username": key },         // Filter
+        { $set: { [target]: value } } // Update
+      );
+    }
+
+    console.log(`Updated entry in ${collectionName}.`);
+  } catch (err) {
+    console.error("Error updating entry in MongoDB:", err);
+    throw new Error(`${err.message}`);
+  } finally {
+    await client.close();
+  }
+}
+
 /* Remove specified item from DB */
 export async function removeEntryFromDB(
   collectionName,
