@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import QuizManager from "../../managers/QuizManager.js";
-import questions from "../../data/questions.json";
 
 const PIXELS_PER_METER = 50;
 
@@ -24,7 +23,8 @@ class MinigameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.quizManager = new QuizManager(questions, 1);
+    this.questions = data.questions;
+    this.quizManager = new QuizManager(this.questions, 1);
     this.currentQuestion = this.quizManager.getCurrentQuestion();
     this.returnScene = data.returnScene || "BoardScene";
   }
@@ -138,22 +138,22 @@ class MinigameScene extends Phaser.Scene {
     this.physics.add.collider(this.players[0], this.floor);
 
     // Overlap for regular platforms
-   this.physics.add.collider(
-     this.players[0],
-     this.platforms,
-     null, 
-     (player, plat) => this.isPlayerApproachingPlatform(player, plat),
-     this
-   );
+    this.physics.add.collider(
+      this.players[0],
+      this.platforms,
+      null,
+      (player, plat) => this.isPlayerApproachingPlatform(player, plat),
+      this
+    );
 
-   // Overlap for moving platforms
-   this.physics.add.collider(
-     this.players[0],
-     this.movingPlatforms,
-     null,
-     (player, plat) => this.isPlayerApproachingPlatform(player, plat),
-     this
-   );
+    // Overlap for moving platforms
+    this.physics.add.collider(
+      this.players[0],
+      this.movingPlatforms,
+      null,
+      (player, plat) => this.isPlayerApproachingPlatform(player, plat),
+      this
+    );
 
     // Overlap for challenge platforms
     this.physics.add.overlap(
@@ -488,7 +488,7 @@ class MinigameScene extends Phaser.Scene {
           fontStyle: "bold",
         })
         .setOrigin(0.5);
-        this.challengeStructures.add(optionText);
+      this.challengeStructures.add(optionText);
     }
 
     this.challengeQuestionY = answerY - 200;
@@ -502,7 +502,7 @@ class MinigameScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setScrollFactor(1);
-      this.challengeStructures.add(this.challengeQuestionText);
+    this.challengeStructures.add(this.challengeQuestionText);
     this.challengeActive = true;
     this.lastPlatformY = baseY - 800;
     this.platformSpawningEnabled = true;
@@ -559,7 +559,7 @@ class MinigameScene extends Phaser.Scene {
       this.currentQuestion = this.quizManager.hasMoreQuestions()
         ? this.quizManager.getCurrentQuestion()
         : (() => {
-            this.quizManager = new QuizManager(questions, 1);
+            this.quizManager = new QuizManager(this.questions, 1);
             return this.quizManager.getCurrentQuestion();
           })();
       this.challengeActive = false;
@@ -684,10 +684,7 @@ class MinigameScene extends Phaser.Scene {
     );
 
     // show final banner
-    this.displayResultBanner(
-      `Game Over!\nScore: ${scoreMeters}m`,
-      "#ff0000"
-    );
+    this.displayResultBanner(`Game Over!\nScore: ${scoreMeters}m`, "#ff0000");
 
     // then go back to your return scene
     this.time.delayedCall(5000, () => {

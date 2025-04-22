@@ -6,6 +6,27 @@ import { io } from "socket.io-client";
 import { gameSession } from "../../server/gameSessionClass";
 
 /* Grabs session from backend, updates with current information */
+const getQuestions = async (subject) =>{
+    try {
+        const res = await fetch(
+          `https://coding-crazy.onrender.com/get_questions?subject=${encodeURIComponent(subject)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+        }
+        );
+        if(res.ok){
+            const questionsJSON = await res.json();
+            console.log(questionsJSON);
+            return questionsJSON;
+        }
+      } catch (err) {
+        console.log(err);
+        return [];
+      }
+}
+
 const grabSession = async (roomCode, socket, username) => {
     if(!roomCode){
         const tempSess = new gameSession("AA", 1, 1, false, 10);
@@ -49,6 +70,7 @@ const GamePage = () => {
     console.log("STRG", localStorage.getItem("roomCode"));
     const roomCode = localStorage.getItem("roomCode") || "AA";
     const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
+    const subject = localStorage.getItem("subject");
     const [stateObject, setStateObject] = useState({});
     const [players, setPlayers] = useState({});
     const [scoreDict, updateScoreDict] = useState({});
@@ -60,6 +82,7 @@ const GamePage = () => {
     
         const fetchSessionData = async () => {
             const sessionData = await grabSession(roomCode, socket, username);
+            sessionData.questions = await getQuestions(subject);
             setStateObject(sessionData);
             console.log("SO", stateObject);
 
