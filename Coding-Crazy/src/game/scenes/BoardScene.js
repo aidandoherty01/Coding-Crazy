@@ -21,6 +21,7 @@ class BoardScene extends Phaser.Scene {
 
   preload() {
     this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
+
     console.log(localStorage.getItem("subject"));
   }
 
@@ -51,7 +52,7 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log("🎮 BoardScene is now active!");
 
-    this.add.image(0, 0, "modified_board").setOrigin(0).setScale(0.5);
+    this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
     if (this.game.config.stateObject.APlusLoc) {
@@ -527,9 +528,9 @@ class BoardScene extends Phaser.Scene {
       this.scene.stop("MessageScene");
       this.scene.pause("BoardScene");
       this.scene.launch("MinigameScene", {
-      questions: this.questionSet,
-      returnScene: "BoardScene",
-    });
+        questions: this.questionSet,
+        returnScene: "BoardScene",
+      });
     });
   }
 
@@ -654,4 +655,3 @@ class BoardScene extends Phaser.Scene {
 }
 
 export default BoardScene;
-
