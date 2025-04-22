@@ -364,12 +364,12 @@ class MinigameScene extends Phaser.Scene {
         if (activeKey === leftKey) {
           player.setVelocityX(-500);
           if (player.body.blocked.down) {
-            player.play("walk_west");
+            player.play("player_walk_west");
           }
         } else if (activeKey === rightKey) {
           player.setVelocityX(500);
           if (player.body.blocked.down) {
-            player.play("walk_east");
+            player.play("player_walk_east");
           }
         }
       }
@@ -390,16 +390,16 @@ class MinigameScene extends Phaser.Scene {
           const activeKey = player.movementKeys[player.movementKeys.length - 1];
           if (activeKey === leftKey) {
             player.setVelocityX(-500);
-            player.play("walk_west");
+            player.play("player_walk_west");
           } else if (activeKey === rightKey) {
             player.setVelocityX(500);
-            player.play("walk_east");
+            player.play("player_walk_east");
           }
         } else {
           // No horizontal keys are being held down: stop horizontal motion
           if (!player.getData("isWallJump")) {
             player.setVelocityX(0);
-            player.play("walk_south");
+            player.play("player_walk_south");
           }
         }
       }
