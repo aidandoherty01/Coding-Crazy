@@ -159,15 +159,21 @@ class BoardScene extends Phaser.Scene {
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
-    this.createMessageBar(
-      1024,
-      1024,
-      `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
-      `Turn ${this.game.config.stateObject.currTurn + 1} of ${
-        this.game.config.stateObject.numTurns
-      }`
-    );
-    this.startUpTurn();
+    this.scene.launch("MessageScene", { message: "Entering Game..." });
+    this.time.delayedCall(2000, () => {
+      this.scene.stop("MessageScene");
+
+      // 2) Now start the normal turn banner + logic
+      this.createMessageBar(
+        1024,
+        1024,
+        `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
+        `Turn ${this.game.config.stateObject.currTurn + 1} of ${
+          this.game.config.stateObject.numTurns
+        }`
+      );
+      this.startUpTurn();
+    });
   }
 
   startPlayerTurn() {
@@ -434,8 +440,12 @@ class BoardScene extends Phaser.Scene {
 
   startMinigame() {
     console.log("Minigame launching…");
-    this.scene.pause("BoardScene");
-    this.scene.launch("MinigameScene", { returnScene: "BoardScene" });
+    this.scene.launch("MessageScene", { message: "Get Ready for Minigame!" });
+    this.time.delayedCall(5000, () => {
+      this.scene.stop("MessageScene");
+      this.scene.pause("BoardScene");
+      this.scene.launch("MinigameScene", { returnScene: "BoardScene" });
+    });
   }
 
   endMessage() {
