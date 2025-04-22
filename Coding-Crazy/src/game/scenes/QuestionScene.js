@@ -10,12 +10,6 @@ class QuestionScene extends Phaser.Scene {
     this.quizManager = null;
   }
 
-  /*
-
-      Format boxes to wrap text for long wordy options.
-
-  */
-
   // Initialize the scene ON EVERY RESTART
   init(data) {
     const questions = data.questions;
@@ -52,6 +46,10 @@ class QuestionScene extends Phaser.Scene {
       this.registry.get("masteredQuestions") || [];
     this.quizManager.incorrectQuestions =
       this.registry.get("incorrectQuestions") || [];
+  }
+
+  preload() {
+   this.load.pack("questionAudio_pack", "assets/questionAudio_pack.json");
   }
 
   // Load the question scene
@@ -193,6 +191,8 @@ class QuestionScene extends Phaser.Scene {
           color: UIStyles.quizButton.textColor,
           fontStyle: UIStyles.quizButton.fontStyle,
           align: "center",
+          fixedWidth: buttonWidth - 16,
+          wordWrap: { width: buttonWidth - 16, useAdvancedWrap: true },
         })
         .setOrigin(0.5);
 
@@ -303,18 +303,17 @@ class QuestionScene extends Phaser.Scene {
 
   // Show the correct answer and feedback
   showCorrectAnswer(isCorrect, correctAnswer) {
+    this.sound.play(isCorrect ? "correct_question" : "incorrect_question");
     if (this.answerTooltip) {
       this.answerTooltip.destroy();
       this.answerTooltipText.destroy();
     }
 
     // Create Answer Text
-    const answerText = isCorrect
-      ? "✅ Correct!"
-      : `❌ Incorrect, Answer: ${correctAnswer}`;
+    const answerText = isCorrect ? "✅ Correct!" : `❌ Incorrect`;
     this.answerTooltipText = this.add.text(
-      0, // Temporarily set X to 0, will adjust after
-      0, // Temporarily set Y to 0, will adjust after
+      0,
+      0,
       answerText,
       UIStyles.answerTooltipText
     );

@@ -1,6 +1,7 @@
 import { Box, Button, Typography, Grid, TextField, Card, CardContent, Container } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 
 function LoginPage() {
     const [username, setUsername] = useState("");
@@ -101,24 +102,7 @@ function LoginPage() {
             </Container>
 
             {/* Footer */}
-            <Box sx={{ bgcolor: "#1e293b", py: 3, textAlign: "center" }}>
-                <Grid container justifyContent="center" spacing={4}>
-                    {[
-                        { title: "About", links: ["Our Story", "Team", "Careers"] },
-                        { title: "Support", links: ["FAQ", "Contact", "Help Center"] },
-                        { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Cookie Policy"] },
-                        { title: "Connect", links: ["Twitter", "Discord", "Reddit"] }
-                    ].map((section, index) => (
-                        <Grid item key={index}>
-                            <Typography variant="h6" color="warning.main">{section.title}</Typography>
-                            {section.links.map((link, i) => (
-                                <Typography key={i} variant="body2" sx={{ mt: 1 }}>{link}</Typography>
-                            ))}
-                        </Grid>
-                    ))}
-                </Grid>
-                <Typography variant="body2" sx={{ mt: 2 }}>© 2025 Study Studio. All rights reserved.</Typography>
-            </Box>
+            <Footer />
         </Box>
     );
 }

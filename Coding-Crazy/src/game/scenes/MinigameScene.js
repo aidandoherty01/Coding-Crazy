@@ -31,14 +31,86 @@ class MinigameScene extends Phaser.Scene {
 
   create() {
     console.log("🎮 Minigame Started!");
+    this.showControlsOverlay([
+      "W → Jump",
+      "A → Move Left",
+      "D → Move Right",
+      "Some jumps are tricky, try wall jumps!",
+      "Reach the highest point to win!",
+    ]);
+
     this.setupWorld();
-    this.roundSettings();
     this.spawnPlatforms();
     this.initializeMainPlayer();
     this.setupColliders();
   }
 
   // -------- Setup Functions --------
+  showControlsOverlay(lines) {
+    const { width, height } = this.scale;
+
+    // Block input behind the overlay
+    this.controlsOverlayUp = true;
+
+    // Dark semi‑transparent full‑screen background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x000000, 0.75);
+    bg.fillRect(0, 0, width, height);
+    bg.setScrollFactor(0);
+    bg.setDepth(1000);
+
+    // Container for text
+    const textYStart = height * 0.2;
+    lines.forEach((line, i) => {
+      this.add
+        .text(width / 2, textYStart + i * 40, line, {
+          fontSize: "28px",
+          fontFamily: "Arial",
+          color: "#ffffff",
+          align: "center",
+          wordWrap: { width: width * 0.8 },
+        })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(1001);
+    });
+
+    // “Press any key to start” prompt
+    const prompt = this.add
+      .text(width / 2, height * 0.8, "Press any key to start", {
+        fontSize: "20px",
+        color: "#cccccc",
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1001);
+
+    // Once any key or pointer is used, remove overlay & re‑enable input
+    const removeOverlay = () => {
+      bg.destroy();
+      prompt.destroy();
+      this.children
+        .getAll()
+        .filter(
+          (ch) =>
+            ch !== prompt &&
+            ch !== bg &&
+            ch.type === "Text" &&
+            lines.includes(ch.text)
+        )
+        .forEach((ch) => ch.destroy());
+
+      this.input.keyboard.enabled = true;
+      this.input.enabled = true;
+      this.input.keyboard.off("keydown", removeOverlay);
+      this.input.off("pointerdown", removeOverlay);
+      this.roundSettings();
+    };
+
+    this.input.keyboard.once("keydown", removeOverlay);
+    this.input.once("pointerdown", removeOverlay);
+  }
+
   setupWorld() {
     // Set world bounds and background
     this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
@@ -482,10 +554,15 @@ class MinigameScene extends Phaser.Scene {
       answerPlatform.setData("isAnswer", true);
       answerPlatform.setData("option", option);
       const optionText = this.add
-        .text(x, answerY - 50, option, {
+        .text(x, answerY - 100, option, {
           fontSize: "24px",
           fill: "#fff",
           fontStyle: "bold",
+          align: "center",
+          wordWrap: {
+            width: 150,
+            useAdvancedWrap: true,
+          },
         })
         .setOrigin(0.5);
       this.challengeStructures.add(optionText);
@@ -499,6 +576,10 @@ class MinigameScene extends Phaser.Scene {
         fontStyle: "bold",
         backgroundColor: "transparent",
         padding: { x: 10, y: 5 },
+        wordWrap: {
+          width: 1000,
+          useAdvancedWrap: true,
+        },
       })
       .setOrigin(0.5)
       .setScrollFactor(1);
@@ -547,7 +628,7 @@ class MinigameScene extends Phaser.Scene {
 
         this.tweens.add({
           targets: [cloud, player],
-          y: `-=${650}`,
+          y: `-=${700}`,
           duration: 5000,
           ease: "Linear",
           onComplete: () => {

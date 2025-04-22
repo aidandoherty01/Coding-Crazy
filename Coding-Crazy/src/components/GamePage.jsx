@@ -1,9 +1,10 @@
-import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, TextField, Button, Divider, LinearProgress } from "@mui/material";
+import { Box, Typography, Grid, Paper } from "@mui/material";
 import { PhaserGame } from "../game/PhaserGame"; 
 import { useRef, useState, useEffect } from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import { gameSession } from "../../server/gameSessionClass";
+import Footer from "./Footer";
 
 /* Grabs session from backend, updates with current information */
 const getQuestions = async (subject) =>{
@@ -72,7 +73,6 @@ const GamePage = () => {
     const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const subject = localStorage.getItem("subject");
     const [stateObject, setStateObject] = useState({});
-    const [players, setPlayers] = useState({});
     const [scoreDict, updateScoreDict] = useState({});
 
     useEffect(() => {
@@ -160,32 +160,18 @@ const GamePage = () => {
                 <Grid item xs={12} md={2}>
                     {/* Scoreboard */}
                     <Paper sx={{ bgcolor: "#1e293b", padding: 2, mb: 2 }}>
-                        <Typography variant="h6">Score</Typography>
+                        <Typography variant="h6">A+&apos;s Collected</Typography>
                         {Object.entries(scoreDict).map(([player,score], index) => (
                             <Typography key={index} sx={{ mt: 1 }}>
-                                {player}: <span style={{ color: "#22c55e" }}>{score} Points</span>
+                                {player}: <span style={{ color: "#22c55e" }}>{score}</span>
                             </Typography>
                         ))}
                     </Paper>
-
-                    {/* Current Stats */}
-                    <Paper sx={{ bgcolor: "#1e293b", padding: 2, mb: 2 }}>
-                        <Typography variant="h6">Current Stats</Typography>
-                        <Typography variant="body2">Total Questions</Typography>
-                        <LinearProgress variant="determinate" value={80} sx={{ bgcolor: "#334155", mb: 1 }} />
-                        <Typography variant="body2">Correctly Answered</Typography>
-                        <LinearProgress variant="determinate" value={60} sx={{ bgcolor: "#334155", mb: 1 }} />
-                        <Typography variant="body2">Needs Work</Typography>
-                        <LinearProgress variant="determinate" value={20} sx={{ bgcolor: "#334155" }} />
-                    </Paper>
-
                 </Grid>
             </Grid>
 
             {/* Footer */}
-            <Box sx={{ textAlign: "center", py: 2, bgcolor: "#1e293b" }}>
-                <Typography variant="body2">© 2025 Study Studio. All rights reserved.</Typography>
-            </Box>
+            <Footer />
         </Box>
     );
 };

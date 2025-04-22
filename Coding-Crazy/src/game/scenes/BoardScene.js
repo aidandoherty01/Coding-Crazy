@@ -100,10 +100,12 @@ class BoardScene extends Phaser.Scene {
               .sprite(xPix, yPix, spriteAssignment, 6)
               .setScale(0.6);
             this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
-              fontSize: "16px Arial",
-              fill: "rgba(255, 255, 255, 0.75)",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+              fontFamily: "Courier New, monospace",
+              fontSize: "14px",
+              color: "#ffffff",
+              stroke: "#000000",
+              strokeThickness: 4,
+              align: "center",
             });
             this.playerTitles[pyer].setOrigin(0.5, 1);
           }
@@ -218,15 +220,21 @@ class BoardScene extends Phaser.Scene {
 
     // Emit an event to notify the React component that the scene is ready
     EventBus.emit("current-scene-ready", this);
-    this.createMessageBar(
-      1024,
-      1024,
-      `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
-      `Turn ${this.game.config.stateObject.currTurn + 1} of ${
-        this.game.config.stateObject.numTurns
-      }`
-    );
-    this.startUpTurn();
+    this.scene.launch("MessageScene", { message: "Entering Game..." });
+    this.time.delayedCall(2000, () => {
+      this.scene.stop("MessageScene");
+
+      // 2) Now start the normal turn banner + logic
+      this.createMessageBar(
+        1024,
+        1024,
+        `${this.usernameList[this.game.config.stateObject.currPlayer]}'s Turn`,
+        `Turn ${this.game.config.stateObject.currTurn + 1} of ${
+          this.game.config.stateObject.numTurns
+        }`
+      );
+      this.startUpTurn();
+    });
   }
 
   startPlayerTurn() {
@@ -514,10 +522,14 @@ class BoardScene extends Phaser.Scene {
 
   startMinigame() {
     console.log("Minigame launching…");
-    this.scene.pause("BoardScene");
-    this.scene.launch("MinigameScene", {
+    this.scene.launch("MessageScene", { message: "Get Ready for Minigame!" });
+    this.time.delayedCall(5000, () => {
+      this.scene.stop("MessageScene");
+      this.scene.pause("BoardScene");
+      this.scene.launch("MinigameScene", {
       questions: this.questionSet,
       returnScene: "BoardScene",
+    });
     });
   }
 
@@ -642,3 +654,4 @@ class BoardScene extends Phaser.Scene {
 }
 
 export default BoardScene;
+
