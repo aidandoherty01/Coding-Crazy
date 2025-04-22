@@ -21,11 +21,13 @@ class BoardScene extends Phaser.Scene {
 
   preload() {
     this.load.animation("SpriteAnimation", "../assets/sprite_animation.json");
+    this.load.image("modified_board", "assets/images/board/modified_board.png");
 
     console.log(localStorage.getItem("subject"));
   }
 
   create() {
+    console.log(this.textures.exists("modified_board")); //REMOVE LATER
     this.socket = this.game.config.stateObject.socket;
     this.username = this.game.config.stateObject.username;
     this.usernameList = Object.keys(this.game.config.stateObject.players);
@@ -52,7 +54,7 @@ class BoardScene extends Phaser.Scene {
     console.log(this.players);
     console.log("🎮 BoardScene is now active!");
 
-    this.add.image(0, 0, "board").setOrigin(0).setScale(0.5);
+    this.add.image(0, 0, "modified_board").setOrigin(0).setScale(0.5);
 
     this.original_board = make_original_digraph();
     if (this.game.config.stateObject.APlusLoc) {
