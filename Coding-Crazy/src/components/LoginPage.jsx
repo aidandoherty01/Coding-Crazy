@@ -40,9 +40,7 @@ function LoginPage() {
             }
 
             /* Login Success */
-            const data = await response.json();
-            
-            localStorage.setItem("username", data.username);    // Store username to perisist across components
+            localStorage.setItem("username", username);    // Store username to perisist across components
             window.dispatchEvent(new Event("storage")); // Update navbar
             
             setIsLoggedIn(true);    // Block log in page to users who have already logged in

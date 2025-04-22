@@ -54,19 +54,17 @@ function AccountPage() {
                 throw new Error(`${response.status} - ${response.statusText}`);
             }
 
-            const data = await response.json();
-
-            if (data.username) {
-                localStorage.setItem("username", data.username);
-                setUsername(data.username);
+            /* On Success */
+            if (target == "username") { // Check if username was updated
+                localStorage.setItem("username", value);
                 window.dispatchEvent(new Event("storage"));
             }
 
             setSuccessMessage("Account successfully updated.");
 
         } catch (error) {
-        console.error("Error updating account:", error);
-        setLoginError(error.message);
+            console.error("Error updating account:", error);
+            setLoginError(error.message);
         }
     };
 

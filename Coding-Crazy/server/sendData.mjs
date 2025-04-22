@@ -158,7 +158,7 @@ export async function updateEntryInDB(
 
     console.log(`Updated entry in ${collectionName}.`);
   } catch (err) {
-    console.error("Error removing entry from MongoDB:", err);
+    console.error("Error updating entry in MongoDB:", err);
     throw new Error(`${err.message}`);
   } finally {
     await client.close();

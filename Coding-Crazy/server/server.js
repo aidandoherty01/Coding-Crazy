@@ -132,22 +132,17 @@ app.post("/update/:collection", async (req, res) => {
     const collection = req.params.collection;
     const {target, key, value} = req.body;
     console.log(`Target: ${target}, Key: ${key}, Value: ${value}`);
-    return;
 
     /* Access Specified Collection */
     if (["Collection", "Accounts"].includes(collection)) {
-      // Check valid collection name
-      console.log("Hooray!");
-      fs.writeFileSync(export_to_mongo, jsonData, "utf-8"); // Write data to be stored
-      await updateEntryInDB(collection, key, value);  // Attempt entry removal
-      res.sendFile(export_to_mongo);  // On success, respond with removed entry
+      await updateEntryInDB(collection, target, key, value);  // Attempt entry update
     } else {
       throw new Error(
         `Please specify a valid collection name. ${collection} is invalid.`
       );
     }
   } catch (err) {
-    console.error("Error removing entry from Database: ", err);
+    console.error("Error updating entry in Database: ", err);
     res.status(400).json({ error: err.message });
   }
 });
