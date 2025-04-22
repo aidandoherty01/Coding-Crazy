@@ -148,37 +148,39 @@ function FindLobbyPage() {
           publicLobbies.length ? (
             <List>
               {publicLobbies.map((lobby) => (
-                <ListItem
-                  key={lobby.roomCode}
-                  sx={{
-                    bgcolor: theme.palette.grey[800],
-                    mb: 2,
-                    borderRadius: 2,
-                    boxShadow: theme.shadows[4],
-                    px: 2,
-                    py: 1,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <ListItemText
-                    primary={`Code: ${lobby.roomCode}`}
-                    secondary={`Players: ${lobby.usernames?.length || 0}`}
-                    primaryTypographyProps={{
-                      color: theme.palette.common.white,
-                      fontWeight: 600,
+                <Grid item xs={12} key={lobby.roomCode}>
+                  <Card
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      p: 2,
+                      bgcolor: "#1e293b",
+                      color: "white",
                     }}
-                    secondaryTypographyProps={{
-                      color: theme.palette.grey[400],
-                    }}
-                  />
-                  <Button
-                    onClick={() => joinLobby(lobby.roomCode)}
-                    sx={{ ...gradientBtn, ml: 2 }}
                   >
-                    Join
-                  </Button>
-                </ListItem>
+                    <CardContent>
+                      <Typography variant="h6" color="warning.main">
+                        Room Code: {lobby.roomCode}
+                      </Typography>
+                      <Typography variant="body2">
+                        Players:{" "}
+                        {lobby.players ? Object.keys(lobby.players).length : 0}{" "}
+                        / {lobby.maxPlayers ?? "?"}
+                      </Typography>
+                      <Typography variant="body2">
+                        Total Turns: {lobby.numTurns ?? "?"}
+                      </Typography>
+                    </CardContent>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => joinLobby(lobby.roomCode)}
+                    >
+                      Join Lobby
+                    </Button>
+                  </Card>
+                </Grid>
               ))}
             </List>
           ) : (

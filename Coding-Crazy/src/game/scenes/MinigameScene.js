@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import QuizManager from "../../managers/QuizManager.js";
-import questions from "../../data/questions.json";
 
 const PIXELS_PER_METER = 50;
 
@@ -24,7 +23,8 @@ class MinigameScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.quizManager = new QuizManager(questions, 1);
+    this.questions = data.questions;
+    this.quizManager = new QuizManager(this.questions, 1);
     this.currentQuestion = this.quizManager.getCurrentQuestion();
     this.returnScene = data.returnScene || "BoardScene";
   }
@@ -640,7 +640,7 @@ class MinigameScene extends Phaser.Scene {
       this.currentQuestion = this.quizManager.hasMoreQuestions()
         ? this.quizManager.getCurrentQuestion()
         : (() => {
-            this.quizManager = new QuizManager(questions, 1);
+            this.quizManager = new QuizManager(this.questions, 1);
             return this.quizManager.getCurrentQuestion();
           })();
       this.challengeActive = false;

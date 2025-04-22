@@ -131,11 +131,13 @@ function LobbyPage() {
 
     const fetchCollection = async (subject) => {
         if (subject === "") { throw new Error("TEMP ERROR"); }
-        fetch(`https://coding-crazy.onrender.com/collection/${subject}`)
+        fetch(`https://coding-crazy.onrender.com/get_questions?subject=${encodeURIComponent(subject)}`)
             .then((res) => res.json())
-            .then((data) => setCollection(data))
+            .then((data) => setCollection(JSON.parse(data)))
             .then(setCanJoin(true)) // User can now join the lobby
             .catch((error) => console.error("Loading collection failed: ", error));
+        localStorage.setItem("subject", subject);
+        console.log(localStorage.getItem('subject'));
     };
 
     const leaveLobby = () => {

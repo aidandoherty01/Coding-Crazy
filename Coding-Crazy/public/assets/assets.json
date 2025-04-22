@@ -1,11 +1,66 @@
 [
   {
-      "path": "assets/character",
+    "path": "assets/character",
     "files": [
       {
         "type": "spritesheet",
         "key": "player",
         "url": "custom.png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
+      }
+    ]
+  },
+  {
+    "path": "assets/character",
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "grey_player",
+        "url": "grey_custom.png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
+      }
+    ]
+  },
+  {
+    "path": "assets/character",
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "black_player",
+        "url": "black_custom.png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
+      }
+    ]
+  },
+  {
+    "path": "assets/character",
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "blue_player",
+        "url": "blue_custom.png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
+      }
+    ]
+  },
+  {
+    "path": "assets/character",
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "dull_player",
+        "url": "dull_custom.png",
+        "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
+      }
+    ]
+  },
+  {
+    "path": "assets/character",
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "red_player",
+        "url": "red_custom.png",
         "frameConfig": { "frameWidth": 64, "frameHeight": 88 }
       }
     ]
@@ -18,6 +73,16 @@
             "key": "direction_arrow",
             "url": "directional_arrow_spritesheet.png",
             "frameConfig": {"frameWidth": 64, "frameHeight": 64}
+        }
+    ]
+  },
+  {
+    "path": "assets/misc_pictures",
+    "files": [
+        {
+            "type": "image",
+            "key": "report_card",
+            "url": "report_card_A.png"
         }
     ]
   },
@@ -50,6 +115,16 @@
         "key": "A+",
         "url": "Star (1).png",
         "frameConfig": { "frameWidth": 32, "frameHeight": 32 }
+      }
+    ]
+  },
+  {
+    "path": "assets/images/board",
+    "files": [
+      {
+        "type": "image",
+        "key": "modified_board",
+        "url": "modified_board.png"
       }
     ]
   },

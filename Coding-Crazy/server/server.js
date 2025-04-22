@@ -7,6 +7,7 @@ import {
   exportAccountToJson,
   exportSessionToJson,
   getPublicLobbies,
+  directQuestionData,
 } from "./getData.mjs";
 import {
   exportJsonToMongo,
@@ -17,6 +18,13 @@ import {
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
 import { Server } from "socket.io";
+import {
+  addPlayerToDB,
+  getAllPlayerData,
+  getPlayerData,
+  updatePlayerInfo,
+  removePlayerFromDB,
+} from "./updatePlayerCollection.js";
 import http from "http";
 import fs, { access, accessSync } from "fs";
 
@@ -148,6 +156,25 @@ app.post("/remove/:collection", async (req, res) => {
   } catch (err) {
     console.error("Error removing entry from Database: ", err);
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.get("/get_questions", async (req, res) => {
+  const subject = req.query.subject;
+  console.log(subject);
+  // Validate the subject
+  if (!subject || typeof subject !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Missing or invalid subject parameter." });
+  }
+
+  try {
+    const questions = await directQuestionData(subject);
+    res.json(questions);
+  } catch (err) {
+    console.error("❌ Error fetching questions:", err);
+    res.status(500).json({ error: "Failed to fetch questions from database." });
   }
 });
 
@@ -284,6 +311,89 @@ app.get("/public_lobbies", async (req, res) => {
   }
 });
 
+//Add player stats into database
+app.post("/add-player", async (req, res) => {
+  try {
+    const { id, loc, x, y, numAPlusses } = req.body;
+    const player = await addPlayerToDB(
+      "Player",
+      "Collection",
+      id,
+      loc,
+      x,
+      y,
+      numAPlusses
+    );
+    res.json(player);
+  } catch (error) {
+    console.log("Error adding player (server).", error);
+  }
+});
+
+//Update a players information in the collection
+app.patch("/update-player-info", async (req, res) => {
+  try {
+    const { id, loc, x, y, numAPlusses } = req.body;
+    const player = await updatePlayerInfo(
+      "Player",
+      "Collection",
+      id,
+      loc,
+      x,
+      y,
+      numAPlusses
+    );
+    res.status(200).json({ success: true, player });
+  } catch (error) {
+    console.log("Error updating player information (server)", error);
+  }
+});
+
+//Removes player from the collection (specifically for game completions)
+app.delete("/remove-player/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log("Player ID to be removed: " + id);
+
+  try {
+    const playerRemoval = await removePlayerFromDB("Player", "Collection", id);
+
+    if (!playerRemoval || playerRemoval.deletedCount === 0) {
+      console.log("Player not found or already removed.");
+      return res.status(404).json({ message: "Player not found." });
+    }
+    console.log("Sucessfully removed player");
+    res.status(200).json(playerRemoval);
+  } catch (err) {
+    console.error("Error removing player data (server)", err);
+    res.status(500).json({ message: "Server error while removing player." });
+  }
+});
+
+//Retrives a players information from the collection based off their ID
+app.get("/get-player-data/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const playerData = await getPlayerData("Player", "Collection", id);
+    res.json(playerData);
+
+    if (!id) {
+      console.log("PLAYER NOT FOUND.");
+    }
+  } catch {
+    console.log("Error getting player data (server)");
+  }
+});
+
+//Retrieves all players information from the collection
+app.get("/get-all-players", async (req, res) => {
+  try {
+    const players = await getAllPlayerData("Player", "Collection");
+    res.json(players);
+  } catch {
+    console.log("Error from get-all-players");
+  }
+});
+
 /* Socket Manager */
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
@@ -335,6 +445,16 @@ io.on("connection", (socket) => {
         );
         sessions[accessCode].tickCount();
         console.log(sessions[accessCode].countdown);
+        if (sessions[accessCode].justLeft) {
+          clearInterval(interval);
+          sessions[accessCode].justLeft = false;
+          sessions[accessCode].countdownStarted = false;
+          sessions[accessCode].countdown = 10;
+          io.to(accessCode).emit(
+            "countdown_update",
+            sessions[accessCode].countdown
+          );
+        }
 
         if (sessions[accessCode].reachedZero()) {
           clearInterval(interval);
@@ -346,15 +466,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("leave_lobby", async ({accessCode, username}) => {
+  socket.on("leave_lobby", async ({ accessCode, username }) => {
     if (sessions[accessCode]) {
       // const username = sessions[accessCode].findUsername(socket.id);
       // if (username) {
-        sessions[accessCode].deleteUser(username);
-        io.to(accessCode).emit(
-          "lobby_users",
-          sessions[accessCode].getUsernames()
-        );
+      sessions[accessCode].deleteUser(username);
+      io.to(accessCode).emit(
+        "lobby_users",
+        sessions[accessCode].getUsernames()
+      );
+      sessions[accessCode].justLeft = true;
       // }
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
@@ -365,7 +486,7 @@ io.on("connection", (socket) => {
     }
     console.log("Left", socket.id);
     socket.leave(accessCode);
-    //updateSession(sessions[accessCode]);
+    updateSession(sessions[accessCode]);
   });
 
   socket.on("join_room", ({ roomCode }) => {

@@ -22,6 +22,7 @@ function AccountPage() {
             const res = await fetch(`https://coding-crazy.onrender.com/collection/${subject}`);
             const data = await res.json();
             setCollection(data);    // Store response for displaying in DynamicTable
+            localStorage.setItem("subject", subject);
         } catch (error) {
             console.error("Loading collection failed:", error);
         }

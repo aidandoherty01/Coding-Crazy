@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import questions from "../../data/questions.json";
 import QuizManager from "../../managers/QuizManager";
 import { EventBus } from "../EventBus";
 import UIStyles from "../../css/uiStyles";
@@ -13,6 +12,7 @@ class QuestionScene extends Phaser.Scene {
 
   // Initialize the scene ON EVERY RESTART
   init(data) {
+    const questions = data.questions;
     const storedQuestions = this.registry.get("questions");
 
     this.questionLimit = data?.questionLimit;
