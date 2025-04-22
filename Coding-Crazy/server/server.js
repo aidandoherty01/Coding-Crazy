@@ -171,7 +171,6 @@ app.get("/get_questions", async (req, res) => {
 
   try {
     const questions = await directQuestionData(subject);
-    console.log(questions);
     res.json(questions);
   } catch (err) {
     console.error("❌ Error fetching questions:", err);

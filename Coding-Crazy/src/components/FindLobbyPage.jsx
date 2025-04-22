@@ -66,33 +66,36 @@ function FindLobbyPage() {
           </Box>
           {selectedTab === "public" ? (
             publicLobbies.length > 0 ? (
-            <List>
+              <Container maxWidth="md">
+              <Grid container spacing={2}>
                 {publicLobbies.map((lobby) => (
-                <ListItem key={lobby.roomCode}>
-                    <ListItemText
-                    primary={`Room Code: ${lobby.roomCode}`}
-                    secondary={`Players: ${lobby.usernames?.length || 0}`}
-                    slots={{
-                        primary: Typography,
-                        secondary: Typography,
-                      }}
-                      slotProps={{
-                        primary: {
-                          sx: { color: "text.primary" },
-                        },
-                        secondary: {
-                          sx: { color: "text.primary" },
-                        },
-                      }}
-                    />
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }}  onClick={() => {joinLobby(lobby.roomCode)}}>
+                  <Grid item xs={12} key={lobby.roomCode}>
+                    <Card sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: 2, bgcolor: "#1e293b", color: "white" }}>
+                      <CardContent>
+                        <Typography variant="h6" color="warning.main">
+                          Room Code: {lobby.roomCode}
+                        </Typography>
+                        <Typography variant="body2">
+                          Players:  {lobby.players ? Object.keys(lobby.players).length : 0} / {lobby.maxPlayers ?? "?"}
+                        </Typography>
+                        <Typography variant="body2">
+                          Total Turns: {lobby.numTurns ?? "?"}
+                        </Typography>
+                      </CardContent>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => joinLobby(lobby.roomCode)}
+                      >
                         Join Lobby
-                    </Button>
-                </ListItem>
+                      </Button>
+                    </Card>
+                  </Grid>
                 ))}
-            </List>
+              </Grid>
+            </Container>
             ) : (
-            <Typography variant="body1">Loading...</Typography>
+            <Typography variant="h3">Loading...</Typography>
             )
           ) : (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>

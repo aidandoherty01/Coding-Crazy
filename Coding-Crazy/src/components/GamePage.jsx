@@ -179,20 +179,6 @@ const GamePage = () => {
                         <LinearProgress variant="determinate" value={20} sx={{ bgcolor: "#334155" }} />
                     </Paper>
 
-                    {/* Chat Box */}
-                    <Paper sx={{ bgcolor: "#1e293b", padding: 2, display: "flex", flexDirection: "column", height: "250px" }}>
-                        <Typography variant="h6">Chat</Typography>
-                        <List sx={{ flexGrow: 1, overflowY: "auto" }}>
-                            <ListItem><ListItemText primary="Player 1: Hello!" /></ListItem>
-                            <ListItem><ListItemText primary="Player 2: Hi there!" /></ListItem>
-                            <ListItem><ListItemText primary="Player 3: Good game!" /></ListItem>
-                        </List>
-                        <Divider sx={{ my: 1 }} />
-                        <Box sx={{ display: "flex" }}>
-                            <TextField fullWidth size="small" placeholder="Type a message..." sx={{ bgcolor: "white", borderRadius: 1 }} />
-                            <Button variant="contained" sx={{ ml: 1 }}>Send</Button>
-                        </Box>
-                    </Paper>
                 </Grid>
             </Grid>
 
