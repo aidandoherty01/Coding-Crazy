@@ -11,8 +11,7 @@ function HomePage() {
                 <Typography variant="subtitle1">
                     Strengthen your learning while experiencing the ultimate gaming adventure.
                 </Typography>
-                <Box mt={3}>
-                    <Button variant="contained" color="secondary" sx={{ mx: 1 }}>Start as Guest</Button>
+                <Box mt={2}>
                     <Button variant="contained" color="success" sx={{ mx: 1 }} component={Link} to="/signup">Sign Up</Button>
                     <Button variant="contained" color="primary" sx={{ mx: 1 }} component={Link} to="/login">Log In</Button>
                 </Box>

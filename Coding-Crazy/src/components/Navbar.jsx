@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 function Navbar() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("username") != null);
-    // const [isReconnect, setIsReconnect] = useState(localStorage.getItem("isReconnect") === "true");
     const [reconnectMessage, setReconnectMessage] = useState("");
 
+    /* Event handlers for logging in or reconnecting */
     useEffect(() => {
         const checkLoginStatus = () => {
             console.log("Login event received.");
@@ -19,7 +19,6 @@ function Navbar() {
             console.log("Reconnect event received.");
             
             const flag = localStorage.getItem("isReconnect") === "true";
-            setIsReconnect(flag);
             if (flag) { setReconnectMessage("Reconnect"); }
             else { setReconnectMessage(""); }
 
@@ -36,6 +35,7 @@ function Navbar() {
         };
     }, []);
 
+    /* Toggle Drawer for smaller screens */
     const toggleDrawer = (open) => (event) => {
         if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
             return;
@@ -43,6 +43,7 @@ function Navbar() {
         setDrawerOpen(open);
     };
 
+    /* Signout the active user */
     const signOut = () => {
         localStorage.clear();
         setIsLoggedIn(false);
@@ -75,7 +76,9 @@ function Navbar() {
                         {/* Desktop Navigation Links */}
                         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2 }}>
                             <Button color="inherit" component={Link} to="/">🏠 Home</Button>
+                            {/* Directly navigate to game (optional)
                             <Button color="inherit" component={Link} to="/game">🎮 Play Game</Button>
+                            */}
                             <Button color="inherit" component={Link} to="/setupGame">{reconnectMessage || "Setup Game"}</Button>
                             <Button color="inherit" component={Link} to="/account" disabled={!isLoggedIn}>Account</Button>
                             <Button color="inherit" component={Link} to="/findLobby">Find Public Game</Button>

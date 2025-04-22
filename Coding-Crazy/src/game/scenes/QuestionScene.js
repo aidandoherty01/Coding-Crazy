@@ -11,6 +11,12 @@ class QuestionScene extends Phaser.Scene {
     this.quizManager = null;
   }
 
+  /*
+
+      Format boxes to wrap text for long wordy options.
+
+  */
+
   // Initialize the scene ON EVERY RESTART
   init(data) {
     const storedQuestions = this.registry.get("questions");
@@ -367,7 +373,7 @@ class QuestionScene extends Phaser.Scene {
   setTimer(questionType) {
     switch (questionType) {
       case "multipleChoice":
-        this.timeLeft = 10;
+        this.timeLeft = 30;
         break;
       case "fillInBlank":
         this.timeLeft = 20;
@@ -382,7 +388,7 @@ class QuestionScene extends Phaser.Scene {
         this.timeLeft = 20;
         break;
       default:
-        this.timeLeft = 10;
+        this.timeLeft = 30;
     }
 
     this.updateTimerText();

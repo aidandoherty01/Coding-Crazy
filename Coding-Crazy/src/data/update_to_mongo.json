@@ -1,1 +1,1 @@
-[{"roomCode":"AOSMFB","players":{"Hi":{"id":"Hi","loc":0,"x":0,"y":0,"numAPlusses":0}},"maxPlayers":2,"difficulty":5,"isPublic":true,"countdownStarted":false,"countdown":10,"gameStarted":false,"APlusLoc":30}]
+[{"roomCode":"ABKIQA","players":{"guest_1197":{"id":"guest_1197","loc":0,"x":0,"y":0,"numAPlusses":0}},"maxPlayers":1,"difficulty":5,"isPublic":false,"countdownStarted":false,"countdown":10,"gameStarted":false,"APlusLoc":39,"currTurn":0,"currPlayer":0,"numTurns":10}]

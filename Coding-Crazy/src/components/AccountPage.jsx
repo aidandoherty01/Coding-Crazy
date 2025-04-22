@@ -1,5 +1,5 @@
 import { Box, Button, Typography, Grid, Card, CardContent, Container } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SelectionMenu from "./SelectionMenu";
 import DynamicTable from "./DynamicTable";
 import { Link } from "react-router-dom";
@@ -11,103 +11,105 @@ function AccountPage() {
     const [successMessage, setSuccessMessage] = useState("");
 
     const fetchCollection = async (subject) => {
-        if(subject === "") { throw new Error("TEMP ERROR"); }
-        fetch(`https://coding-crazy.onrender.com/collection/${subject}`)
-        .then((res) => res.json())
-        .then((data) => setCollection(data))
-        .then(() => console.log(collection))
-        .catch((error) => console.error("Loading collection failed: ", error))
+        /* Saftey Check */
+        if (!subject) {
+            console.error("Subject not selected.");
+            return;
+        }
+
+        /* Attempt Subject Fetch */
+        try {
+            const res = await fetch(`https://coding-crazy.onrender.com/collection/${subject}`);
+            const data = await res.json();
+            setCollection(data);    // Store response for displaying in DynamicTable
+        } catch (error) {
+            console.error("Loading collection failed:", error);
+        }
     };
 
     const deleteAccount = async () => {
         try {
-            console.log("In deleteAccount()");
-            
             /* Saftey Checks */
-            if(localStorage.getItem("roomCode")) { throw new Error("Account is associated with a game. Please finish game session before attempting account delete."); }
+            if (localStorage.getItem("roomCode")) {
+                throw new Error("Account is associated with a game. Please finish game session before attempting account delete.");
+            }
+
             const username = localStorage.getItem("username");
-            if(username == null) { throw new Error("User is not logged in."); }
+            if (!username) {
+                throw new Error("User is not logged in.");
+            }
 
-            /* Formatting Data */
-            const userData = {
-                username : [ username ]
-            };
-
-            /* Attempting Delete */
+            /* Attempt Account Removal */
             const response = await fetch("https://coding-crazy.onrender.com/remove/Accounts", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(userData),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: [username] }), // Formatting data
             });
 
             if (!response.ok) {
                 throw new Error(`${response.status} - ${response.statusText}`);
             }
 
-            /* Deletion Success */
-            console.log(`${username} has been deleted`);
-
-            localStorage.clear();
+            /* On Success */
+            localStorage.clear();   // Remove any stored credentials
             window.dispatchEvent(new Event("storage"));
 
             setSuccessMessage("Account Successfully Deleted.");
-            setIsLoggedIn(false);
+            setIsLoggedIn(false);   // Update page state
 
-        } catch(error) {
-            console.error("Account deletion failed: ", error);
+        } catch (error) {
+            console.error("Account deletion failed:", error);
         }
-    }
-    /*
-    const storeCollection = async () => {    // Store the current collection in local storage as active study set
-        if(localStorage.getItem("username")) {  // If account exists
-            localStorage.setItem("subject", selectedSubject);
-            console.log(`Subject in local storage: ${localStorage.getItem("subject")}`);
-        } else {
-            console.log("Sign into an account to store subjects from this page!");
-        }
-    }
-    */
-    /*useEffect(() => {
-        fetchCollection(API);
-    }, []);*/
+    };
 
     return (
-        <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh" }}>
-        { isLoggedIn ? (
-            <Box>
-                {/* Account Deletion */}
-                <Box textAlign={"center"} py={5}>
-                    <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={deleteAccount}>Delete Account</Button>
-                </Box>
+        <Box sx={{ bgcolor: "#0f172a", color: "white", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <Container maxWidth="md" sx={{ py: 8 }}>
+                {isLoggedIn ? (
+                    <Card sx={{ bgcolor: "#1e293b", p: 4, borderRadius: 3 }}>
+                        <CardContent>
+                            <Typography variant="h4" align="center" gutterBottom>Welcome to Your Dashboard</Typography>
 
-                {/* Data Section */}
-                <Box textAlign="center" py={5}>
-                    <h2>Selected Subject: {selectedSubject || "None"}</h2>
-                    <SelectionMenu onSelect={(value) => {   {/* For cleaner syntax, can be reduced to onSelect={setSelectedSubject} */}
-                        console.log("App selected subject: ", value);
-                        setSelectedSubject(value);
-                    }} />
-                    <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={ () => {
-                        fetchCollection(selectedSubject);
-                    }
-                    }>Load Study Set</Button> {/* On button click, fetch the specified collection */}
-                </Box>
+                            {/* Account Actions */}
+                            <Box textAlign="center" mt={4}>
+                                <Button variant="contained" color="error" onClick={deleteAccount}>Delete Account</Button>
+                            </Box>
 
-                <Box>
-                    <DynamicTable collection={collection} />    {/* Create a table based off the current collection/subject */}
-                </Box>
-            </Box>
-        ) : (
-            <Box textAlign="center" py={5}>
-                <Typography>{ successMessage || "You are not logged into an account." }</Typography>
-                <Button component={Link} to="/">Return to Home</Button>
-            </Box>
-        )}
+                            {/* Subject Selection */}
+                            <Box textAlign="center" mt={5}>
+                                <Typography variant="h6">Selected Subject: {selectedSubject || "None"}</Typography>
+                                <Box mt={2}>
+                                    <SelectionMenu onSelect={(value) => {
+                                        console.log("Selected subject: ", value);
+                                        setSelectedSubject(value);
+                                    }} />
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ mt: 3 }}
+                                    onClick={() => fetchCollection(selectedSubject)}
+                                >
+                                    Load Study Set
+                                </Button>
+                            </Box>
+
+                            {/* Dynamic Table */}
+                            <Box mt={5}>
+                                <DynamicTable collection={collection} />
+                            </Box>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <Box textAlign="center">
+                        <Typography variant="h5" gutterBottom>{successMessage || "You are not logged into an account."}</Typography>
+                        <Button variant="outlined" color="secondary" component={Link} to="/">Return to Home</Button>
+                    </Box>
+                )}
+            </Container>
 
             {/* Footer */}
-            <Box sx={{ bgcolor: "#1e293b", mt: 5, py: 3, textAlign: "center" }}>
+            <Box sx={{ bgcolor: "#1e293b", py: 3, textAlign: "center" }}>
                 <Grid container justifyContent="center" spacing={4}>
                     {[
                         { title: "About", links: ["Our Story", "Team", "Careers"] },

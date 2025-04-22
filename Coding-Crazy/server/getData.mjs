@@ -153,7 +153,7 @@ export async function exportAccountToJson(
       throw new Error(`Incorrect username or password.`);
     }
 
-    /* Return questions with matching subject */
+    /* Return account with matching credentials */
     const jsonData = JSON.stringify(user, null, 2);
     fs.writeFileSync(filePath, jsonData);
 
