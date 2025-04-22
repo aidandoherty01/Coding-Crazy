@@ -445,6 +445,16 @@ io.on("connection", (socket) => {
         );
         sessions[accessCode].tickCount();
         console.log(sessions[accessCode].countdown);
+        if (sessions[accessCode].justLeft) {
+          clearInterval(interval);
+          sessions[accessCode].justLeft = false;
+          sessions[accessCode].countdownStarted = false;
+          sessions[accessCode].countdown = 10;
+          io.to(accessCode).emit(
+            "countdown_update",
+            sessions[accessCode].countdown
+          );
+        }
 
         if (sessions[accessCode].reachedZero()) {
           clearInterval(interval);
@@ -465,6 +475,7 @@ io.on("connection", (socket) => {
         "lobby_users",
         sessions[accessCode].getUsernames()
       );
+      sessions[accessCode].justLeft = true;
       // }
       if (sessions[accessCode].empty()) {
         delete sessions[accessCode]; // remove the global session
@@ -475,7 +486,7 @@ io.on("connection", (socket) => {
     }
     console.log("Left", socket.id);
     socket.leave(accessCode);
-    //updateSession(sessions[accessCode]);
+    updateSession(sessions[accessCode]);
   });
 
   socket.on("join_room", ({ roomCode }) => {
