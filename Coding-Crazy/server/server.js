@@ -13,6 +13,7 @@ import {
   updateRoom,
   resetDB,
   removeEntryFromDB,
+  updateEntryInDB
 } from "./sendData.mjs";
 import path from "path";
 import { gameSession } from "./gameSessionClass.js";
@@ -125,6 +126,33 @@ app.post("/send/:collection", async (req, res) => {
   }
 });
 
+app.post("/update/:collection", async (req, res) => {
+  try {
+    /* Store Parameters */
+    const collection = req.params.collection;
+    const key = req.body.key;
+    const value = req.body.value;
+    console.log(`Key: ${key}, Value: ${value}`);
+    return;
+
+    /* Access Specified Collection */
+    if (["Collection", "Accounts"].includes(collection)) {
+      // Check valid collection name
+      console.log("Hooray!");
+      fs.writeFileSync(export_to_mongo, jsonData, "utf-8"); // Write data to be stored
+      await updateEntryInDB(collection, key, value);  // Attempt entry removal
+      res.sendFile(export_to_mongo);  // On success, respond with removed entry
+    } else {
+      throw new Error(
+        `Please specify a valid collection name. ${collection} is invalid.`
+      );
+    }
+  } catch (err) {
+    console.error("Error removing entry from Database: ", err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /* Remove Entries from Database */
 app.post("/remove/:collection", async (req, res) => {
   try {
@@ -132,14 +160,13 @@ app.post("/remove/:collection", async (req, res) => {
     const collection = req.params.collection;
     const jsonData = JSON.stringify(req.body, null, 2);
 
-    /* INCLUDE SESSIONS?? */
-
+    /* Access Specified Collection */
     if (["Collection", "Accounts"].includes(collection)) {
       // Check valid collection name
       console.log("Hooray!");
-      fs.writeFileSync(export_to_mongo, jsonData, "utf-8");
-      await removeEntryFromDB(collection);
-      res.sendFile(export_to_mongo);
+      fs.writeFileSync(export_to_mongo, jsonData, "utf-8"); // Write data to be stored
+      await removeEntryFromDB(collection);  // Attempt entry removal
+      res.sendFile(export_to_mongo);  // On success, respond with removed entry
     } else {
       throw new Error(
         `Please specify a valid collection name. ${collection} is invalid.`
