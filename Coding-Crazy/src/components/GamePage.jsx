@@ -1,7 +1,7 @@
-import { Box, Typography, Grid, Paper, List, ListItem, ListItemText, TextField, Button, Divider, LinearProgress } from "@mui/material";
+import { Box, Typography, Grid, Paper } from "@mui/material";
 import { PhaserGame } from "../game/PhaserGame"; 
 import { useRef, useState, useEffect } from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import { gameSession } from "../../server/gameSessionClass";
 import Footer from "./Footer";
@@ -51,7 +51,6 @@ const GamePage = () => {
     const roomCode = localStorage.getItem("roomCode") || "AA";
     const username = localStorage.getItem("username") || localStorage.getItem("guest"); // guest is cheap workaround for username checking
     const [stateObject, setStateObject] = useState({});
-    const [players, setPlayers] = useState({});
     const [scoreDict, updateScoreDict] = useState({});
 
     useEffect(() => {

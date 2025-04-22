@@ -72,10 +72,12 @@ class BoardScene extends Phaser.Scene {
         .sprite(xPix, yPix, "player", 6)
         .setScale(0.6);
       this.playerTitles[pyer] = this.add.text(xPix, yPix - 20, pyer, {
-        fontSize: "16px Arial",
-        fill: "rgba(255, 255, 255, 0.75)",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        padding: { left: 3, right: 3, top: 1.5, bottom: 1.5 },
+        fontFamily: "Courier New, monospace",
+        fontSize: "14px",
+        color: "#ffffff", 
+        stroke: "#000000", 
+        strokeThickness: 4, 
+        align: "center",
       });
       this.playerTitles[pyer].setOrigin(0.5, 1);
     }
